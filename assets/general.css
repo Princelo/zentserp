@@ -1,0 +1,158 @@
+html, body{  margin: 0; padding: 0; height:100%; width:100%;min-width:1280px;}
+
+body{font-family:sans-serif, Verdana,Arial,'Lucida Grande','Lucida Sans Unicode';font-size: 12px;background:#fff;color:#333}/*background:#18232E*/
+#header{border-top: 3px solid #FF7200;border-bottom: 5px solid #CCDBEA;background:#1F3C56;color:#fff;height:35px;clear:both;float:left;width:100%;position:relative;overflow:hidden;}
+#mainmenu{position:relative;clear:both;float:left;width:100%;}
+#container{position:relative;clear:both;float:left;width:100%;overflow:hidden;}
+#footer{padding-top: 10px;font-size: 0.8em;text-align: center;border-top: 1px solid #dedede;clear:both;float:left;width:100%;}
+
+#logo{padding: 10px 20px;float:left;width:150px;}
+#head_info{padding: 10px 20px;float:right;width:800px;text-align:right}
+
+
+a{cursor:pointer;color:#7eacb9;text-decoration:none}
+a:hover{color:#00baef}
+
+
+/* Left Menu start */
+
+ul#left_menu{margin:0;padding:0;list-style:none}
+ul#left_menu li{border-bottom:1px solid #dedede;margin-left:0;padding-left:0;background:#f6f6f6;}
+ul#left_menu li:hover, ul#left_menu li.active{background:#f48323;}
+
+ul#left_menu li a{height:50px;display:block;background:#f6f6f6;margin-left:5px;border-right:1px solid #dedede;position:relative;left:1px}
+ul#left_menu li a:hover, ul#left_menu li.active a{background:url(../../../images/arrow/sign-12_20x20.png) #fff no-repeat 90%   50%;border-right:1px solid #fff;}
+ul#left_menu li a div{padding:15px 0 0 30px;font-size:13px;font-weight:bold;color:#333 }
+
+/* Left Menu end */
+
+
+/* General start */
+.align_left{text-align:left;}
+.align_center{text-align:center;}
+.align_right{text-align:right;}
+.align_top{vertical-align:top;}
+.pixel18{font-size:18px}
+.pixel13{font-size:13px}
+.pixel10{font-size:10px}
+.blue{color:#006699}
+.red{color:#ff5400}
+.green{color:#009F00}
+.grey{color:#999}
+.white{color:#fff}
+.light_grey{color:#eee}
+.white{color:#fff}
+.bold{font-weight:bold;}
+.pointer{cursor:pointer;}
+.cross{text-decoration:line-through}
+.disable_img{Filter: Gray}
+.float_left{float:left}
+.disabled_text_field{border:1px solid #f0f0f0; background:#eee;color:#000}
+.endisabled_text_field{border:1px solid #c0c0c0; background:#fff}
+.focus_text_field{border:1px solid #9e1919; background:#ffcdcd}
+.hide{display:none}
+/* General end */
+
+
+/* all table start */
+table{}
+table thead tr th{ white-space:white-space:nowrap;padding:10px;border-top:1px solid #ccc;border-bottom:1px solid #ccc;background:#f6f6f6;height:30px;min-height:30px;text-align:left;}
+table .even td {background:#fff;padding:5px}
+table .odd td {background:#F2F6F9;padding:5px}
+table .special td {background:#f9f9f9;padding:5px}
+table .current td {background:#FADC7F;padding:5px}
+table .red td {background:#FDEDF4;padding:5px}
+table .odd:hover td, table .even:hover td {background:#dce6ee}
+table td.leave{background:#DFEEFB;}
+table td.off{background:#F7F3E9;}
+table td.holiday{background:#FDEDF4;}
+table td.npl{background:#E1F0BD;}
+table td.late{background:#F7BDBD;}
+table td.ot{background:#8DC1FB;}
+table td.early_leave{background:#CFE0BF;}
+/* all table end */
+
+/* form elements in field set start */
+fieldset{margin:10px;padding:20px 20px 10px 20px;}
+fieldset legend{font:12px 'Lucida Grande','Lucida Sans Unicode',Arial,Verdana,sans-serif;text-transform:uppercase;letter-spacing:0.2em;margin:10px;}
+fieldset input[type=text], fieldset input[type=password] {width:200px;border:1px dashed #999;height:25px;}
+fieldset textarea {width:350px;border:1px dashed #999;height:100px;overflow:auto;}
+fieldset select {border:1px dashed #999;height:25px;}
+
+fieldset input[type=text]:hover,
+fieldset input[type=text]:focus, 
+fieldset input[type=text]:active, 
+fieldset input[type=password]:hover,
+fieldset input[type=password]:focus, 
+fieldset input[type=password]:active, 
+fieldset textarea:hover,
+fieldset textarea:focus, 
+fieldset textarea:active
+{border:1px solid #536474;}
+/* form elements in field set end */
+
+
+
+/* Advance table start */
+ul.roster_type{list-style:none;padding:2px}
+ul.roster_type li{display:inline;margin:2px;}
+ul.roster_type li.current{background:#FADC7F;}
+ul.roster_type li.leave{background:#DFEEFB;}
+ul.roster_type li.off{background:#F7F3E9;}
+ul.roster_type li.holiday{background:#FDEDF4;}
+ul.roster_type li.satsun{background:#F2F6F9;}
+ul.roster_type li.npl{background:#E1F0BD;}
+ul.roster_type span{margin-left:20px;background:#fff;padding:2px}
+
+/* Advance table end */
+
+
+
+.list_table table tr th{padding-right:5px;text-align:left;font:12px 'Lucida Grande','Lucida Sans Unicode',Arial,Verdana,sans-serif;color:#536474;background:#f6f6f6;height:30px;min-height:30px;}
+.list_table table tr th span {color:red}
+.list_table table tr td{height:30px;min-height:30px;border-bottom:1px solid #ddd}
+.list_table table tr{}
+
+
+
+table.search_form tr th{width:100px;padding-right:5px;text-align:right;font:12px 'Lucida Grande','Lucida Sans Unicode',Arial,Verdana,sans-serif;color:#536474;background:#f6f6f6;height:20px}
+table.search_form tr td{padding-left:5px;}
+
+table.search_form input[type=text],table.search_form input[type=password] {width:150px;border:1px solid #ccc;height:20px;}
+table.search_form textarea {width:150px;border:1px solid #ccc;height:150px;overflow:auto;}
+table.search_form select {border:1px solid #ccc;height:25px;}
+
+
+
+.attendance input[type=text],.search_form fieldset input[type=password] {width:50px;border:1px solid #ccc;height:20px;}
+.attendance textarea {width:150px;border:1px solid #ccc;height:150px;overflow:auto;}
+.attendance select {border:1px solid #ccc;height:25px;}
+
+
+.roster input[type=text],.search_form fieldset input[type=password] {width:50px;border:1px solid #ccc;height:20px;}
+.roster textarea {width:150px;border:1px solid #ccc;height:150px;overflow:auto;}
+.roster select {border:1px solid #ccc;height:25px;}
+
+
+
+form table tr th{padding-right:5px;text-align:right;font:12px 'Lucida Grande','Lucida Sans Unicode',Arial,Verdana,sans-serif;color:#536474;background:#f6f6f6}
+form table tr th span {color:red}
+form table tr td{padding-left:10px;text-align:left}
+form input[type=reset],
+form button {background:#ddd;border:1px solid #999;padding:10px 20px;}
+form input[type=submit]{background:#536474;border:1px solid #999;padding:10px 20px;color:#fff;margin-top:0;}
+
+.view_form {margin:20px;padding:20px 20px 10px 20px;border:1px dashed #ccc}
+.view_form table tr th{padding-right:5px;text-align:right;font:12px 'Lucida Grande','Lucida Sans Unicode',Arial,Verdana,sans-serif;color:#536474;background:#f6f6f6;height:30px}
+.view_form table tr td{padding-left:10px;}
+p.warn_box{color:red;padding:10px;text-align:center}
+p.success_box{color:green;padding:10px;text-align:center}
+
+
+.doubleUnderline {
+    border-bottom: 3px double #000;
+}
+
+
+.paging_toolbar{margin-bottom:10px;}
+.list_table{margin:10px 0; }

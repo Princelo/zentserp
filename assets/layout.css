@@ -1,0 +1,39 @@
+
+/*  New Start */
+.type-button{margin-left:10px;height:50px;}
+.type-button input[type=button]{background:#ddd;border:1px solid #999;padding:10px 20px;margin:0}
+.c50l{width:50%;float:left;}
+.c50r{width:50%;float:right;text-align:right}
+
+#col1 { float:left; width:200px; }
+#col2 { float:right; width:200px; }
+#col3 { width:auto; margin:0 200px; }
+
+
+
+/**
+* (en) Repositioning content container
+* (de) Neupositionierung der Content Container
+*
+* |-------------------------------|
+* | #header                       |
+* |-------------------------------|
+* | #col1   | #col3               |
+* | 25%     | flexible            |
+* |-------------------------------|
+* | #footer                       |
+* |-------------------------------|
+*/
+#col1 { width:200px; background:#f6f6f6}
+
+/* Hide right column | Rechte Spalte abschalten */
+#col2, #col2_content { display:none; }
+
+#col3 { margin-left:200px;border-left:1px solid #dedede; margin-right:0;background:#fff}
+#col3_content { padding:10px 20px 0 10px; }
+
+#col4 { margin-left:0; margin-right:0;background:#fff }
+#col4_content { padding:0 20px 0 0; }
+
+#col5 { margin-left:0; margin-right:0;background:#fff }
+#col5_content { padding:10px 20px 0 10px; }
