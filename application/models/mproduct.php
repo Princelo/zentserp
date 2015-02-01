@@ -17,6 +17,7 @@ class MProduct extends CI_Model
         $query_sql = "";
         $query_sql .= "
             select
+                p.id id,
                 p.title title,
                 p.properties properties,
                 p.feature feature,
@@ -24,7 +25,8 @@ class MProduct extends CI_Model
                 p.img img,
                 pr1.price price_special,
                 pr2.price price_last_2,
-                pr3.price price_last_3
+                pr3.price price_last_3,
+                pr0.price price_normal
             from
                 products p
                 join price pr1
@@ -36,6 +38,9 @@ class MProduct extends CI_Model
                 join price pr3
                 on p.id = pr3.product_id
                 and pr3.level = 3
+                join price pr0
+                on p.id = pr0.product_id
+                and pr0.level = 0
             where
                 1 = 1
                 {$where}
@@ -108,7 +113,8 @@ class MProduct extends CI_Model
             select count(1) from products p
             join price pr1 on pr1.level = 1 and pr1.product_id = p.id
             join price pr2 on pr2.level = 2 and pr2.product_id = p.id
-            join price pr3 on pr1.level = 3 and pr3.product_id = p.id
+            join price pr3 on pr3.level = 3 and pr3.product_id = p.id
+            join price pr0 on pr0.level = 0 and pr0.product_id = p.id
             where 1 = 1 {$where}
         ;";
         $query = $this->objDB->query($query_sql);
@@ -121,6 +127,23 @@ class MProduct extends CI_Model
         $query->free_result();
 
         return $count;
+    }
+
+    public function strGetProductTitle($product_id)
+    {
+        $query_sql = '';
+        $query_sql .= "
+            select title from products where id = ?;
+        ";
+        $binds = array($product_id);
+        $query = $this->objDB->query($query_sql, $binds);
+        if($query->num_rows() > 0) {
+            $title = $query->row()->title;
+        }
+
+        $query->free_result();
+
+        return $title;
     }
 
 }

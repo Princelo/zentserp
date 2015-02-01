@@ -25,6 +25,50 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 SET search_path = public, pg_catalog;
 
+--
+-- Name: log_upgrade_level(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION log_upgrade_level() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+	insert into level_update_log (user_id, new_level, original_level, new_profit, original_profit, new_first_purchase, original_first_purchase)
+	values
+	(NEW.id, NEW.level, OLD.level, NEW.profit, OLD.profit, NEW.first_purchase, OLD.first_purchase);
+	RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.log_upgrade_level() OWNER TO postgres;
+
+--
+-- Name: update_left_right(integer); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION update_left_right(pic integer) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+    declare update_node int;
+    declare current_root_id int;
+    BEGIN
+	select
+		rgt, root_id
+		into update_node, current_root_id
+	from users where id =
+		(select pid from users where id = pid)
+	;
+	update users set lft = case when lft >= update_node then lft + 2
+                                      else lft end,
+                         rgt = rgt + 2
+		where rgt >= update_node - 1;
+    END;
+    $$;
+
+
+ALTER FUNCTION public.update_left_right(pic integer) OWNER TO postgres;
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
@@ -140,6 +184,45 @@ ALTER SEQUENCE captcha_captcha_id_seq OWNED BY captcha.captcha_id;
 
 
 --
+-- Name: finish_log; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE finish_log (
+    order_id integer,
+    pay_amt money,
+    user_id integer,
+    parent_user_id integer,
+    is_root boolean,
+    pay_amt_without_post_fee money,
+    is_first boolean,
+    id integer NOT NULL
+);
+
+
+ALTER TABLE finish_log OWNER TO postgres;
+
+--
+-- Name: finish_log_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE finish_log_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE finish_log_id_seq OWNER TO postgres;
+
+--
+-- Name: finish_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE finish_log_id_seq OWNED BY finish_log.id;
+
+
+--
 -- Name: forecasts; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -174,6 +257,46 @@ ALTER SEQUENCE forecast_id_seq OWNED BY forecasts.id;
 
 
 --
+-- Name: level_update_log; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE level_update_log (
+    id integer NOT NULL,
+    user_id integer,
+    new_level integer,
+    upgrade_time timestamp without time zone DEFAULT now(),
+    original_profit money,
+    original_level integer,
+    new_profit money,
+    original_first_purchase money,
+    new_first_purchase money
+);
+
+
+ALTER TABLE level_update_log OWNER TO postgres;
+
+--
+-- Name: level_update_log_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE level_update_log_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE level_update_log_id_seq OWNER TO postgres;
+
+--
+-- Name: level_update_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE level_update_log_id_seq OWNED BY level_update_log.id;
+
+
+--
 -- Name: orders; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -194,7 +317,11 @@ CREATE TABLE orders (
     pay_time timestamp without time zone,
     address_book_id integer,
     is_post boolean,
-    post_fee money
+    post_fee money,
+    finish_time timestamp without time zone,
+    is_pay_online boolean DEFAULT false,
+    is_first boolean DEFAULT false,
+    pay_amt_without_post_fee money
 );
 
 
@@ -299,17 +426,49 @@ ALTER SEQUENCE products_id_seq OWNED BY products.id;
 
 
 --
+-- Name: root_ids; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE root_ids (
+    create_time timestamp without time zone,
+    id integer NOT NULL
+);
+
+
+ALTER TABLE root_ids OWNER TO postgres;
+
+--
+-- Name: root_ids_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE root_ids_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE root_ids_id_seq OWNER TO postgres;
+
+--
+-- Name: root_ids_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE root_ids_id_seq OWNED BY root_ids.id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
 CREATE TABLE users (
-    id integer NOT NULL,
     username character varying(16),
     password character(32),
     create_time timestamp without time zone DEFAULT now(),
     update_time timestamp without time zone,
     is_valid boolean,
-    level integer DEFAULT 1,
+    level integer DEFAULT 0,
     name character varying(10),
     citizen_id character varying(20),
     mobile_no character varying(15),
@@ -320,6 +479,11 @@ CREATE TABLE users (
     rgt integer NOT NULL,
     pid integer,
     root_id integer,
+    profit money,
+    is_admin boolean DEFAULT false,
+    id integer NOT NULL,
+    is_root boolean DEFAULT false,
+    first_purchase money DEFAULT 0,
     CONSTRAINT users_check CHECK ((lft < rgt)),
     CONSTRAINT users_lft_check CHECK ((lft > 0)),
     CONSTRAINT users_rgt_check CHECK ((rgt > 1))
@@ -329,23 +493,10 @@ CREATE TABLE users (
 ALTER TABLE users OWNER TO postgres;
 
 --
--- Name: unupdatable_user_view; Type: VIEW; Schema: public; Owner: postgres
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-CREATE VIEW unupdatable_user_view AS
- SELECT ((users.id * 3) + 100) AS id,
-    users.qq_no,
-    (users.lft + users.rgt) AS t
-   FROM users;
-
-
-ALTER TABLE unupdatable_user_view OWNER TO postgres;
-
---
--- Name: user_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE user_id_seq
+CREATE SEQUENCE users_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -353,28 +504,14 @@ CREATE SEQUENCE user_id_seq
     CACHE 1;
 
 
-ALTER TABLE user_id_seq OWNER TO postgres;
+ALTER TABLE users_id_seq OWNER TO postgres;
 
 --
--- Name: user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
-ALTER SEQUENCE user_id_seq OWNED BY users.id;
+ALTER SEQUENCE users_id_seq OWNED BY users.id;
 
-
---
--- Name: user_view; Type: VIEW; Schema: public; Owner: postgres
---
-
-CREATE VIEW user_view AS
- SELECT users.id,
-    users.qq_no,
-    users.lft,
-    users.rgt
-   FROM users;
-
-
-ALTER TABLE user_view OWNER TO postgres;
 
 --
 -- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
@@ -401,7 +538,21 @@ ALTER TABLE ONLY captcha ALTER COLUMN captcha_id SET DEFAULT nextval('captcha_ca
 -- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
+ALTER TABLE ONLY finish_log ALTER COLUMN id SET DEFAULT nextval('finish_log_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
 ALTER TABLE ONLY forecasts ALTER COLUMN id SET DEFAULT nextval('forecast_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY level_update_log ALTER COLUMN id SET DEFAULT nextval('level_update_log_id_seq'::regclass);
 
 
 --
@@ -429,7 +580,14 @@ ALTER TABLE ONLY products ALTER COLUMN id SET DEFAULT nextval('products_id_seq':
 -- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('user_id_seq'::regclass);
+ALTER TABLE ONLY root_ids ALTER COLUMN id SET DEFAULT nextval('root_ids_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regclass);
 
 
 --
@@ -437,6 +595,7 @@ ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('user_id_seq'::regcla
 --
 
 COPY address_books (id, user_id, contact, province_id, city_id, address_info, remark, create_time, mobile) FROM stdin;
+14	2	王祖藍	1	2	花都区屌你老味	0	2015-02-01 03:42:48.338158	13234535466
 \.
 
 
@@ -444,7 +603,7 @@ COPY address_books (id, user_id, contact, province_id, city_id, address_info, re
 -- Name: address_books_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('address_books_id_seq', 1, false);
+SELECT pg_catalog.setval('address_books_id_seq', 14, true);
 
 
 --
@@ -452,6 +611,9 @@ SELECT pg_catalog.setval('address_books_id_seq', 1, false);
 --
 
 COPY amounts (id, amount, order_id, level) FROM stdin;
+4	$3.10	5	1
+5	$4.10	5	2
+6	$3.00	5	3
 \.
 
 
@@ -459,7 +621,7 @@ COPY amounts (id, amount, order_id, level) FROM stdin;
 -- Name: amounts_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('amounts_id_seq', 1, false);
+SELECT pg_catalog.setval('amounts_id_seq', 6, true);
 
 
 --
@@ -467,11 +629,7 @@ SELECT pg_catalog.setval('amounts_id_seq', 1, false);
 --
 
 COPY captcha (captcha_id, ip_address, word, captcha_time) FROM stdin;
-4	127.0.0.1	SA8ci	1422370525
-5	127.0.0.1	2lM1Z	1422370569
-6	127.0.0.1	6Wrby	1422370858
-36	127.0.0.1	z1xhk	1422372872
-37	127.0.0.1	bCpej	1422372883
+49	127.0.0.1	kd9xK	1422781697
 \.
 
 
@@ -479,7 +637,24 @@ COPY captcha (captcha_id, ip_address, word, captcha_time) FROM stdin;
 -- Name: captcha_captcha_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('captcha_captcha_id_seq', 37, true);
+SELECT pg_catalog.setval('captcha_captcha_id_seq', 49, true);
+
+
+--
+-- Data for Name: finish_log; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY finish_log (order_id, pay_amt, user_id, parent_user_id, is_root, pay_amt_without_post_fee, is_first, id) FROM stdin;
+5	$0.00	2	1	t	$46.50	\N	1
+5	$46.50	2	1	t	$46.50	\N	2
+\.
+
+
+--
+-- Name: finish_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('finish_log_id_seq', 2, true);
 
 
 --
@@ -499,10 +674,27 @@ COPY forecasts (id, content, create_time) FROM stdin;
 
 
 --
+-- Data for Name: level_update_log; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY level_update_log (id, user_id, new_level, upgrade_time, original_profit, original_level, new_profit, original_first_purchase, new_first_purchase) FROM stdin;
+1	12	1	2015-02-02 03:57:49.188399	\N	0	\N	$0.00	$0.00
+\.
+
+
+--
+-- Name: level_update_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('level_update_log_id_seq', 1, true);
+
+
+--
 -- Data for Name: orders; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY orders (id, user_id, create_time, update_time, product_id, is_pay, pay_amt, is_correct, count, is_cancelled, is_deleted, level, parent_level, pay_time, address_book_id, is_post, post_fee) FROM stdin;
+COPY orders (id, user_id, create_time, update_time, product_id, is_pay, pay_amt, is_correct, count, is_cancelled, is_deleted, level, parent_level, pay_time, address_book_id, is_post, post_fee, finish_time, is_pay_online, is_first, pay_amt_without_post_fee) FROM stdin;
+5	2	2015-02-01 03:42:48.338158	2015-02-02 04:13:25	8	t	$46.50	t	15	f	f	1	1	\N	14	f	$0.00	2015-02-02 04:13:25	\N	\N	$46.50
 \.
 
 
@@ -510,7 +702,7 @@ COPY orders (id, user_id, create_time, update_time, product_id, is_pay, pay_amt,
 -- Name: orders_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('orders_id_seq', 1, false);
+SELECT pg_catalog.setval('orders_id_seq', 5, true);
 
 
 --
@@ -521,6 +713,18 @@ COPY price (id, level, product_id, price) FROM stdin;
 16	1	8	$3.10
 18	3	8	$3.00
 17	2	8	$4.10
+19	1	9	$30.00
+20	2	9	$40.00
+21	3	9	$50.00
+22	1	10	$1.00
+23	2	10	$2.00
+24	3	10	$3.00
+25	1	11	$1.00
+26	2	11	$2.00
+27	3	11	$3.00
+28	1	12	$1.00
+29	2	12	$2.00
+30	3	12	$3.00
 \.
 
 
@@ -528,7 +732,7 @@ COPY price (id, level, product_id, price) FROM stdin;
 -- Name: price_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('price_id_seq', 18, true);
+SELECT pg_catalog.setval('price_id_seq', 30, true);
 
 
 --
@@ -537,6 +741,10 @@ SELECT pg_catalog.setval('price_id_seq', 18, true);
 
 COPY products (id, title, properties, feature, usage_method, ingredient, img, create_time, sale_time, off_sale_time, is_valid) FROM stdin;
 8	How can I get the row number of results querying with DQL(Doctrine)					0	2015-01-29 02:32:23.746856	\N	\N	t
+9	士大夫	士大夫	feature	method	ingredient	bg.jpg	2015-02-01 14:45:58.769059	\N	\N	t
+10	士大夫	4564	54646	465456	465465	54cdda1a56575.jpg	2015-02-01 15:47:38.365638	\N	\N	t
+11	玩兒					54cdda98d1891.jpg	2015-02-01 15:49:44.865262	\N	\N	t
+12	士大夫sss					54cddb199194e.jpg	2015-02-01 15:51:53.626914	\N	\N	t
 \.
 
 
@@ -544,23 +752,43 @@ COPY products (id, title, properties, feature, usage_method, ingredient, img, cr
 -- Name: products_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('products_id_seq', 8, true);
+SELECT pg_catalog.setval('products_id_seq', 12, true);
 
 
 --
--- Name: user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Data for Name: root_ids; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('user_id_seq', 1, false);
+COPY root_ids (create_time, id) FROM stdin;
+2015-01-31 21:52:06	8
+\.
+
+
+--
+-- Name: root_ids_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('root_ids_id_seq', 8, true);
 
 
 --
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY users (id, username, password, create_time, update_time, is_valid, level, name, citizen_id, mobile_no, wechat_id, qq_no, property, lft, rgt, pid, root_id) FROM stdin;
-1	zentssuperadmin	21232f297a57a5a743894a0e4a801fc3	2015-01-27 23:00:46.60982	\N	t	1	管理员	8888888888	8888888	888888888	23008600	$88,888,888,888.00	1	2	\N	\N
+COPY users (username, password, create_time, update_time, is_valid, level, name, citizen_id, mobile_no, wechat_id, qq_no, property, lft, rgt, pid, root_id, profit, is_admin, id, is_root, first_purchase) FROM stdin;
+zentssuperadmin	21232f297a57a5a743894a0e4a801fc3	2015-01-27 23:00:46.60982	\N	t	0	管理员	8888888888	8888888	888888888	23008600	$88,888,888,888.00	1	2	\N	\N	\N	t	1	f	$0.00
+testuser	05a671c66aefea124cc08b76ea6d30bb	2015-01-31 21:52:06.22617	\N	t	0	家家酒	4401010101010101	12381274891	尸杰尸杰	87495	\N	1	8	1	8	\N	f	2	t	$0.00
+subuser	73a90acaae2b1ccc0e969709665bc62f	2015-02-01 00:20:04.60615	\N	\N	0	家家酒	237498237958723	12381274892	尸杰尸杰	23589235	\N	2	3	2	8	\N	f	8	f	$0.00
+subuser2	e8408cb7570728580e2cb66f1a4b1ee4	2015-02-01 00:24:36.284857	\N	\N	0	yweuir	jkljluioiwer	66672234223	33445333	73589273	\N	4	5	2	8	\N	f	11	f	$0.00
+sdffwer	8e8a359d605a815dc118db3877c22b0e	2015-02-01 01:24:47.842887	\N	\N	1	werwe	ewrkwhetkhk	hkjhwwtwety	hwtwket	34795834	\N	6	7	2	8	\N	f	12	f	$0.00
 \.
+
+
+--
+-- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('users_id_seq', 12, true);
 
 
 --
@@ -580,11 +808,27 @@ ALTER TABLE ONLY captcha
 
 
 --
+-- Name: finish_log_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY finish_log
+    ADD CONSTRAINT finish_log_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: forecast_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
 ALTER TABLE ONLY forecasts
     ADD CONSTRAINT forecast_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: level_update_log_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY level_update_log
+    ADD CONSTRAINT level_update_log_pkey PRIMARY KEY (id);
 
 
 --
@@ -609,6 +853,14 @@ ALTER TABLE ONLY price
 
 ALTER TABLE ONLY products
     ADD CONSTRAINT products_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: root_ids_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY root_ids
+    ADD CONSTRAINT root_ids_pkey PRIMARY KEY (id);
 
 
 --
@@ -657,6 +909,13 @@ CREATE INDEX fki_orders_user_id_users_id ON orders USING btree (user_id);
 
 
 --
+-- Name: last_name_changes; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER last_name_changes AFTER UPDATE ON users FOR EACH ROW EXECUTE PROCEDURE log_upgrade_level();
+
+
+--
 -- Name: fk_orders_product_id_products_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -665,11 +924,11 @@ ALTER TABLE ONLY orders
 
 
 --
--- Name: fk_orders_user_id_users_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: orders_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY orders
-    ADD CONSTRAINT fk_orders_user_id_users_id FOREIGN KEY (user_id) REFERENCES users(id);
+    ADD CONSTRAINT orders_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
 
 
 --

@@ -358,6 +358,34 @@ function getStrCityName($id)
     return '未知城市';
 }
 
+function cny($money)
+{
+    return str_replace('$', '￥', $money);
+}
+
+function getLevelName($level){
+    switch($level)
+    {
+        case 0:
+            $level_name = '零售价';
+            break;
+        case 1:
+            $level_name = '特约代理';
+            break;
+        case 2:
+            $level_name = '一级代理';
+            break;
+        case 3:
+            $level_name = '二级代理';
+            break;
+    }
+    return $level_name;
+}
+function money($money)
+{
+    return str_replace("$", "", $money);
+}
+
 /*if(! function_exists('is_voted')){
 }
 

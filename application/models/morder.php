@@ -12,32 +12,48 @@ class MOrder extends CI_Model
         $this->objDB = $this->load->database("default", true);
     }
 
-    public function objGetProductList($where = '', $order = '', $limit = '')
+    public function objGetOrderList($where = '', $order = '', $limit = '')
     {
         $query_sql = "";
         $query_sql .= "
-            select
-                p.title title,
-                p.properties properties,
-                p.feature feature,
-                p.usage_method usage_mothod,
-                p.img img,
-                pr1.price price_special,
-                pr2.price price_last_2,
-                pr3.price price_last_3
+            select p.title          title,
+                   p.id             pid,
+                   o.id             id,
+                   u.name           username,
+                   u.id             uid,
+                   o.count          quantity,
+                   --o.post_fee       post_fee,
+                   a.amount         unit_price,
+                   --o.level          purchase_level,
+                   --o.parent_level   purchase_parent_level,
+                   o.is_pay         is_pay,
+                   o.is_correct     is_correct,
+                   --o.pay_time       pay_time,
+                   --o.pay_amt        pay_amt,
+                   o.is_cancelled   is_cancelled,
+                   o.is_post        is_post,
+                   --b.province_id    province_id,
+                   --b.city_id        city_id,
+                   --b.address_info   address_info,
+                   b.contact        linkman,
+                   b.mobile         mobile,
+                   b.remark         remark,
+                   o.finish_time    finish_time,
+                   o.create_time    stock_time
             from
-                products p
-                join price pr1
-                on p.id = pr1.product_id
-                and pr1.level = 1
-                join price pr2
-                on p.id = pr2.product_id
-                and pr2.level = 2
-                join price pr3
-                on p.id = pr3.product_id
-                and pr3.level = 3
+                orders o, products p, users u, address_books b, amounts a
             where
-                1 = 1
+                o.user_id = u.id
+                and
+                o.product_id = p.id
+                and
+                o.address_book_id = b.id
+                and
+                a.order_id = o.id
+                and
+                a.level = o.level
+                and
+                o.is_deleted = false
                 {$where}
             {$order}
             {$limit}
@@ -57,7 +73,7 @@ class MOrder extends CI_Model
     public function intAddReturnOrderId($main_data, $address_info)
     {
         $post_fee = $this->intCalcPostFee();
-        $current_user_id = 1;//get by session
+        $current_user_id = $this->session->userdata('current_user_id');
         $insert_sql_address = "";
         $insert_sql_address .= "
             insert into address_books
@@ -75,13 +91,21 @@ class MOrder extends CI_Model
         $insert_sql_order = "";
         $insert_sql_order .= "
 
-            insert into order (user_id, product_id, count, level, parent_level, address_book_id, is_post, post_fee )
-            values (
-            select {$current_user_id}, ?, ?, u.level, u.pid, currval('address_books_id_seq'), ?, ?
+            insert into orders (user_id, product_id, count, level, parent_level, address_book_id, is_post, post_fee, is_first)
+            select {$current_user_id} user_id,
+                    ? product_id,
+                    ? count,
+                    u.level as level,
+                    u.plevel parent_level,
+                    currval('address_books_id_seq') address_book_id,
+                    ? is_post,
+                    ? post_fee,
+                    case when not exists select id from orders where user_id = {$current_user_id} then true else false
                 from
-                (select u.level, u.pid from users where user_id = {$current_user_id}) as u
-            )
-            );
+                (select c.level as level, p.level plevel
+                    from users c, users p where c.id = {$current_user_id}
+                        and c.pid = p.id) as u
+            ;
         ";
         $binds_order = array(
             $main_data['product_id'], $main_data['count'], $main_data['is_post'], $post_fee,
@@ -90,22 +114,32 @@ class MOrder extends CI_Model
         $insert_sql_amount = "";
         $insert_sql_amount .= "
             insert into amounts (amount, order_id, level)
-            value
+            values
             (
-                (select pr.price from product p, price pr where pr.product_id = p.id and level = 1),
-                currval(orders_id_seq),
+                (select pr.price from products p, price pr where pr.product_id = p.id and level = 1),
+                currval('orders_id_seq'),
                 1
             ),
             (
-                (select pr.price from product p, price pr where pr.product_id = p.id and level = 2),
-                currval(orders_id_seq),
+                (select pr.price from products p, price pr where pr.product_id = p.id and level = 2),
+                currval('orders_id_seq'),
                 2
             ),
             (
-                (select pr.price from product p, price pr where pr.product_id = p.id and level = 3),
-                currval(orders_id_seq),
+                (select pr.price from products p, price pr where pr.product_id = p.id and level = 3),
+                currval('orders_id_seq'),
                 3
-            );
+            ),
+            (
+                (select pr.price from products p, price pr where pr.product_id = p.id and level = 0),
+                currval('orders_id_seq'),
+                0
+            )
+            ;
+        ";
+
+        $uqdate_sql_first_purchase = "
+            update case when
         ";
 
         $this->objDB->trans_start();
@@ -114,7 +148,7 @@ class MOrder extends CI_Model
         $this->objDB->query($insert_sql_order, $binds_order);
         $this->objDB->query($insert_sql_amount);
         $inserted_order_id_result = $this->objDB->query(
-            "select currval(orders_id_seq) id;"
+            "select currval('orders_id_seq') id;"
         );
 
         $this->objDB->trans_complete();
@@ -137,15 +171,12 @@ class MOrder extends CI_Model
         return 0;
     }
 
-    /*public function intGetProductsCount($where)
+    public function intGetOrdersCount($where)
     {
         $query_sql = "";
         $query_sql .= "
-            select count(1) from products p
-            join price pr1 on pr1.level = 1 and pr1.product_id = p.id
-            join price pr2 on pr2.level = 2 and pr2.product_id = p.id
-            join price pr3 on pr1.level = 3 and pr3.product_id = p.id
-            where 1 = 1 {$where}
+            select count(1) from orders o, products p
+            where o.product_id = p.id  {$where}
         ;";
         $query = $this->objDB->query($query_sql);
 
@@ -157,6 +188,197 @@ class MOrder extends CI_Model
         $query->free_result();
 
         return $count;
-    }*/
+    }
 
+    public function objGetOrderInfo($order_id)
+    {
+        $order_id = $this->objDB->escape($order_id);
+        $query_sql = "";
+        $query_sql .= "
+            select p.title          title,
+                   p.id             pid,
+                   o.id             id,
+                   u.name           username,
+                   u.id             uid,
+                   u.pid            parent_user_id,
+                   u.is_root        is_root,
+                   o.count          quantity,
+                   o.post_fee       post_fee,
+                   a.amount         unit_price,
+                   o.level          purchase_level,
+                   --o.parent_level   purchase_parent_level,
+                   o.is_pay         is_pay,
+                   o.is_correct     is_correct,
+                   o.pay_time       pay_time,
+                   o.pay_amt        pay_amt,
+                   o.is_cancelled   is_cancelled,
+                   o.is_post        is_post,
+                   b.province_id    province_id,
+                   b.city_id        city_id,
+                   b.address_info   address_info,
+                   b.contact        linkman,
+                   b.mobile         mobile,
+                   b.remark         remark,
+                   o.finish_time    finish_time,
+                   o.create_time    stock_time,
+                   o.is_pay_online  is_pay_online,
+                   o.pay_amt_without_post_fee   pay_amt_without_post_fee,
+                   o.is_first       is_first
+            from
+                orders o, products p, users u, address_books b, amounts a
+            where
+                o.user_id = u.id
+                and
+                o.product_id = p.id
+                and
+                o.address_book_id = b.id
+                and
+                a.order_id = o.id
+                and
+                a.level = o.level
+                and
+                o.is_deleted = false
+                and
+                o.id = {$order_id}
+        ";
+        $data = array();
+        $query = $this->objDB->query($query_sql);
+        if($query->num_rows() > 0){
+            foreach ($query->result() as $key => $val) {
+                $data[] = $val;
+            }
+        }
+        $query->free_result();
+
+        if(isset($data[0]))
+            return $data[0];
+        else
+            return null;
+    }
+
+    function finish_with_pay($order_id, $pay_amt, $user_id, $parent_user_id, $is_root, $pay_amt_without_post_fee, $is_first)
+    {
+        $now = now();
+        $order_id = $this->objDB->escape($order_id);
+        $update_sql_first_purchase = "
+            update
+                users
+            set level = case
+                when
+                    {$pay_amt_without_post_fee} >= 1980
+                    and {$pay_amt_without_post_fee} < 3980
+                    and level = 0
+                    --and (select is_first from orders where user_id = {$user_id}) = true
+                    then 3
+                when
+                    {$pay_amt_without_post_fee} >= 3980
+                    and {$pay_amt_without_post_fee} < 19800
+                    and (level = 0 or level = 3)
+                    --and (select is_first from orders where user_id = {$user_id}) = true
+                    then 2
+                when
+                    {$pay_amt_without_post_fee} >= 198000
+                    and (level = 0 or level = 3 or level = 2)
+                    --and (select is_first from orders where user_id = {$user_id}) = true
+                    then 1
+                    else level;
+            where id = {$user_id};
+            update users set first_purchase = {$pay_amt_without_post_fee} where id = {$user_id};
+        ";
+        $update_sql = "
+            update orders
+                set pay_amt = '{$pay_amt}',
+                    is_pay = true,
+                    is_correct = true,
+                    pay_amt_without_post_fee = '{$pay_amt_without_post_fee}',
+                    update_time = '{$now}',
+                    finish_time = '{$now}'
+            where
+                id = {$order_id};
+        ";
+        $update_sql_parent_profit = "
+            update users set profit = profit::decimal + (
+                select (pa.amount::decimal - ua.amount::decimal)*o.count from orders o, amount ua, amount pa
+                where
+                    ua.order_id = {$order_id}
+                    and ua.level = o.level
+                    and pa.order_id = {$order_id}
+                    and pa.level = o.parent_level
+            )
+            where id = {$user_id};
+        ";
+        $update_sql_parent_level = "
+            update
+                users
+            set level = case
+                when
+                    profit::decimal+first_purchase::decimal >= 19800
+                    and
+                    profit::decimal+first_purchase::decimal < 39800
+                    and level = 0
+                    then 3
+                when
+                    profit::decimal+first_purchase::decimal >= 39800
+                    and
+                    profit::decimal+first_purchase::decimal < 198000
+                    and (level = 0 or level = 3)
+                    then 2
+                when
+                    profit::decimal+first_purchase::decimal >= 198000
+                    and (level = 0 or level = 3 or level = 2)
+                    then 1
+                    else level;
+            where id = {$parent_user_id}
+        ";
+        $finish_log = "
+            insert into
+                finish_log(order_id, pay_amt, user_id, parent_user_id, is_root, pay_amt_without_post_fee, is_first)
+                values
+                ({$order_id}, ?, ?, ?, ?, ?, ?)
+            ;";
+        $binds_finish_log = array(
+            $pay_amt, $user_id, $parent_user_id, $is_root, $pay_amt_without_post_fee, $is_first
+        );
+        $upgrade_log = '
+        CREATE OR REPLACE FUNCTION log_upgrade_level()
+          RETURNS trigger AS
+            $BODY$
+                BEGIN
+                    insert into level_update_log
+                    (user_id, new_level, original_level, new_profit, original_profit, new_is_first, original_is_first, new_first_purchase, original_first_purchase)
+                    values
+                    (NEW.id, NEW.level, OLD.level, NEW.profit, OLD.profit, NEW.is_first, OLD.is_first, NEW.first_purchase, OLD.first_purchase);
+                    RETURN NEW;
+                END;
+            $BODY$ LANGUAGE plpgsql;
+        CREATE TRIGGER last_name_changes
+            AFTER UPDATE
+            ON users
+            FOR EACH ROW
+            EXECUTE PROCEDURE log_upgrade_level();
+        ';
+        $this->objDB->trans_start();
+
+        $this->objDB->query("set constraints all deferred");
+        if($is_first == 't')
+            $this->objDB->query($update_sql_first_purchase);
+        $this->objDB->query($update_sql);
+        if($is_root == 'f')
+        {
+            $this->objDB->query($update_sql_parent_profit);
+            $this->objDB->query($update_sql_parent_level);
+        }
+        $this->objDB->query($finish_log, $binds_finish_log);
+
+        $this->objDB->trans_complete();
+
+        $result = $this->objDB->trans_status();
+
+        if($result === true){
+            return true;
+        }else{
+            return false;
+        }
+
+    }
 }

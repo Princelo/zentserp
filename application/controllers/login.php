@@ -10,12 +10,11 @@ class Login extends CI_Controller {
         $this->load->helper('captcha');
         //$this->load->library('pagination');
         $this->load->helper('string');
-        session_start();
     }
 
     public function index($error = '')
     {
-        if(isset($_SESSION['user']))
+        if($this->session->userdata('user') != "")
             redirect('forecast/index');
         $vals = array(
             'word' => random_string('alnum', 5),
@@ -43,7 +42,9 @@ class Login extends CI_Controller {
             $_POST['password'] = md5($_POST['password']);
             if($this->__validate_captcha() === true){
                 if($this->MUser->boolVerify($_POST['login_id'], $_POST['password'])){
-                    $_SESSION['user'] = $_POST['login_id'];
+                    $this->session->set_userdata('user', $this->input->post('login_id'));
+                    $this->session->set_userdata('role', $this->MUser->strGetRoleType($this->input->post('login_id')));
+                    $this->session->set_userdata('current_user_id', $this->MUser->intGetCurrentUserId($this->input->post('login_id')));
                     redirect('forecast/index', 'refresh');
                 }else{
                     $this->index('用戶或密码错误');

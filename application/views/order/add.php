@@ -15,7 +15,7 @@
         </div>
 
 
-        <form action="<?=base_url()?>order/add" method="post">
+        <?=form_open_multipart('order/add/'.$product_id);?>
 
             <fieldset>
                 <legend>添加订单 </legend>
@@ -25,7 +25,7 @@
 
                     <tr>
                         <th><label for="text">产品名称 </label></th>
-                        <td><input type="text" value="<?="未完成";?>" disabled="disabled"/>
+                        <td><input type="text" value="<?=$product_name;?>" disabled="disabled"/>
                         </td>
                     </tr>
                     <tr>
@@ -85,7 +85,7 @@
             </div>
 
 
-        </form>
+        <?=form_close();?>
 
     </div>
     <!-- IE Column Clearing -->

@@ -15,7 +15,7 @@
         </div>
 
 
-        <form action="<?=base_url()?>product/add" method="post">
+        <?=form_open_multipart('product/add');?>
 
             <fieldset>
                 <legend>添加产品 </legend>
@@ -67,6 +67,12 @@
                         </td>
                     </tr>
                     <tr>
+                        <th><label for="price_normal">零售价 <span>*</span></label></th>
+                        <td>
+                            <input name="price_normal" data-validate="required,decimal" value="<?=set_value('price_normal')?>"/>(单位: 元)
+                        </td>
+                    </tr>
+                    <tr>
                         <th>产品图片</th>
                         <td><input name="img" value="上传" onclick="//alert('upload')" type="file" class="" data-validate="" /></td>
                     </tr>
@@ -90,7 +96,7 @@
             </div>
 
 
-        </form>
+        <?=form_close();?>
 
     </div>
     <!-- IE Column Clearing -->

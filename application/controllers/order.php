@@ -7,87 +7,207 @@ class Order extends CI_Controller {
         parent::__construct();
         $this->load->model('MProduct', 'MProduct');
         $this->load->model('MOrder', 'MOrder');
+        $this->load->model('MUser', 'MUser');
         $this->load->library('form_validation');
         $this->load->library('pagination');
         $this->db = $this->load->database('default', true);
         $this->level = 1;
     }
 
-    /*public function listpage($offset = 0)
+    public function listpage_admin($offset = 0)
     {
         $get_config = array(
             array(
                 'field' =>  'search',
-                'label' =>  '关键词',
+                'label' =>  'Search Keyword',
                 'rules' =>  'trim|xss_clean'
             ),
             array(
-                'field' =>  'price_low',
-                'label' =>  '价格区间(低)',
+                'field' =>  'uid',
+                'label' =>  'User Id',
                 'rules' =>  'trim|xss_clean|numeric'
             ),
             array(
-                'field' =>  'price_high',
-                'label' =>  '价格区间(高)',
-                'rules' =>  'trim|xss_clean|numeric'
+                'field' =>  'is_finish',
+                'label' =>  'Is Finish',
+                'rules' =>  'trim|xss_clean|boolean'
             ),
         );
         $this->form_validation->set_rules($get_config);
         if($this->input->get('search', true) != '' ||
-            $this->input->get('price_low', true) != '' ||
-            $this->input->get('price_high', true) != ''
+            $this->input->get('uid', true) != '' ||
+            $this->input->get('is_finsh', true) != ''
         )
         {
             $search = $this->input->get('search', true);
             $search = $this->db->escape_like_str($search);
-            $price_low = $this->input->get('price_low', true);
-            $price_high = $this->input->get('price_high', true);
+            $uid = $this->input->get('uid', true);
+            $is_finish = $this->input->get('is_finish', true);
             $data = array();
-            $config['base_url'] = base_url()."product/listpage/";
+            $config['base_url'] = base_url()."order/listpage_admin/";
             $where = '';
-            $where .= ' and p.is_valid = true ';
-            $where .= $this->__get_search_str($search, $price_low, $price_high);
-            $config['total_rows'] = $this->MProduct->intGetProductsCount($where);
+            //$where .= ' and p.is_valid = true ';
+            $where .= $this->__get_search_str($search, $uid, $is_finish);
+            $config['total_rows'] = $this->MOrder->intGetOrdersCount($where);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
             $data['page'] = $this->pagination->create_links();
             $limit = '';
             $limit .= " limit {$config['per_page']} offset {$offset} ";
             //$where = '';
-            $order = '';
-            $data['products'] = $this->MProduct->objGetProductList($where, $order, $limit);
+            $order = ' order by o.create_time desc ';
+            $data['orders'] = $this->MOrder->objGetOrderList($where, $order, $limit);
             $this->load->view('templates/header', $data);
-            $this->load->view('product/listpage', $data);
+            $this->load->view('order/listpage_admin', $data);
         }else{
             $data = array();
-            $config['base_url'] = base_url()."product/listpage/";
-            $config['total_rows'] = $this->MProduct->intGetProductsCount(' and p.is_valid = true ');
+            $where = ' and ( o.is_pay = true or o.is_correct = false ) ';
+            $config['base_url'] = base_url()."order/listpage_admin/";
+            $config['total_rows'] = $this->MOrder->intGetOrdersCount($where);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
             $data['page'] = $this->pagination->create_links();
             $limit = '';
             $limit .= " limit {$config['per_page']} offset {$offset} ";
-            $where = ' and p.is_valid = true ';
-            $order = '';
-            $data['products'] = $this->MProduct->objGetProductList($where, $order, $limit);
+            $order = ' order by o.create_time desc';
+            $data['orders'] = $this->MOrder->objGetOrderList($where, $order, $limit);
             $this->load->view('templates/header', $data);
-            $this->load->view('product/listpage', $data);
+            $this->load->view('order/listpage_admin', $data);
         }
-    }*/
+    }
 
-    public function add($error = '')
+    public function details_admin($order_id)
+    {
+        /*if($this->session->userdata('admin') == ""){
+            redirect('forecast/index', 'refresh');
+        }*/
+        $data = array();
+        $data['v'] = $this->MOrder->objGetOrderInfo($order_id);
+        if($this->input->post('finish', true) != '')
+        {
+            if($this->input->post('finish') == 'finish_with_pay')
+            {
+                if($data['v']->is_pay == 't' && $data['v']->is_correct == 't')
+                {
+                    $this->session->set_flashdata('flashdata', '操作有误: 订单已完成');
+                    redirect('order/details_admin/'.$order_id);
+                }
+                if($data['v']->is_pay_online == 't')
+                {
+                    $this->session->set_flashdata('flashdata', '该订单属于线上付款类，不能插入新付款纪录');
+                    redirect('order/details_admin/'.$order_id);
+                }
+                if($data['v']->is_pay == 't')
+                {
+                    $this->session->set_flashdata('flashdata', '该订单已支付金额，不能插入新付款纪录');
+                    redirect('order/details_admin/'.$order_id);
+                }
+                if(money($data['v']->pay_amt) > 0)
+                {
+                    $this->session->set_flashdata('flashdata', '该订单已支付金额，不能插入新付款纪录');
+                    redirect('order/details_admin/'.$order_id);
+                }
+                $result = $this->MOrder->finish_with_pay($order_id,
+                                                         bcmul(money($data['v']->unit_price), $data['v']->quantity, 4 ),
+                                                         $data['v']->uid,
+                                                         $data['v']->parent_user_id,
+                                                         $data['v']->is_root,
+                                                         bcadd(bcmul(money($data['v']->unit_price), $data['v']->quantity, 4 ), money($data['v']->post_fee), 4),
+                                                         $data['v']->is_first);
+                if($result === true)
+                {
+                    $this->session->set_flashdata('flashdata', '订单更改成功');
+                    redirect('order/details_admin/'.$order_id);
+                }
+            }
+            if($this->input->post('finish') == 'finish_without_pay')
+            {
+                if($data['v']->is_pay == 't' && $data['v']->is_correct == 't')
+                {
+                    $this->session->set_flashdata('flashdata', '操作有误: 订单已完成');
+                    redirect('order/details_admin/'.$order_id);
+                }
+                if($data['v']->is_pay_online == 'f')
+                {
+                    $this->session->set_flashdata('flashdata', '该订单属于线下付款类，必须插入付款纪录');
+                    redirect('order/details_admin/'.$order_id);
+                }
+                if($data['v']->is_pay == 'f' && $data['v']->is_pay_online == 't')
+                {
+                    $this->session->set_flashdata('flashdata', '该订单未支付金额，且属于线上交易类，未能完成订单');
+                    redirect('order/details_admin/'.$order_id);
+                }
+                if(
+                (money($data['v']->pay_amt) <
+                    bcadd(money($data['v']->post_fee), bcmul(money($data['v']->unit_price), $data['v']->count, 4), 4)
+                ) &&
+                $data['v']->is_pay_online == 't'
+                )
+                {
+                    $this->session->set_flashdata('flashdata', '该订单支付金额不足，未能完成订单');
+                    redirect('order/details_admin/'.$order_id);
+                }
+                $result = $this->MOrder->finish_without_pay($order_id);
+                if($result === true)
+                {
+                    $this->session->set_flashdata('flashdata', '订单更改成功');
+                }
+
+            }
+            if($this->input->post('finish') == 'unfinish_rollback')
+            {
+                if($data['v']->is_pay == 'f' || $data['v']->is_correct == 'f')
+                {
+                    $this->session->set_flashdata('flashdata', '操作有误: 订单未完成');
+                    redirect('order/details_admin/'.$order_id);
+                }
+                if($data['v']->is_pay_online == 't')
+                {
+                    $this->session->set_flashdata('flashdata', '该订单属于线上付款类，禁止清除付款纪录');
+                    redirect('order/details_admin/'.$order_id);
+                }
+                $result = $this->MOrder->unfinish_rollback($order_id);
+                if($result === true)
+                {
+                    $this->session->set_flashdata('flashdata', '订单更改成功');
+                }
+            }
+            if($this->input->post('finish') == 'unfinish')
+            {
+                if($data['v']->is_pay == 'f' || $data['v']->is_correct == 'f')
+                {
+                    $this->session->set_flashdata('flashdata', '操作有误: 订单未完成');
+                    redirect('order/details_admin/'.$order_id);
+                }
+                if($data['v']->is_pay_online == 'f')
+                {
+                    $this->session->set_flashdata('flashdata', '该订单属于线下付款类，要执行该操作，必须清除付款纪录');
+                    redirect('order/details_admin/'.$order_id);
+                }
+                $result = $this->MOrder->unfinish($order_id);
+                if($result === true)
+                {
+                    $this->session->set_flashdata('flashdata', '订单更改成功');
+                }
+            }
+        }
+        $this->load->view('templates/header', $data);
+        $this->load->view('order/details_admin', $data);
+    }
+
+    public function add($product_id)
     {
         /*if(!isset($_SESSION['admin'])){
             redirect('login', 'refresh');
         }*/
         $data = array();
-        $data['error'] = $error;
+        $data['error'] = '';
         $config = array(
-            array(
+            /*array(
                 'field'   => 'product_id',
                 'label'   => 'Product Id',
                 'rules'   => 'required|integer|xss_clean'
-            ),
+            ),*/
             array(
                 'field'   => 'is_post',
                 'label'   => 'Stock Type',
@@ -149,8 +269,10 @@ class Order extends CI_Controller {
                 $this->load->view('order/add', $data);
             }else{
                 $main_data = array(
-                    'product_id' => $this->input->post('product_id'),
+                    //'product_id' => $this->input->post('product_id'),
+                    'product_id' => $product_id,
                     'count' => $this->input->post('count'),
+                    'level' => $this->MUser->intGetCurrentUserLevel($this->session->userdata('current_user_id')),
                     'is_post' => $this->input->post('is_post'),
                 );
                 $address_info = array(
@@ -175,45 +297,35 @@ class Order extends CI_Controller {
                 }
             }
         }else{
+            $data['product_name'] = $this->MProduct->strGetProductTitle($product_id);
+            $data['product_id'] = $product_id;
             $this->load->view('templates/header', $data);
             $this->load->view('order/add', $data);
         }
 
     }
 
-    /*private function __get_search_str($search = '', $price_low = '', $price_high = '')
+    private function __get_search_str($search = '', $uid = '', $is_finish = null)
     {
         $where = '';
-        if($search != '' && $price_low != '' && $price_high != '')
+        if($search != '')
         {
-            $where .= " and (p.title like '%{$search}%' or p.feature like '%{$search}%' or
-                            (cast(pr{$this->level}.price as numeric) between {$price_low} and {$price_high} )
-                            ) ";
-        }elseif($search != '' && $price_low == '' && $price_high == '')
-        {
-            $where .= " and (p.title like '%{$search}%' or p.feature like '%{$search}%') ";
-        }elseif($search != '' && $price_low != '' && $price_high == '')
-        {
-            $where .= " and (p.title like '%{$search}%' or p.feature like '%{$search}%' or
-                            (cast(pr{$this->level}.price as numeric) > {$price_low} )
-                            ) ";
-        }elseif($search != '' && $price_low == '' && $price_high != '')
-        {
-            $where .= " and (p.title like '%{$search}%' or p.feature like '%{$search}%' or
-                            (cast(pr{$this->level}.price as numeric) < {$price_high} )
-                            ) ";
-        }elseif($search == '' && $price_low != '' && $price_high != '')
-        {
-            $where .= " and (cast(pr{$this->level}.price as numeric) between {$price_low} and {$price_high}) ";
-        }elseif($search == '' && $price_low != '' && $price_high == '')
-        {
-            $where .= " and (cast(pr{$this->level}.price as numeric) > {$price_low} )";
-        }elseif($search == '' && $price_low == '' && $price_high != '')
-        {
-            $where .= " and (cast(pr{$this->level}.price as numeric) < {$price_high} )";
+            $where .= " and (p.title like '%{$search}%' or p.feature like '%{$search}%' ) ";
         }
-
+        if($uid != '')
+        {
+            $where .= " and o.user_id = {$uid} ";
+        }
+        if($is_finish != null)
+        {
+            $where .= " and o.is_pay = true and o.is_correct = true ";
+        }
         return $where;
-    }*/
+    }
+
+    private function _finish($order_id)
+    {
+
+    }
 }
 

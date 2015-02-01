@@ -6,6 +6,7 @@ class Product extends CI_Controller {
     public function __construct(){
         parent::__construct();
         $this->load->model('MProduct', 'MProduct');
+        $this->load->model('MUser', 'MUser');
         $this->load->library('form_validation');
         $this->load->library('pagination');
         $this->db = $this->load->database('default', true);
@@ -73,6 +74,7 @@ class Product extends CI_Controller {
             $where = ' and p.is_valid = true ';
             $order = '';
             $data['products'] = $this->MProduct->objGetProductList($where, $order, $limit);
+            $data['level'] = $this->MUser->intGetCurrentUserLevel($this->session->userdata('current_user_id'));
             $this->load->view('templates/header', $data);
             $this->load->view('product/listpage', $data);
         }
@@ -107,6 +109,11 @@ class Product extends CI_Controller {
                 'label'   => '二级代理价',
                 'rules'   => 'trim|xss_clean|numeric|required'
             ),
+            array(
+                'field'  => 'price_normal',
+                'label'  => '零售价',
+                'rules'   => 'trim|xss_clean|numeric|required'
+            ),
         );
 
         $this->form_validation->set_rules($config);
@@ -117,7 +124,28 @@ class Product extends CI_Controller {
                 $this->load->view('templates/header', $data);
                 $this->load->view('product/add', $data);
             }else{
+                $config['upload_path'] = './uploads/';
+                $config['file_name'] = uniqid();
+                $config['allowed_types'] = 'jpg';
+                $config['max_size']	= '500000';
+
+                $this->load->library('upload', $config);
+                if ( ! $this->upload->do_upload('img'))
+                {
+                    $error = array('error' => $this->upload->display_errors());
+                    echo $error['error'];
+                    return false;
+                }
+                else
+                {
+                    $upload_data = array('upload_data' => $this->upload->data());
+                    //$data['avatardir'] = $upload_data['upload_data']['full_path'];
+                    $path = $upload_data['upload_data']['file_path'];
+                    $fname = $upload_data['upload_data']['file_name'];
+                    $this->createThumbs($path, $fname, 100);
+                }
                 $price_list = array(
+                    0 => $this->input->post('price_normal'),
                     1 => $this->input->post('price_special'),
                     2 => $this->input->post('price_last_2'),
                     3 => $this->input->post('price_last_3'),
@@ -128,7 +156,8 @@ class Product extends CI_Controller {
                     'feature' => $this->input->post('feature'),
                     'usage_method' => $this->input->post('usage_method'),
                     'ingredient' => $this->input->post('ingredient'),
-                    'img' => $this->input->post('img'),
+                    //'img' => $this->input->post('img'),
+                    'img' => $fname,
                     'is_valid' => $this->input->post('is_valid'),
                 );
                 $result = $this->MProduct->add($main_data, $price_list);
@@ -181,6 +210,38 @@ class Product extends CI_Controller {
         }
 
         return $where;
+    }
+
+    function createThumbs( $path, $fname, $thumbHeight )
+    {
+        $info = pathinfo($path . $fname);
+        // continue only if this is a JPEG image
+        if ( strtolower($info['extension']) == 'jpg' ||  strtolower($info['extension']) == 'jpeg' )
+        {
+            //echo "Creating thumbnail for {$fname} <br />";
+
+            // load image and get image size
+            $img = imagecreatefromjpeg( "{$path}{$fname}" );
+            $width = imagesx( $img );
+            $height = imagesy( $img );
+
+            // calculate thumbnail size
+            //$new_width = $thumbWidth;
+            //$new_height = floor( $height * ( $thumbWidth / $width ) );
+            $new_height = $thumbHeight;
+            $new_width = floor($width * ($thumbHeight / $height));
+
+            // create a new temporary image
+            $tmp_img = imagecreatetruecolor( $new_width, $new_height );
+
+            // copy and resize old image into new image
+            imagecopyresized( $tmp_img, $img, 0, 0, 0, 0, $new_width, $new_height, $width, $height );
+
+            // save thumbnail into a file
+            //imagejpeg( $tmp_img, "{$pathToThumbs}{$fname}" );
+            $nname = substr($fname, 0, strpos($fname, ".")) . "_thumb.png";
+            imagepng( $tmp_img, "{$path}{$nname}" );
+        }
     }
 }
 
