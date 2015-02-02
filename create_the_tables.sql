@@ -33,9 +33,14 @@ CREATE FUNCTION log_upgrade_level() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
-	insert into level_update_log (user_id, new_level, original_level, new_profit, original_profit, new_first_purchase, original_first_purchase)
+	insert into level_update_log 
+	(user_id, new_level, original_level, new_profit, 
+	original_profit, new_first_purchase, original_first_purchase,
+	original_basic_level, new_basic_level, original_turnover, new_turnover)
 	values
-	(NEW.id, NEW.level, OLD.level, NEW.profit, OLD.profit, NEW.first_purchase, OLD.first_purchase);
+	(NEW.id, NEW.level, OLD.level, NEW.profit,
+	 OLD.profit, NEW.first_purchase, OLD.first_purchase,
+	 OLD.basic_level, NEW.basic_level, OLD.turnover, NEW.turnover);
 	RETURN NEW;
 END;
 $$;
@@ -146,6 +151,46 @@ ALTER TABLE amounts_id_seq OWNER TO postgres;
 --
 
 ALTER SEQUENCE amounts_id_seq OWNED BY amounts.id;
+
+
+--
+-- Name: bills; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE bills (
+    id integer NOT NULL,
+    user_id integer,
+    order_id integer,
+    sub_user_id integer,
+    volume money,
+    type integer,
+    reason integer,
+    create_time timestamp without time zone DEFAULT now(),
+    pay_amt_without_post_fee money DEFAULT 0
+);
+
+
+ALTER TABLE bills OWNER TO postgres;
+
+--
+-- Name: bills_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE bills_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE bills_id_seq OWNER TO postgres;
+
+--
+-- Name: bills_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE bills_id_seq OWNED BY bills.id;
 
 
 --
@@ -269,7 +314,11 @@ CREATE TABLE level_update_log (
     original_level integer,
     new_profit money,
     original_first_purchase money,
-    new_first_purchase money
+    new_first_purchase money,
+    original_basic_level integer,
+    new_basic_level integer,
+    original_turnover money,
+    new_turnover money
 );
 
 
@@ -479,11 +528,13 @@ CREATE TABLE users (
     rgt integer NOT NULL,
     pid integer,
     root_id integer,
-    profit money,
+    profit money DEFAULT 0.00,
     is_admin boolean DEFAULT false,
     id integer NOT NULL,
     is_root boolean DEFAULT false,
     first_purchase money DEFAULT 0,
+    basic_level integer DEFAULT 0,
+    turnover money DEFAULT 0,
     CONSTRAINT users_check CHECK ((lft < rgt)),
     CONSTRAINT users_lft_check CHECK ((lft > 0)),
     CONSTRAINT users_rgt_check CHECK ((rgt > 1))
@@ -514,6 +565,43 @@ ALTER SEQUENCE users_id_seq OWNED BY users.id;
 
 
 --
+-- Name: zents_bills; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE zents_bills (
+    user_id integer,
+    id integer NOT NULL,
+    order_id integer,
+    income_without_post_fee money,
+    income_with_post_fee money,
+    create_time timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE zents_bills OWNER TO postgres;
+
+--
+-- Name: zents_bills_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE zents_bills_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE zents_bills_id_seq OWNER TO postgres;
+
+--
+-- Name: zents_bills_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE zents_bills_id_seq OWNED BY zents_bills.id;
+
+
+--
 -- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -525,6 +613,13 @@ ALTER TABLE ONLY address_books ALTER COLUMN id SET DEFAULT nextval('address_book
 --
 
 ALTER TABLE ONLY amounts ALTER COLUMN id SET DEFAULT nextval('amounts_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY bills ALTER COLUMN id SET DEFAULT nextval('bills_id_seq'::regclass);
 
 
 --
@@ -591,11 +686,19 @@ ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regcl
 
 
 --
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY zents_bills ALTER COLUMN id SET DEFAULT nextval('zents_bills_id_seq'::regclass);
+
+
+--
 -- Data for Name: address_books; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY address_books (id, user_id, contact, province_id, city_id, address_info, remark, create_time, mobile) FROM stdin;
 14	2	王祖藍	1	2	花都区屌你老味	0	2015-02-01 03:42:48.338158	13234535466
+24	8	王祖藍	1	2	花都区屌你老味	0	2015-02-02 16:17:19.181142	13322232322
 \.
 
 
@@ -603,7 +706,7 @@ COPY address_books (id, user_id, contact, province_id, city_id, address_info, re
 -- Name: address_books_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('address_books_id_seq', 14, true);
+SELECT pg_catalog.setval('address_books_id_seq', 24, true);
 
 
 --
@@ -613,7 +716,12 @@ SELECT pg_catalog.setval('address_books_id_seq', 14, true);
 COPY amounts (id, amount, order_id, level) FROM stdin;
 4	$3.10	5	1
 5	$4.10	5	2
-6	$3.00	5	3
+7	$5.00	5	0
+6	$4.50	5	3
+8	$400.00	7	1
+9	$500.00	7	2
+10	$600.00	7	3
+11	$700.00	7	0
 \.
 
 
@@ -621,7 +729,24 @@ COPY amounts (id, amount, order_id, level) FROM stdin;
 -- Name: amounts_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('amounts_id_seq', 6, true);
+SELECT pg_catalog.setval('amounts_id_seq', 11, true);
+
+
+--
+-- Data for Name: bills; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY bills (id, user_id, order_id, sub_user_id, volume, type, reason, create_time, pay_amt_without_post_fee) FROM stdin;
+4	2	7	8	$10,000.00	2	2	2015-02-02 17:02:23.636264	$0.00
+3	2	7	8	$70,000.00	1	1	2015-02-02 17:02:23.636264	$70,000.00
+\.
+
+
+--
+-- Name: bills_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('bills_id_seq', 4, true);
 
 
 --
@@ -629,7 +754,8 @@ SELECT pg_catalog.setval('amounts_id_seq', 6, true);
 --
 
 COPY captcha (captcha_id, ip_address, word, captcha_time) FROM stdin;
-49	127.0.0.1	kd9xK	1422781697
+56	127.0.0.1	ra9di	1422898058
+57	127.0.0.1	7F5U3	1422902545
 \.
 
 
@@ -637,7 +763,7 @@ COPY captcha (captcha_id, ip_address, word, captcha_time) FROM stdin;
 -- Name: captcha_captcha_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('captcha_captcha_id_seq', 49, true);
+SELECT pg_catalog.setval('captcha_captcha_id_seq', 57, true);
 
 
 --
@@ -647,6 +773,7 @@ SELECT pg_catalog.setval('captcha_captcha_id_seq', 49, true);
 COPY finish_log (order_id, pay_amt, user_id, parent_user_id, is_root, pay_amt_without_post_fee, is_first, id) FROM stdin;
 5	$0.00	2	1	t	$46.50	\N	1
 5	$46.50	2	1	t	$46.50	\N	2
+7	$70,000.00	8	2	f	$70,000.00	t	3
 \.
 
 
@@ -654,7 +781,7 @@ COPY finish_log (order_id, pay_amt, user_id, parent_user_id, is_root, pay_amt_wi
 -- Name: finish_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('finish_log_id_seq', 2, true);
+SELECT pg_catalog.setval('finish_log_id_seq', 3, true);
 
 
 --
@@ -677,8 +804,25 @@ COPY forecasts (id, content, create_time) FROM stdin;
 -- Data for Name: level_update_log; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY level_update_log (id, user_id, new_level, upgrade_time, original_profit, original_level, new_profit, original_first_purchase, new_first_purchase) FROM stdin;
-1	12	1	2015-02-02 03:57:49.188399	\N	0	\N	$0.00	$0.00
+COPY level_update_log (id, user_id, new_level, upgrade_time, original_profit, original_level, new_profit, original_first_purchase, new_first_purchase, original_basic_level, new_basic_level, original_turnover, new_turnover) FROM stdin;
+1	12	1	2015-02-02 03:57:49.188399	\N	0	\N	$0.00	$0.00	\N	\N	\N	\N
+2	12	0	2015-02-02 11:50:35.251152	\N	1	\N	$0.00	$0.00	0	0	$0.00	$0.00
+3	8	0	2015-02-02 15:46:28.91399	\N	0	\N	$0.00	$0.00	0	0	$0.00	$0.00
+9	2	3	2015-02-02 16:29:23.98303	\N	0	\N	$0.00	$0.00	0	3	$0.00	$0.00
+15	8	0	2015-02-02 16:29:59.21852	\N	0	\N	$0.00	$0.00	0	0	$0.00	$0.00
+16	8	0	2015-02-02 16:29:59.21852	\N	0	\N	$0.00	$0.00	0	0	$0.00	$0.00
+17	8	0	2015-02-02 16:29:59.21852	\N	0	\N	$0.00	$70,000.00	0	0	$0.00	$0.00
+18	8	0	2015-02-02 16:29:59.21852	\N	0	\N	$70,000.00	$70,000.00	0	0	$0.00	$70,000.00
+19	8	0	2015-02-02 16:29:59.21852	\N	0	\N	$70,000.00	$70,000.00	0	0	$70,000.00	$70,000.00
+20	8	0	2015-02-02 16:29:59.21852	\N	0	\N	$70,000.00	$70,000.00	0	0	$70,000.00	$70,000.00
+21	2	3	2015-02-02 16:29:59.21852	\N	3	\N	$0.00	$0.00	3	3	$0.00	$0.00
+22	8	0	2015-02-02 16:37:17.435867	\N	0	\N	$70,000.00	$70,000.00	0	0	$70,000.00	$70,000.00
+23	2	3	2015-02-02 16:44:30.326207	\N	3	\N	$0.00	$0.00	3	3	$0.00	$0.00
+24	1	0	2015-02-02 16:47:40.506044	\N	0	$0.00	$0.00	$0.00	0	0	$0.00	$0.00
+25	2	3	2015-02-02 16:47:41.574782	\N	3	$0.00	$0.00	$0.00	3	3	$0.00	$0.00
+26	8	0	2015-02-02 16:47:42.621001	\N	0	$0.00	$70,000.00	$70,000.00	0	0	$70,000.00	$70,000.00
+27	11	0	2015-02-02 16:47:45.229745	\N	0	$0.00	$0.00	$0.00	0	0	$0.00	$0.00
+28	12	0	2015-02-02 16:49:02.933152	\N	0	$0.00	$0.00	$0.00	0	0	$0.00	$0.00
 \.
 
 
@@ -686,7 +830,7 @@ COPY level_update_log (id, user_id, new_level, upgrade_time, original_profit, or
 -- Name: level_update_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('level_update_log_id_seq', 1, true);
+SELECT pg_catalog.setval('level_update_log_id_seq', 28, true);
 
 
 --
@@ -695,6 +839,7 @@ SELECT pg_catalog.setval('level_update_log_id_seq', 1, true);
 
 COPY orders (id, user_id, create_time, update_time, product_id, is_pay, pay_amt, is_correct, count, is_cancelled, is_deleted, level, parent_level, pay_time, address_book_id, is_post, post_fee, finish_time, is_pay_online, is_first, pay_amt_without_post_fee) FROM stdin;
 5	2	2015-02-01 03:42:48.338158	2015-02-02 04:13:25	8	t	$46.50	t	15	f	f	1	1	\N	14	f	$0.00	2015-02-02 04:13:25	\N	\N	$46.50
+7	8	2015-02-02 16:17:19.181142	2015-02-02 16:29:59	13	t	$70,000.00	t	100	f	f	0	3	\N	24	f	$0.00	2015-02-02 16:29:59	f	t	$70,000.00
 \.
 
 
@@ -702,7 +847,7 @@ COPY orders (id, user_id, create_time, update_time, product_id, is_pay, pay_amt,
 -- Name: orders_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('orders_id_seq', 5, true);
+SELECT pg_catalog.setval('orders_id_seq', 7, true);
 
 
 --
@@ -711,7 +856,6 @@ SELECT pg_catalog.setval('orders_id_seq', 5, true);
 
 COPY price (id, level, product_id, price) FROM stdin;
 16	1	8	$3.10
-18	3	8	$3.00
 17	2	8	$4.10
 19	1	9	$30.00
 20	2	9	$40.00
@@ -725,6 +869,16 @@ COPY price (id, level, product_id, price) FROM stdin;
 28	1	12	$1.00
 29	2	12	$2.00
 30	3	12	$3.00
+31	0	8	$5.00
+18	3	8	$4.50
+32	0	9	$60.00
+33	0	10	$4.00
+34	0	11	$4.00
+35	0	12	$4.00
+36	0	13	$700.00
+37	1	13	$400.00
+38	2	13	$500.00
+39	3	13	$600.00
 \.
 
 
@@ -732,7 +886,7 @@ COPY price (id, level, product_id, price) FROM stdin;
 -- Name: price_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('price_id_seq', 30, true);
+SELECT pg_catalog.setval('price_id_seq', 39, true);
 
 
 --
@@ -745,6 +899,7 @@ COPY products (id, title, properties, feature, usage_method, ingredient, img, cr
 10	士大夫	4564	54646	465456	465465	54cdda1a56575.jpg	2015-02-01 15:47:38.365638	\N	\N	t
 11	玩兒					54cdda98d1891.jpg	2015-02-01 15:49:44.865262	\N	\N	t
 12	士大夫sss					54cddb199194e.jpg	2015-02-01 15:51:53.626914	\N	\N	t
+13	爛面面膜	1盒1億張	睇親爛面	潛移默化	空氣	54cf2aefe7585.jpg	2015-02-02 15:44:48.012194	\N	\N	f
 \.
 
 
@@ -752,7 +907,7 @@ COPY products (id, title, properties, feature, usage_method, ingredient, img, cr
 -- Name: products_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('products_id_seq', 12, true);
+SELECT pg_catalog.setval('products_id_seq', 13, true);
 
 
 --
@@ -775,12 +930,12 @@ SELECT pg_catalog.setval('root_ids_id_seq', 8, true);
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY users (username, password, create_time, update_time, is_valid, level, name, citizen_id, mobile_no, wechat_id, qq_no, property, lft, rgt, pid, root_id, profit, is_admin, id, is_root, first_purchase) FROM stdin;
-zentssuperadmin	21232f297a57a5a743894a0e4a801fc3	2015-01-27 23:00:46.60982	\N	t	0	管理员	8888888888	8888888	888888888	23008600	$88,888,888,888.00	1	2	\N	\N	\N	t	1	f	$0.00
-testuser	05a671c66aefea124cc08b76ea6d30bb	2015-01-31 21:52:06.22617	\N	t	0	家家酒	4401010101010101	12381274891	尸杰尸杰	87495	\N	1	8	1	8	\N	f	2	t	$0.00
-subuser	73a90acaae2b1ccc0e969709665bc62f	2015-02-01 00:20:04.60615	\N	\N	0	家家酒	237498237958723	12381274892	尸杰尸杰	23589235	\N	2	3	2	8	\N	f	8	f	$0.00
-subuser2	e8408cb7570728580e2cb66f1a4b1ee4	2015-02-01 00:24:36.284857	\N	\N	0	yweuir	jkljluioiwer	66672234223	33445333	73589273	\N	4	5	2	8	\N	f	11	f	$0.00
-sdffwer	8e8a359d605a815dc118db3877c22b0e	2015-02-01 01:24:47.842887	\N	\N	1	werwe	ewrkwhetkhk	hkjhwwtwety	hwtwket	34795834	\N	6	7	2	8	\N	f	12	f	$0.00
+COPY users (username, password, create_time, update_time, is_valid, level, name, citizen_id, mobile_no, wechat_id, qq_no, property, lft, rgt, pid, root_id, profit, is_admin, id, is_root, first_purchase, basic_level, turnover) FROM stdin;
+zentssuperadmin	21232f297a57a5a743894a0e4a801fc3	2015-01-27 23:00:46.60982	\N	t	0	管理员	8888888888	8888888	888888888	23008600	$88,888,888,888.00	1	2	\N	\N	$0.00	t	1	f	$0.00	0	$0.00
+testuser	05a671c66aefea124cc08b76ea6d30bb	2015-01-31 21:52:06.22617	\N	t	3	家家酒	4401010101010101	12381274891	尸杰尸杰	87495	\N	1	8	1	8	$0.00	f	2	t	$0.00	3	$0.00
+subuser	21232f297a57a5a743894a0e4a801fc3	2015-02-01 00:20:04.60615	\N	\N	0	家家酒	237498237958723	12381274892	尸杰尸杰	23589235	\N	2	3	2	8	$0.00	f	8	f	$70,000.00	0	$70,000.00
+subuser2	e8408cb7570728580e2cb66f1a4b1ee4	2015-02-01 00:24:36.284857	\N	\N	0	yweuir	jkljluioiwer	66672234223	33445333	73589273	\N	4	5	2	8	$0.00	f	11	f	$0.00	0	$0.00
+sdffwer	8e8a359d605a815dc118db3877c22b0e	2015-02-01 01:24:47.842887	\N	\N	0	werwe	ewrkwhetkhk	hkjhwwtwety	hwtwket	34795834	\N	6	7	2	8	$0.00	f	12	f	$0.00	0	$0.00
 \.
 
 
@@ -792,11 +947,35 @@ SELECT pg_catalog.setval('users_id_seq', 12, true);
 
 
 --
+-- Data for Name: zents_bills; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY zents_bills (user_id, id, order_id, income_without_post_fee, income_with_post_fee, create_time) FROM stdin;
+2	3	7	$70,000.00	$70,000.00	2015-02-02 17:01:48.055231
+\.
+
+
+--
+-- Name: zents_bills_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('zents_bills_id_seq', 3, true);
+
+
+--
 -- Name: amounts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
 ALTER TABLE ONLY amounts
     ADD CONSTRAINT amounts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: bills_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY bills
+    ADD CONSTRAINT bills_pkey PRIMARY KEY (id);
 
 
 --
@@ -885,6 +1064,14 @@ ALTER TABLE ONLY users
 
 ALTER TABLE ONLY users
     ADD CONSTRAINT users_root_id_rgt_key UNIQUE (root_id, rgt);
+
+
+--
+-- Name: zents_bills_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY zents_bills
+    ADD CONSTRAINT zents_bills_pkey PRIMARY KEY (id);
 
 
 --

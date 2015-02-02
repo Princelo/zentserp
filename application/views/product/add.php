@@ -1,3 +1,22 @@
+<div id="container">
+
+
+
+    <!-- begin: #col1 - first float column -->
+    <div id="col1" role="complementary" style="display: block;">
+        <div id="col1_content" class="clearfix">
+
+            <ul id="left_menu">
+                <li>
+                    <a href='<?=base_url()?>product/listpage_admin' ><div>产品列表(上架) </div></a>
+                </li>
+                <li><a href='<?=base_url();?>product/listpage_admin_invalid' ><div>产品列表(下架) </div></a></li>
+                <li><a href='<?=base_url();?>product/add' ><div>新增产品 </div></a></li>
+            </ul>
+        </div>
+    </div>
+    <!-- end: #col1 -->
+
 <!-- begin: #col3 static column -->
 <div id="col3" role="main" class="one_column">
     <div id="col3_content" class="clearfix">

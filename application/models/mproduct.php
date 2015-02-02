@@ -21,7 +21,7 @@ class MProduct extends CI_Model
                 p.title title,
                 p.properties properties,
                 p.feature feature,
-                p.usage_method usage_mothod,
+                p.usage_method usage_method,
                 p.img img,
                 pr1.price price_special,
                 pr2.price price_last_2,
@@ -54,6 +54,54 @@ class MProduct extends CI_Model
                 $data[] = $val;
             }
         }
+        $query->free_result();
+
+        return $data;
+    }
+
+    public function objGetProductInfo($id = '')
+    {
+        $query_sql = "";
+        $query_sql .= "
+            select
+                p.id id,
+                p.title title,
+                p.properties properties,
+                p.feature feature,
+                p.ingredient ingredient,
+                p.usage_method usage_method,
+                p.img img,
+                p.is_valid is_valid,
+                pr1.price price_special,
+                pr2.price price_last_2,
+                pr3.price price_last_3,
+                pr0.price price_normal
+            from
+                products p
+                join price pr1
+                on p.id = pr1.product_id
+                and pr1.level = 1
+                join price pr2
+                on p.id = pr2.product_id
+                and pr2.level = 2
+                join price pr3
+                on p.id = pr3.product_id
+                and pr3.level = 3
+                join price pr0
+                on p.id = pr0.product_id
+                and pr0.level = 0
+            where
+                p.id = ?
+        ";
+        $binds = array($id);
+        $data = array();
+        $query = $this->objDB->query($query_sql, $binds);
+        /*if($query->num_rows() > 0){
+            foreach ($query->result() as $key => $val) {
+                $data[] = $val;
+            }
+        }*/
+        $data = $query->result()[0];
         $query->free_result();
 
         return $data;
@@ -146,4 +194,31 @@ class MProduct extends CI_Model
         return $title;
     }
 
+    public function enable($id)
+    {
+        $update_sql = "
+            update products set is_valid = true where id = ?
+        ";
+        $binds = array($id);
+
+        $result = $this->objDB->query($update_sql, $binds);
+        if($result === true)
+            return true;
+        else
+            return false;
+    }
+
+    public function disable($id)
+    {
+        $update_sql = "
+            update products set is_valid = false where id = ?
+        ";
+        $binds = array($id);
+
+        $result = $this->objDB->query($update_sql, $binds);
+        if($result === true)
+            return true;
+        else
+            return false;
+    }
 }

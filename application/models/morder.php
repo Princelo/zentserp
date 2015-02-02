@@ -100,7 +100,7 @@ class MOrder extends CI_Model
                     currval('address_books_id_seq') address_book_id,
                     ? is_post,
                     ? post_fee,
-                    case when not exists select id from orders where user_id = {$current_user_id} then true else false
+                    case when not exists (select id from orders where user_id = {$current_user_id}) then true else false end
                 from
                 (select c.level as level, p.level plevel
                     from users c, users p where c.id = {$current_user_id}
@@ -116,37 +116,35 @@ class MOrder extends CI_Model
             insert into amounts (amount, order_id, level)
             values
             (
-                (select pr.price from products p, price pr where pr.product_id = p.id and level = 1),
+                (select pr.price from products p, price pr where pr.product_id = p.id and level = 1 and p.id = ?),
                 currval('orders_id_seq'),
                 1
             ),
             (
-                (select pr.price from products p, price pr where pr.product_id = p.id and level = 2),
+                (select pr.price from products p, price pr where pr.product_id = p.id and level = 2 and p.id = ?),
                 currval('orders_id_seq'),
                 2
             ),
             (
-                (select pr.price from products p, price pr where pr.product_id = p.id and level = 3),
+                (select pr.price from products p, price pr where pr.product_id = p.id and level = 3 and p.id = ?),
                 currval('orders_id_seq'),
                 3
             ),
             (
-                (select pr.price from products p, price pr where pr.product_id = p.id and level = 0),
+                (select pr.price from products p, price pr where pr.product_id = p.id and level = 0 and p.id = ?),
                 currval('orders_id_seq'),
                 0
             )
             ;
         ";
+        $binds_amount = array($main_data['product_id'], $main_data['product_id'], $main_data['product_id'], $main_data['product_id']);
 
-        $uqdate_sql_first_purchase = "
-            update case when
-        ";
 
         $this->objDB->trans_start();
 
         $this->objDB->query($insert_sql_address, $binds_address);
         $this->objDB->query($insert_sql_order, $binds_order);
-        $this->objDB->query($insert_sql_amount);
+        $this->objDB->query($insert_sql_amount, $binds_amount);
         $inserted_order_id_result = $this->objDB->query(
             "select currval('orders_id_seq') id;"
         );
@@ -263,26 +261,24 @@ class MOrder extends CI_Model
         $update_sql_first_purchase = "
             update
                 users
-            set level = case
+                set basic_level = case
                 when
                     {$pay_amt_without_post_fee} >= 1980
                     and {$pay_amt_without_post_fee} < 3980
-                    and level = 0
-                    --and (select is_first from orders where user_id = {$user_id}) = true
+                    and basic_level = 0
                     then 3
                 when
                     {$pay_amt_without_post_fee} >= 3980
                     and {$pay_amt_without_post_fee} < 19800
-                    and (level = 0 or level = 3)
-                    --and (select is_first from orders where user_id = {$user_id}) = true
+                    and (basic_level = 0 or basic_level = 3)
                     then 2
                 when
-                    {$pay_amt_without_post_fee} >= 198000
-                    and (level = 0 or level = 3 or level = 2)
-                    --and (select is_first from orders where user_id = {$user_id}) = true
+                    {$pay_amt_without_post_fee} >= 19800
                     then 1
-                    else level;
+                    else basic_level
+                end
             where id = {$user_id};
+            update users set level = basic_level where id = {$user_id};
             update users set first_purchase = {$pay_amt_without_post_fee} where id = {$user_id};
         ";
         $update_sql = "
@@ -295,39 +291,83 @@ class MOrder extends CI_Model
                     finish_time = '{$now}'
             where
                 id = {$order_id};
+            update users set turnover = turnover::decimal + {$pay_amt_without_post_fee} where id = {$user_id};
+            update
+                users
+                set level = case
+                            when profit::decimal + turnover::decimal >= 19800 and profit::decimal + turnover::decimal < 39800
+                                and basic_level = 0
+                            then 3
+                            when profit::decimal + turnover::decimal >= 39800 and profit::decimal + turnover::decimal < 198000
+                                and (basic_level = 0 or basic_level = 3)
+                            then 2
+                            when profit::decimal + turnover::decimal >= 198000
+                            then 2
+                            else level
+                            end
+                where
+                    id = {$user_id};
+            insert into bills (user_id, order_id, volume, type, reason, pay_amt_without_post_fee)
+            values
+            ({$user_id}, {$order_id}, {$pay_amt}, 1, 1, {$pay_amt_without_post_fee});
+            insert into zents_bills (user_id, order_id, income_without_post_fee, income_with_post_fee)
+            values
+            ({$parent_user_id}, {$order_id}, {$pay_amt_without_post_fee}, {$pay_amt});
+
         ";
         $update_sql_parent_profit = "
             update users set profit = profit::decimal + (
-                select (pa.amount::decimal - ua.amount::decimal)*o.count from orders o, amount ua, amount pa
+                select case when ua.amount::decimal > pa.amount::decimal
+                        then (ua.amount::decimal - pa.amount::decimal)*o.count
+                        else 0 end
+                from orders o, amounts ua, amounts pa
                 where
                     ua.order_id = {$order_id}
                     and ua.level = o.level
                     and pa.order_id = {$order_id}
                     and pa.level = o.parent_level
+                    and o.id = {$order_id}
             )
-            where id = {$user_id};
+            where id = {$parent_user_id};
+            insert into bills (user_id, order_id, sub_user_id, volume, type, reason)
+            values
+            ({$parent_user_id}, {$order_id}, {$user_id},
+                (
+                select case when ua.amount::decimal > pa.amount::decimal
+                        then (ua.amount::decimal - pa.amount::decimal)*o.count
+                        else 0 end
+                from orders o, amounts ua, amounts pa
+                where
+                    ua.order_id = {$order_id}
+                    and ua.level = o.level
+                    and pa.order_id = {$order_id}
+                    and pa.level = o.parent_level
+                    and o.id = {$order_id}
+                ),
+                2, 2
+            );
         ";
         $update_sql_parent_level = "
             update
                 users
             set level = case
                 when
-                    profit::decimal+first_purchase::decimal >= 19800
+                    profit::decimal+turnover::decimal >= 19800
                     and
-                    profit::decimal+first_purchase::decimal < 39800
-                    and level = 0
+                    profit::decimal+turnover::decimal < 39800
+                    and basic_level = 0
                     then 3
                 when
-                    profit::decimal+first_purchase::decimal >= 39800
+                    profit::decimal+turnover::decimal >= 39800
                     and
-                    profit::decimal+first_purchase::decimal < 198000
-                    and (level = 0 or level = 3)
+                    profit::decimal+turnover::decimal < 198000
+                    and (basic_level = 0 or basic_level = 3)
                     then 2
                 when
-                    profit::decimal+first_purchase::decimal >= 198000
-                    and (level = 0 or level = 3 or level = 2)
+                    profit::decimal+turnover::decimal >= 198000
                     then 1
-                    else level;
+                    else level
+                end
             where id = {$parent_user_id}
         ";
         $finish_log = "
@@ -345,13 +385,17 @@ class MOrder extends CI_Model
             $BODY$
                 BEGIN
                     insert into level_update_log
-                    (user_id, new_level, original_level, new_profit, original_profit, new_is_first, original_is_first, new_first_purchase, original_first_purchase)
+                    (user_id, new_level, original_level, new_profit,
+                    original_profit, new_first_purchase, original_first_purchase,
+                    original_basic_level, new_basic_level, original_turnover, new_turnover)
                     values
-                    (NEW.id, NEW.level, OLD.level, NEW.profit, OLD.profit, NEW.is_first, OLD.is_first, NEW.first_purchase, OLD.first_purchase);
+                    (NEW.id, NEW.level, OLD.level, NEW.profit,
+                     OLD.profit, NEW.first_purchase, OLD.first_purchase,
+                     OLD.basic_level, NEW.basic_level, OLD.turnover, NEW.turnover);
                     RETURN NEW;
                 END;
             $BODY$ LANGUAGE plpgsql;
-        CREATE TRIGGER last_name_changes
+        CREATE TRIGGER upgrade_level
             AFTER UPDATE
             ON users
             FOR EACH ROW

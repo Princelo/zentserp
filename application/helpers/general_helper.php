@@ -367,7 +367,7 @@ function getLevelName($level){
     switch($level)
     {
         case 0:
-            $level_name = '零售价';
+            $level_name = '零售商';
             break;
         case 1:
             $level_name = '特约代理';
@@ -384,6 +384,10 @@ function getLevelName($level){
 function money($money)
 {
     return str_replace("$", "", $money);
+}
+function thumb($img)
+{
+    return substr($img, 0, strpos($img, "."))."_thumb.png";
 }
 
 /*if(! function_exists('is_voted')){

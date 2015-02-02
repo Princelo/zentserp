@@ -5,7 +5,7 @@ class Logout extends CI_Controller {
     private $objDB;
     public function __construct(){
         parent::__construct();
-        session_destroy();
+        $this->session->sess_destroy();
         redirect('login');
     }
 

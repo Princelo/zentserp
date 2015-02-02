@@ -13,6 +13,136 @@ class Product extends CI_Controller {
         $this->level = 1;
     }
 
+    public function listpage_admin($offset = 0)
+    {
+        if($this->session->userdata('role') != 'admin')
+            exit('You are not admin.');
+        $get_config = array(
+            array(
+                'field' =>  'search',
+                'label' =>  '关键词',
+                'rules' =>  'trim|xss_clean'
+            ),
+            array(
+                'field' =>  'price_low',
+                'label' =>  '价格区间(低)',
+                'rules' =>  'trim|xss_clean|numeric'
+            ),
+            array(
+                'field' =>  'price_high',
+                'label' =>  '价格区间(高)',
+                'rules' =>  'trim|xss_clean|numeric'
+            ),
+        );
+        $this->form_validation->set_rules($get_config);
+        if($this->input->get('search', true) != '' ||
+            $this->input->get('price_low', true) != '' ||
+            $this->input->get('price_high', true) != ''
+        )
+        {
+            $search = $this->input->get('search', true);
+            $search = $this->db->escape_like_str($search);
+            $price_low = $this->input->get('price_low', true);
+            $price_high = $this->input->get('price_high', true);
+            $data = array();
+            $config['base_url'] = base_url()."product/listpage_admin/";
+            $where = '';
+            $where .= ' and p.is_valid = true ';
+            $where .= $this->__get_search_str($search, $price_low, $price_high);
+            $config['total_rows'] = $this->MProduct->intGetProductsCount($where);
+            $config['per_page'] = 30;
+            $this->pagination->initialize($config);
+            $data['page'] = $this->pagination->create_links();
+            $limit = '';
+            $limit .= " limit {$config['per_page']} offset {$offset} ";
+            //$where = '';
+            $order = '';
+            $data['products'] = $this->MProduct->objGetProductList($where, $order, $limit);
+            $this->load->view('templates/header', $data);
+            $this->load->view('product/listpage', $data);
+        }else{
+            $data = array();
+            $config['base_url'] = base_url()."product/listpage_admin/";
+            $config['total_rows'] = $this->MProduct->intGetProductsCount(' and p.is_valid = true ');
+            $config['per_page'] = 30;
+            $this->pagination->initialize($config);
+            $data['page'] = $this->pagination->create_links();
+            $limit = '';
+            $limit .= " limit {$config['per_page']} offset {$offset} ";
+            $where = ' and p.is_valid = true ';
+            $order = '';
+            $data['products'] = $this->MProduct->objGetProductList($where, $order, $limit);
+            $data['level'] = $this->MUser->intGetCurrentUserLevel($this->session->userdata('current_user_id'));
+            $this->load->view('templates/header', $data);
+            $this->load->view('product/listpage_admin', $data);
+        }
+    }
+
+    public function listpage_admin_invalid($offset = 0)
+    {
+        if($this->session->userdata('role') != 'admin')
+            exit('You are not admin.');
+        $get_config = array(
+            array(
+                'field' =>  'search',
+                'label' =>  '关键词',
+                'rules' =>  'trim|xss_clean'
+            ),
+            array(
+                'field' =>  'price_low',
+                'label' =>  '价格区间(低)',
+                'rules' =>  'trim|xss_clean|numeric'
+            ),
+            array(
+                'field' =>  'price_high',
+                'label' =>  '价格区间(高)',
+                'rules' =>  'trim|xss_clean|numeric'
+            ),
+        );
+        $this->form_validation->set_rules($get_config);
+        if($this->input->get('search', true) != '' ||
+            $this->input->get('price_low', true) != '' ||
+            $this->input->get('price_high', true) != ''
+        )
+        {
+            $search = $this->input->get('search', true);
+            $search = $this->db->escape_like_str($search);
+            $price_low = $this->input->get('price_low', true);
+            $price_high = $this->input->get('price_high', true);
+            $data = array();
+            $config['base_url'] = base_url()."product/listpage_admin_invalid/";
+            $where = '';
+            $where .= ' and p.is_valid = false ';
+            $where .= $this->__get_search_str($search, $price_low, $price_high);
+            $config['total_rows'] = $this->MProduct->intGetProductsCount($where);
+            $config['per_page'] = 30;
+            $this->pagination->initialize($config);
+            $data['page'] = $this->pagination->create_links();
+            $limit = '';
+            $limit .= " limit {$config['per_page']} offset {$offset} ";
+            //$where = '';
+            $order = '';
+            $data['products'] = $this->MProduct->objGetProductList($where, $order, $limit);
+            $this->load->view('templates/header', $data);
+            $this->load->view('product/listpage_admin', $data);
+        }else{
+            $data = array();
+            $config['base_url'] = base_url()."product/listpage_admin_invalid/";
+            $config['total_rows'] = $this->MProduct->intGetProductsCount(' and p.is_valid = false ');
+            $config['per_page'] = 30;
+            $this->pagination->initialize($config);
+            $data['page'] = $this->pagination->create_links();
+            $limit = '';
+            $limit .= " limit {$config['per_page']} offset {$offset} ";
+            $where = ' and p.is_valid = false ';
+            $order = '';
+            $data['products'] = $this->MProduct->objGetProductList($where, $order, $limit);
+            $data['level'] = $this->MUser->intGetCurrentUserLevel($this->session->userdata('current_user_id'));
+            $this->load->view('templates/header', $data);
+            $this->load->view('product/listpage_admin', $data);
+        }
+    }
+
     public function listpage($offset = 0)
     {
         /*$data = array();
@@ -80,11 +210,50 @@ class Product extends CI_Controller {
         }
     }
 
+    public function details_admin($product_id)
+    {
+        if($this->session->userdata('role') != 'admin')
+            exit('You are not admin.');
+        $data = array();
+        $data['v'] = $this->MProduct->objGetProductInfo($product_id);
+        if(isset($_POST) && !empty($_POST))
+        {
+            if($this->input->post('is_valid') == '1' && $data['v']->is_valid == 't')
+            {
+                $this->session->set_flashdata('flashdata', '非法操作: 产品本已上架');
+                redirect('product/details_admin/'.$product_id);
+            }
+            if($this->input->post('is_valid') == '0' && $data['v']->is_valid == 'f')
+            {
+                $this->session->set_flashdata('flashdata', '非法操作: 产品本已下架');
+                redirect('product/details_admin/'.$product_id);
+            }
+            if($this->input->post('is_valid') == '1')
+            {
+                if($this->MProduct->enable($product_id))
+                    $this->session->set_flashdata('flashdata', '产品上架成功');
+                else
+                    $this->session->set_flashdata('flashdata', '产品上架失败');
+                redirect('product/details_admin/'.$product_id);
+            }
+            if($this->input->post('is_valid') == '0')
+            {
+                if($this->MProduct->disable($product_id))
+                    $this->session->set_flashdata('flashdata', '产品下架成功');
+                else
+                    $this->session->set_flashdata('flashdata', '产品下架失败');
+                redirect('product/details_admin/'.$product_id);
+            }
+
+        }
+        $this->load->view('templates/header', $data);
+        $this->load->view('product/details_admin', $data);
+    }
+
     public function add($error = '')
     {
-        /*if(!isset($_SESSION['admin'])){
-            redirect('login', 'refresh');
-        }*/
+        if($this->session->userdata('role') != 'admin')
+            exit('You are not admin.');
         $data = array();
         $data['error'] = $error;
         $config = array(

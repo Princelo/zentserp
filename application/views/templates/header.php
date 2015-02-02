@@ -94,93 +94,114 @@
     <!-- begin: main navigation #nav -->
     <div id="menu">
         <ul class="menu">
-            <li class="current"><a href="<?=base_url();?>index.php/unvadmin/manage" class="parent"><span>管理系统首页 </span></a>
+            <li class="" onmouseover="$(this).children('div').show();" onmouseout="$(this).children('div').hide()">
+                <a href="javascript:;" class="parent" ><span>产品 </span></a>
+                <div style="display:none; height: 108px; overflow: hidden;">
+                    <ul>
+                        <li><a href="<?=base_url()?>product/listpage_admin" class="" style="background: none;"><span>产品列表(上架) </span></a>
+                        </li>
+                        <li><a href="<?=base_url()?>product/listpage_admin_invalid" class="" style="background: none;"><span>产品列表(下架) </span></a>
+                        </li>
+                        <li><a href="<?=base_url()?>product/add" class="" style="background: none;"><span>新增产品 </span></a></li>
+                    </ul>
+                </div>
+
             </li>
-            <li class=""><a href="<?=base_url();?>index.php/unvadmin/password" class=""><span>修改密碼 </span></a></li>
-            <li class=""><a href="<?=base_url();?>index.php/unvadmin/logout" class=""><span>登出 </span></a></li>
+            <li class="" onmouseover="$(this).children('div').show();" onmouseout="$(this).children('div').hide()">
+                <a href="javascript:;" class="parent" ><span>代理 </span></a>
+                <div style="display:none; height: 108px; overflow: hidden;">
+                    <ul>
+                        <li><a href="<?=base_url()?>user/listpage_admin" class="" style="background: none;"><span>代理列表 </span></a>
+                        </li>
+                        <li><a href="<?=base_url()?>user/addRootUser" class="" style="background: none;"><span>新增代理 </span></a>
+                        </li>
+                    </ul>
+                </div>
+
+            </li>
+            <li class="" onmouseover="$(this).children('div').show();" onmouseout="$(this).children('div').hide()">
+                <a href="javascript:;" class="parent" ><span>订单系统 </span></a>
+                <div style="display:none; height: 108px; overflow: hidden;">
+                    <ul>
+                        <li><a href="<?=base_url()?>order/listpage_admin" class="" style="background: none;"><span>订单列表 </span></a>
+                        </li>
+                    </ul>
+                </div>
+
+            </li>
+            <li class="" onmouseover="$(this).children('div').show();" onmouseout="$(this).children('div').hide()">
+                <a href="javascript:;" class="parent" ><span>报表系统 </span></a>
+                <div style="display:none; height: 108px; overflow: hidden;">
+                    <ul>
+                        <li><a href="<?=base_url()?>product/listpage_admin" class="" style="background: none;"><span>报表查询 </span></a>
+                        </li>
+                    </ul>
+                </div>
+
+            </li>
+            <li class=""><a href="<?=base_url();?>password/index" class=""><span>修改密碼 </span></a></li>
+            <li class=""><a href="<?=base_url();?>logout" class=""><span>登出 </span></a></li>
         </ul>
     </div>
 
     <!-- end: main navigation -->
 
 </div><!-- mainmenu -->
-
-<div id="container">
-
-
-
-    <!-- begin: #col1 - first float column -->
-    <div id="col1" role="complementary">
-        <div id="col1_content" class="clearfix">
-
-            <ul id="left_menu">
-                <li><a href='<?=base_url()?>index.php/unvadmin/singer' ><div>歌手管理 </div></a></li>
-                <li><a href='<?=base_url();?>index.php/unvadmin/flash' ><div>幻灯片管理 </div></a></li>
-                <li style="display:none;"><a href='<?=base_url();?>index.php/unvadmin/thx' ><div>鸣谢单位管理 </div></a></li>
-                <li><a href='<?=base_url();?>index.php/unvadmin/password' ><div>修改密码 </div></a></li>
-            </ul>
-        </div>
-    </div>
-    <!-- end: #col1 -->
-
-
-
-    <script>
-        $(document).ready(function(){
-            //Examples of how to assign the Colorbox event to elements
-            $(".group1").colorbox({rel:'group1'});
-            $(".group2").colorbox({rel:'group2', transition:"fade"});
-            $(".group3").colorbox({rel:'group3', transition:"none", width:"75%", height:"75%"});
-            $(".group4").colorbox({rel:'group4', slideshow:true});
-            $(".ajax").colorbox();
-            $(".youtube").colorbox({iframe:true, innerWidth:425, innerHeight:344});
-            $(".vimeo").colorbox({iframe:true, innerWidth:500, innerHeight:409});
-            $(".iframe").colorbox({iframe:true, width:"100%", height:"100%"});
-            $(".inline").colorbox({inline:true, width:"50%"});
-            $(".callbacks").colorbox({
-                //onOpen:function(){ alert('onOpen: colorbox is about to open'); },
-                //onLoad:function(){ alert('onLoad: colorbox has started to load the targeted content'); },
-                //onComplete:function(){ alert('onComplete: colorbox has displayed the loaded content'); },
-                //onCleanup:function(){ alert('onCleanup: colorbox has begun the close process'); },
-                //onClosed:function(){ alert('onClosed: colorbox has completely closed'); }
-            });
-
-            $('.non-retina').colorbox({rel:'group5', transition:'none'})
-            $('.retina').colorbox({rel:'group5', transition:'none', retinaImage:true, retinaUrl:true});
-
-            //Example of preserving a JavaScript event for inline calls.
-            $("#click").click(function(){
-                $('#click').css({"background-color":"#f00", "color":"#fff", "cursor":"inherit"}).text("Open this window again and this message will still be here.");
-                return false;
-            });
+<script>
+    $(document).ready(function(){
+        //Examples of how to assign the Colorbox event to elements
+        $(".group1").colorbox({rel:'group1'});
+        $(".group2").colorbox({rel:'group2', transition:"fade"});
+        $(".group3").colorbox({rel:'group3', transition:"none", width:"75%", height:"75%"});
+        $(".group4").colorbox({rel:'group4', slideshow:true});
+        $(".ajax").colorbox();
+        $(".youtube").colorbox({iframe:true, innerWidth:425, innerHeight:344});
+        $(".vimeo").colorbox({iframe:true, innerWidth:500, innerHeight:409});
+        $(".iframe").colorbox({iframe:true, width:"100%", height:"100%"});
+        $(".inline").colorbox({inline:true, width:"50%"});
+        $(".callbacks").colorbox({
+            //onOpen:function(){ alert('onOpen: colorbox is about to open'); },
+            //onLoad:function(){ alert('onLoad: colorbox has started to load the targeted content'); },
+            //onComplete:function(){ alert('onComplete: colorbox has displayed the loaded content'); },
+            //onCleanup:function(){ alert('onCleanup: colorbox has begun the close process'); },
+            //onClosed:function(){ alert('onClosed: colorbox has completely closed'); }
         });
-    </script>
-    <script>
-        function isValidDate( input ) {
-            var date = new Date( input );
-            input = input.split( '-' );
-            return date.getFullYear()  === +input[0] &&
-                date.getMonth() + 1 === +input[1] &&
-                date.getDate() === +input[2];
-        }
-        function isValidTime( input ){
-            if(input.indexOf(':')==-1)
-                return false;
-            input = input.split( ':' );
-            if(input.length!=2)
-                return false;
-            if(!isNumber(input[0])||!isNumber(input[1]))
-                return false;
-            if(+input[0]>24||+input[0]<0)
-                return false;
-            if(+input[1]>60||+input[1]<0)
-                return false;
-            if(isNumber(input[0])&&isNumber(input[1]))
-                return true;
-            return false;
-        }
-        function isNumber(n) {
-            return !isNaN(parseFloat(n)) && isFinite(n);
-        }
-    </script>
 
+        $('.non-retina').colorbox({rel:'group5', transition:'none'})
+        $('.retina').colorbox({rel:'group5', transition:'none', retinaImage:true, retinaUrl:true});
+
+        //Example of preserving a JavaScript event for inline calls.
+        $("#click").click(function(){
+            $('#click').css({"background-color":"#f00", "color":"#fff", "cursor":"inherit"}).text("Open this window again and this message will still be here.");
+            return false;
+        });
+    });
+</script>
+<script>
+    function isValidDate( input ) {
+        var date = new Date( input );
+        input = input.split( '-' );
+        return date.getFullYear()  === +input[0] &&
+            date.getMonth() + 1 === +input[1] &&
+            date.getDate() === +input[2];
+    }
+    function isValidTime( input ){
+        if(input.indexOf(':')==-1)
+            return false;
+        input = input.split( ':' );
+        if(input.length!=2)
+            return false;
+        if(!isNumber(input[0])||!isNumber(input[1]))
+            return false;
+        if(+input[0]>24||+input[0]<0)
+            return false;
+        if(+input[1]>60||+input[1]<0)
+            return false;
+        if(isNumber(input[0])&&isNumber(input[1]))
+            return true;
+        return false;
+    }
+    function isNumber(n) {
+        return !isNaN(parseFloat(n)) && isFinite(n);
+    }
+</script>

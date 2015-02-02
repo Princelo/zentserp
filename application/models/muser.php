@@ -185,10 +185,54 @@ class MUser extends CI_Model
         ";
         $binds = array($id);
         $result = $this->objDB->query($query_sql, $binds);
-        if($result->result()[0]->level > 0)
+        if($result->result()[0]->level >= 0)
             return $result->result()[0]->level;
         else
             exit('error');
+    }
+
+    public function intGetUsersCount($where = '')
+    {
+        $query_sql = "
+            select count(1) from users
+            where 1 = 1
+            {$where};
+        ";
+        $query = $this->objDB->query($query_sql);
+        if($query->num_rows() > 0) {
+            $count = $query->row()->count;
+        }
+
+        $query->free_result();
+
+        return $count;
+    }
+
+    public function objGetUserList($where = '', $order = '', $limit = '')
+    {
+        $query_sql = "";
+        $query_sql .= "
+            select
+                *
+            from
+                users
+            where
+                1 = 1
+                {$where}
+            {$order}
+            {$limit}
+        ";
+        $data = array();
+        $query = $this->objDB->query($query_sql);
+        if($query->num_rows() > 0){
+            foreach ($query->result() as $key => $val) {
+                $data[] = $val;
+            }
+        }
+        $query->free_result();
+
+        //debug($data);
+        return $data;
     }
 
 }

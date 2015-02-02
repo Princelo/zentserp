@@ -12,77 +12,69 @@ class User extends CI_Controller {
         $this->level = 1;
     }
 
-    /*public function listpage($offset = 0)
+    public function listpage_admin($offset = 0)
     {
-        /*$data = array();
-        $data['products'] = $this->MProduct->objGetProductList();
-        $this->load->view('templates/header', $data);
-        $this->load->view('product/listpage', $data);*/
-        /*$get_config = array(
+        if($this->session->userdata('role') != 'admin')
+            exit('You are not admin.');
+        $get_config = array(
             array(
                 'field' =>  'search',
-                'label' =>  '关键词',
+                'label' =>  '用戶名',
                 'rules' =>  'trim|xss_clean'
             ),
             array(
-                'field' =>  'price_low',
-                'label' =>  '价格区间(低)',
-                'rules' =>  'trim|xss_clean|numeric'
-            ),
-            array(
-                'field' =>  'price_high',
-                'label' =>  '价格区间(高)',
+                'field' =>  'level',
+                'label' =>  'Level',
                 'rules' =>  'trim|xss_clean|numeric'
             ),
         );
         $this->form_validation->set_rules($get_config);
         if($this->input->get('search', true) != '' ||
-            $this->input->get('price_low', true) != '' ||
-            $this->input->get('price_high', true) != ''
+            $this->input->get('level', true) != ''
         )
         {
             $search = $this->input->get('search', true);
             $search = $this->db->escape_like_str($search);
-            $price_low = $this->input->get('price_low', true);
-            $price_high = $this->input->get('price_high', true);
+            $level = $this->input->get('level', true);
             $data = array();
-            $config['base_url'] = base_url()."product/listpage/";
-            $where = '';
-            $where .= ' and p.is_valid = true ';
-            $where .= $this->__get_search_str($search, $price_low, $price_high);
-            $config['total_rows'] = $this->MProduct->intGetProductsCount($where);
+            $config['base_url'] = base_url()."user/listpage_admin/";
+            $where = ' and is_admin = false ';
+            //$where .= ' and p.is_valid = true ';
+            $where .= $this->__get_search_str($search, $level);
+            $config['total_rows'] = $this->MUser->intGetUsersCount($where);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
             $data['page'] = $this->pagination->create_links();
             $limit = '';
             $limit .= " limit {$config['per_page']} offset {$offset} ";
             //$where = '';
+            $where = ' and is_admin = false ';
             $order = '';
-            $data['products'] = $this->MProduct->objGetProductList($where, $order, $limit);
+            $data['users'] = $this->MUser->objGetUserList($where, $order, $limit);
             $this->load->view('templates/header', $data);
-            $this->load->view('product/listpage', $data);
+            $this->load->view('user/listpage_admin', $data);
         }else{
             $data = array();
-            $config['base_url'] = base_url()."product/listpage/";
-            $config['total_rows'] = $this->MProduct->intGetProductsCount(' and p.is_valid = true ');
+            $config['base_url'] = base_url()."user/listpage_admin/";
+            $where = ' and is_admin = false ';
+            $config['total_rows'] = $this->MUser->intGetUsersCount($where);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
             $data['page'] = $this->pagination->create_links();
             $limit = '';
             $limit .= " limit {$config['per_page']} offset {$offset} ";
-            $where = ' and p.is_valid = true ';
+            //$where = ' and p.is_valid = true ';
             $order = '';
-            $data['products'] = $this->MProduct->objGetProductList($where, $order, $limit);
+            $data['users'] = $this->MUser->objGetUserList($where, $order, $limit);
             $this->load->view('templates/header', $data);
-            $this->load->view('product/listpage', $data);
+            $this->load->view('user/listpage_admin', $data);
         }
-    }*/
+    }
 
     public function addRootUser($error = '')
     {
-        if($this->session->userdata('admin') == ""){
-            redirect('login', 'refresh');
-        }
+        if($this->session->userdata('role') != 'admin')
+            exit('You are not admin.');
         $data = array();
         $data['error'] = $error;
         $config = array(
@@ -257,38 +249,13 @@ class User extends CI_Controller {
 
     }
 
-    private function __get_search_str($search = '', $price_low = '', $price_high = '')
+    private function __get_search_str($search = '', $level = '')
     {
         $where = '';
-        if($search != '' && $price_low != '' && $price_high != '')
-        {
-            $where .= " and (p.title like '%{$search}%' or p.feature like '%{$search}%' or
-                            (cast(pr{$this->level}.price as numeric) between {$price_low} and {$price_high} )
-                            ) ";
-        }elseif($search != '' && $price_low == '' && $price_high == '')
-        {
-            $where .= " and (p.title like '%{$search}%' or p.feature like '%{$search}%') ";
-        }elseif($search != '' && $price_low != '' && $price_high == '')
-        {
-            $where .= " and (p.title like '%{$search}%' or p.feature like '%{$search}%' or
-                            (cast(pr{$this->level}.price as numeric) > {$price_low} )
-                            ) ";
-        }elseif($search != '' && $price_low == '' && $price_high != '')
-        {
-            $where .= " and (p.title like '%{$search}%' or p.feature like '%{$search}%' or
-                            (cast(pr{$this->level}.price as numeric) < {$price_high} )
-                            ) ";
-        }elseif($search == '' && $price_low != '' && $price_high != '')
-        {
-            $where .= " and (cast(pr{$this->level}.price as numeric) between {$price_low} and {$price_high}) ";
-        }elseif($search == '' && $price_low != '' && $price_high == '')
-        {
-            $where .= " and (cast(pr{$this->level}.price as numeric) > {$price_low} )";
-        }elseif($search == '' && $price_low == '' && $price_high != '')
-        {
-            $where .= " and (cast(pr{$this->level}.price as numeric) < {$price_high} )";
-        }
-
+        if($search != '')
+            $where .= " username like '%{$search}%' ";
+        if($level != '')
+            $where .= " level = {$level} ";
         return $where;
     }
 }
