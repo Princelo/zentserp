@@ -5,6 +5,8 @@ class Product extends CI_Controller {
     public $db;
     public function __construct(){
         parent::__construct();
+        if($this->session->userdata('role') != 'admin' && $this->session->userdata('role') != 'user')
+            redirect('error404');
         $this->load->model('MProduct', 'MProduct');
         $this->load->model('MUser', 'MUser');
         $this->load->library('form_validation');
@@ -16,7 +18,7 @@ class Product extends CI_Controller {
     public function listpage_admin($offset = 0)
     {
         if($this->session->userdata('role') != 'admin')
-            exit('You are not admin.');
+            exit('You are not the admin.');
         $get_config = array(
             array(
                 'field' =>  'search',
@@ -46,6 +48,8 @@ class Product extends CI_Controller {
             $price_high = $this->input->get('price_high', true);
             $data = array();
             $config['base_url'] = base_url()."product/listpage_admin/";
+            if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
+            $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $where = '';
             $where .= ' and p.is_valid = true ';
             $where .= $this->__get_search_str($search, $price_low, $price_high);
@@ -59,10 +63,12 @@ class Product extends CI_Controller {
             $order = '';
             $data['products'] = $this->MProduct->objGetProductList($where, $order, $limit);
             $this->load->view('templates/header', $data);
-            $this->load->view('product/listpage', $data);
+            $this->load->view('product/listpage_admin', $data);
         }else{
             $data = array();
             $config['base_url'] = base_url()."product/listpage_admin/";
+            if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
+            $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $config['total_rows'] = $this->MProduct->intGetProductsCount(' and p.is_valid = true ');
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
@@ -81,7 +87,7 @@ class Product extends CI_Controller {
     public function listpage_admin_invalid($offset = 0)
     {
         if($this->session->userdata('role') != 'admin')
-            exit('You are not admin.');
+            exit('You are not the admin.');
         $get_config = array(
             array(
                 'field' =>  'search',
@@ -111,6 +117,8 @@ class Product extends CI_Controller {
             $price_high = $this->input->get('price_high', true);
             $data = array();
             $config['base_url'] = base_url()."product/listpage_admin_invalid/";
+            if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
+            $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $where = '';
             $where .= ' and p.is_valid = false ';
             $where .= $this->__get_search_str($search, $price_low, $price_high);
@@ -128,6 +136,8 @@ class Product extends CI_Controller {
         }else{
             $data = array();
             $config['base_url'] = base_url()."product/listpage_admin_invalid/";
+            if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
+            $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $config['total_rows'] = $this->MProduct->intGetProductsCount(' and p.is_valid = false ');
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
@@ -145,6 +155,8 @@ class Product extends CI_Controller {
 
     public function listpage($offset = 0)
     {
+        if($this->session->userdata('role') != 'user')
+            exit('You are the admin.');
         /*$data = array();
         $data['products'] = $this->MProduct->objGetProductList();
         $this->load->view('templates/header', $data);
@@ -178,6 +190,8 @@ class Product extends CI_Controller {
             $price_high = $this->input->get('price_high', true);
             $data = array();
             $config['base_url'] = base_url()."product/listpage/";
+            if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
+            $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $where = '';
             $where .= ' and p.is_valid = true ';
             $where .= $this->__get_search_str($search, $price_low, $price_high);
@@ -195,6 +209,8 @@ class Product extends CI_Controller {
         }else{
             $data = array();
             $config['base_url'] = base_url()."product/listpage/";
+            if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
+            $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $config['total_rows'] = $this->MProduct->intGetProductsCount(' and p.is_valid = true ');
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
@@ -213,7 +229,7 @@ class Product extends CI_Controller {
     public function details_admin($product_id)
     {
         if($this->session->userdata('role') != 'admin')
-            exit('You are not admin.');
+            exit('You are not the admin.');
         $data = array();
         $data['v'] = $this->MProduct->objGetProductInfo($product_id);
         if(isset($_POST) && !empty($_POST))
@@ -253,7 +269,7 @@ class Product extends CI_Controller {
     public function add($error = '')
     {
         if($this->session->userdata('role') != 'admin')
-            exit('You are not admin.');
+            exit('You are not the admin.');
         $data = array();
         $data['error'] = $error;
         $config = array(

@@ -70,25 +70,25 @@
                 <tr>
                     <th><label for="price_special">特约代理价 <span>*</span></label></th>
                     <td>
-                        <input disabled  name="price_special" data-validate="required,decimal" value="<?=$v->price_special?>"/>(单位: 元)
+                        <input disabled  name="price_special" data-validate="required,decimal" value="<?=cny($v->price_special)?>"/>(单位: 元)
                     </td>
                 </tr>
                 <tr>
                     <th><label for="price_last_2">一级代理价 <span>*</span></label></th>
                     <td>
-                        <input disabled  name="price_last_2" data-validate="required,decimal" value="<?=$v->price_last_2?>"/>(单位: 元)
+                        <input disabled  name="price_last_2" data-validate="required,decimal" value="<?=cny($v->price_last_2)?>"/>(单位: 元)
                     </td>
                 </tr>
                 <tr>
                     <th><label for="price_last_3">二级代理价 <span>*</span></label></th>
                     <td>
-                        <input disabled  name="price_last_3" data-validate="required,decimal" value="<?=$v->price_last_3?>"/>(单位: 元)
+                        <input disabled  name="price_last_3" data-validate="required,decimal" value="<?=cny($v->price_last_3)?>"/>(单位: 元)
                     </td>
                 </tr>
                 <tr>
                     <th><label for="price_normal">零售价 <span>*</span></label></th>
                     <td>
-                        <input disabled  name="price_normal" data-validate="required,decimal" value="<?=$v->price_normal?>"/>(单位: 元)
+                        <input disabled  name="price_normal" data-validate="required,decimal" value="<?=cny($v->price_normal)?>"/>(单位: 元)
                     </td>
                 </tr>
                 <tr>

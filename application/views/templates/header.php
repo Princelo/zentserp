@@ -14,11 +14,12 @@
 
     <!-- ********** jQuery ********** -->
 
-    <script type="text/javascript" src="<?=base_url();?>assets/js/jquery.1.8.0.min.js"></script>
+    <!--<script type="text/javascript" src="<?=base_url();?>assets/js/jquery.1.8.0.min.js"></script>-->
+    <script type="text/javascript" src="<?=base_url();?>assets/js/jquery.js"></script>
 
 
     <!-- ********** PHPJS ********** -->
-    <script type="text/javascript" src="<?=base_url();?>assets/js/php.default.namespaced.min.js"></script>
+    <!--<script type="text/javascript" src="<?=base_url();?>assets/js/php.default.namespaced.min.js"></script>
 
 
     <!-- ********** Custom JS ********** -->
@@ -37,14 +38,18 @@
 
 
     <!-- ********** JSCal2 ********** -->
-    <link type="text/css" rel="stylesheet" href="<?=base_url();?>assets/jscal2.css" />
+    <!--<link type="text/css" rel="stylesheet" href="<?=base_url();?>assets/jscal2.css" />
     <link type="text/css" rel="stylesheet" href="<?=base_url();?>assets/border-radius.css" />
     <link type="text/css" rel="stylesheet" href="<?=base_url();?>assets/reduce-spacing.css" />
-    <script type="text/javascript" src="<?=base_url();?>assets/js/jscal2.js"></script>
-    <script type="text/javascript" src="<?=base_url();?>assets/js/en.js"></script>
+    <!--<script type="text/javascript" src="<?=base_url();?>assets/js/jscal2.js"></script>
+    <script type="text/javascript" src="<?=base_url();?>assets/js/en.js"></script>-->
+    <!--<script type="text/javascript" src="<?=base_url();?>assets/js/jquery.timepicker.js"></script>
+    -->
+    <script src="<?=base_url()?>assets/js/jquery-ui.js"></script>
+    <link rel="stylesheet" href="<?=base_url()?>assets/css/jquery-ui.css"/>
 
     <!-- Clock Picker -->
-    <script type="text/javascript" src="<?=base_url();?>assets/jquery.clockpick.1.2.7.js"></script>
+    <!--<script type="text/javascript" src="<?=base_url();?>assets/jquery.clockpick.1.2.7.js"></script>
     <link type="text/css" rel="stylesheet" href="<?=base_url();?>assets/js/jquery.clockpick.1.2.7.css"/>
 
     <!-- ********** :: Animated jQuery Menu Style 08  ********** -->
@@ -52,14 +57,14 @@
     <link type="text/css" rel="stylesheet" href="<?=base_url();?>assets/menu.css" />
 
     <!-- ********** :: colorbox-master  ********** -->
-    <link rel="stylesheet" href="<?=base_url();?>assets/colorbox.css" />
+    <!--<link rel="stylesheet" href="<?=base_url();?>assets/colorbox.css" />
     <script type="text/javascript" src="<?=base_url();?>assets/js/jquery.colorbox.js"></script>
 
     <!-- Freeze Header  ********** -->
-    <script type="text/javascript" src="<?=base_url();?>assets/js/jquery.freezeheader.js"></script>
+    <!--<script type="text/javascript" src="<?=base_url();?>assets/js/jquery.freezeheader.js"></script>
 
     <!-- Mobile Detector  ********** -->
-    <script type="text/javascript" src="<?=base_url();?>assets/js/detectmobilebrowser.js"></script>
+    <!--<script type="text/javascript" src="<?=base_url();?>assets/js/detectmobilebrowser.js"></script>-->
     <script src="<?=base_url();?>assets/js/verify.notify.min.js"></script>
     <script>
         $(document).ready(
@@ -94,6 +99,9 @@
     <!-- begin: main navigation #nav -->
     <div id="menu">
         <ul class="menu">
+            <li class="">
+                <a href="<?=base_url()?>forecast/index" class="parent" ><span>首页 </span></a>
+            </li>
             <li class="" onmouseover="$(this).children('div').show();" onmouseout="$(this).children('div').hide()">
                 <a href="javascript:;" class="parent" ><span>产品 </span></a>
                 <div style="display:none; height: 108px; overflow: hidden;">
@@ -133,13 +141,15 @@
                 <a href="javascript:;" class="parent" ><span>报表系统 </span></a>
                 <div style="display:none; height: 108px; overflow: hidden;">
                     <ul>
-                        <li><a href="<?=base_url()?>product/listpage_admin" class="" style="background: none;"><span>报表查询 </span></a>
+                        <li><a href="<?=base_url()?>report/index_admin" class="" style="background: none;"><span>代理报表查询 </span></a>
+                        </li>
+                        <li><a href="<?=base_url()?>report/index_zents" class="" style="background: none;"><span>Zents总报表查询 </span></a>
                         </li>
                     </ul>
                 </div>
 
             </li>
-            <li class=""><a href="<?=base_url();?>password/index" class=""><span>修改密碼 </span></a></li>
+            <li class=""><a href="<?=base_url();?>user/password" class=""><span>修改密碼 </span></a></li>
             <li class=""><a href="<?=base_url();?>logout" class=""><span>登出 </span></a></li>
         </ul>
     </div>
@@ -150,7 +160,7 @@
 <script>
     $(document).ready(function(){
         //Examples of how to assign the Colorbox event to elements
-        $(".group1").colorbox({rel:'group1'});
+        /*$(".group1").colorbox({rel:'group1'});
         $(".group2").colorbox({rel:'group2', transition:"fade"});
         $(".group3").colorbox({rel:'group3', transition:"none", width:"75%", height:"75%"});
         $(".group4").colorbox({rel:'group4', slideshow:true});
@@ -204,4 +214,6 @@
     function isNumber(n) {
         return !isNaN(parseFloat(n)) && isFinite(n);
     }
+    $(document).ready(function(){
+    });
 </script>

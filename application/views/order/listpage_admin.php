@@ -26,18 +26,28 @@
             <span class="red">
                 <?=$this->session->flashdata('flashdata', 'value');?>
             </span>
+            <div>
+                <form action="<?=base_url()?>order/listpage_admin" method="get">
+                    <table>
+                        <tr>
+                            <th>搜索</th>
+                            <th>
+                                <select name="is_finish">
+                                    <option></option>
+                                    <option value="1">已完成</option>
+                                    <option value="0">未完成</option>
+                                </select>
+                            </th>
+                            <th>
+                                <input type="submit" value="提交"/>
+                            </th>
+                        </tr>
+                    </table>
+                </form>
+            </div>
             <table width="100%">
                 <!--<col width="50%">
                 <col width="50%">-->
-                <tr>
-                    <th>搜索<br/>
-                        产品名称/功效
-                    </th>
-                    <form action="<?=base_url()?>product/listpage" method="post">
-                        <td colspan="13"><input type="text" name="search" value=""  /><input type="submit" />
-                        </td>
-                    </form>
-                </tr>
                 <tr>
                     <th>订单号</th>
                     <th>产品名称(ID)</th>
@@ -55,6 +65,7 @@
                     <th></th>
                 </tr>
                 <? $n = 0; ?>
+                <? if(!empty($orders)) {?>
                 <? foreach($orders as $k => $v){ ?>
                     <? $n ++; ?>
                     <tr class="<?=$n%2==0?"even":"odd";?>">
@@ -73,6 +84,7 @@
                         <td><?=substr($v->stock_time, 0, 19);?></td>
                         <td><a href="<?=base_url()?>order/details_admin/<?=$v->id;?>">查看详情</a></td>
                     </tr>
+                <? } ?>
                 <? } ?>
             </table>
             <div class="page"><?=$page;?></div>

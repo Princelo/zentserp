@@ -10,7 +10,7 @@
                 <li>
                     <a href='<?=base_url()?>user/listpage_admin' ><div>代理列表 </div></a>
                 </li>
-                <li><a href='<?=base_url();?>user/add' ><div>新增代理 </div></a></li>
+                <li><a href='<?=base_url();?>user/addRootUser' ><div>新增代理 </div></a></li>
             </ul>
         </div>
     </div>
@@ -51,7 +51,7 @@
                         <th><label for="password">代理密码 <span>*</span></label></th>
                         <td>
                             <input type="password" name="password" data-validate="required,size(8,30)"
-                                   maxlength="30" value="<?=set_value('username')?>"/>
+                                   maxlength="30" value="<?=set_value('password')?>"/>
                         </td>
                     </tr>
                     <tr>

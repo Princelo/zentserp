@@ -29,19 +29,33 @@
             <span class="red">
                 <?=$this->session->flashdata('flashdata', 'value');?>
             </span>
+            <div>
+                <form action="<?=base_url()?>product/listpage_admin" method="get">
+                    <table>
+                        <tr>
+                            <th>搜索</th>
+                            <th>
+                                产品名称、功效:<input type="text" name="search" value="<?=set_value('search')?>"  />
+                            </th>
+                            <th style="display: none;">
+                               价格区间(低) <input type="text" name="price_low" value="<?=set_value('price_low')?>" />
+                            </th>
+                            <th style="display: none;">
+                                价格区间(高) <input type="text" name="price_high" value="<?=set_value('price_high')?>" />
+                            </th>
+                            <th>
+                                <input type="submit" />
+                            </th>
+
+                        </tr>
+                        </table>
+                </form>
+            </div>
             <table width="100%">
                 <!--<col width="50%">
                 <col width="50%">-->
                 <tr>
-                    <th>搜索<br/>
-                        产品名称/功效
-                    </th>
-                    <form action="<?=base_url()?>product/listpage" method="post">
-                        <td colspan="9"><input type="text" name="search" value=""  /><input type="submit" />
-                        </td>
-                    </form>
-                </tr>
-                <tr>
+                    <th>ID</th>
                     <th>产品名称</th>
                     <th>规格</th>
                     <th>产品功效</th>
@@ -54,9 +68,11 @@
                     <th></th>
                 </tr>
                 <? $n = 0; ?>
+                <? if(!empty($products)) { ?>
                 <? foreach($products as $k => $v){ ?>
                     <? $n ++; ?>
                     <tr class="<?=$n%2==0?"even":"odd";?>">
+                        <td><?=$v->id?></td>
                         <td><?=$v->title?></td>
                         <td><?=$v->properties;?></td>
                         <td><?=$v->feature?></td>
@@ -68,6 +84,7 @@
                         <td><?=cny($v->price_normal)?></td>
                         <td><a href="<?=base_url()?>product/details_admin/<?=$v->id;?>">编辑</a></td>
                     </tr>
+                <? } ?>
                 <? } ?>
             </table>
             <div class="page"><?=$page;?></div>

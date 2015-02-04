@@ -1,3 +1,19 @@
+<div id="container">
+
+
+
+    <!-- begin: #col1 - first float column -->
+    <div id="col1" role="complementary" style="display: block;">
+        <div id="col1_content" class="clearfix">
+
+            <ul id="left_menu">
+                <li>
+                    <a href='<?=base_url()?>product/listpage' ><div>产品列表 </div></a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <!-- begin: #col3 static column -->
 <!-- begin: #col3 static column -->
 <div id="col3" role="main" class="one_column">
     <div id="col3_content" class="clearfix">

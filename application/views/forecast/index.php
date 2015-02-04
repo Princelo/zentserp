@@ -1,3 +1,5 @@
+
+<div id="container">
 <!-- begin: #col3 static column -->
 <div id="col3" role="main" class="one_column">
     <div id="col3_content" class="clearfix">
@@ -5,7 +7,19 @@
 
         <div class="info view_form">
             <h2>臻芝ERP管理系统 </h2>
+            <h4><?php echo validation_errors(); ?>
+                <span class="red">
+                    <?=$this->session->flashdata('flashdata', 'value');?>
+                </span>
+            </h4>
             <?php //phpinfo(); ?>
+            <h4>编辑公告：</h4>
+            <form action="<?=base_url()?>forecast/index" method="post" />
+            <div>
+                <textarea name="forecast" rows="30" cols="90"><?=$forecast?></textarea>
+            </div>
+            <input type="submit" value="修改"/>
+            </form>
         </div>
 
 

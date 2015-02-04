@@ -23,6 +23,7 @@ class MUser extends CI_Model
                 where
                 username = ?
                 and password = ?
+                and is_valid = true
         ";
         $binds = array($login_id, $password);
         $data = array();
@@ -39,7 +40,7 @@ class MUser extends CI_Model
 
     public function boolUpdatePassword($password, $login_id){
         $update_data = array("password" => $password);
-        $update_sql =  $this->objDB->update_string('users', $update_data, array("username"=>$login_id));
+        $update_sql =  $this->objDB->update_string('users', $update_data, array("id"=>$login_id));
         $result = $this->objDB->query($update_sql);
         if($result === true)
             return true;
@@ -58,12 +59,13 @@ class MUser extends CI_Model
         $insert_sql_user = "";
         $insert_sql_user .= "
             insert into users
-            (username, password, level, name, citizen_id, mobile_no, wechat_id, qq_no, is_valid, root_id, pid, lft, rgt)
+            (username, password, level, basic_level, name, citizen_id, mobile_no, wechat_id, qq_no, is_valid, root_id, pid, lft, rgt)
             values
-            (?, ?, ?, ?, ?, ?, ?, ?, ?, currval('root_ids_id_seq'),{$current_user_id}, 1, 2);
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, currval('root_ids_id_seq'),{$current_user_id}, 1, 2);
         ";
         $binds = array(
-            $main_data['username'], $main_data['password'], $main_data['level'], $main_data['name'],
+            $main_data['username'], $main_data['password'], $main_data['level'], $main_data['level'],
+            $main_data['name'],
             $main_data['citizen_id'], $main_data['mobile_no'], $main_data['wechat_id'], $main_data['qq_no'],
             $main_data['is_valid']
         );
@@ -132,9 +134,11 @@ class MUser extends CI_Model
             $main_data['citizen_id'], $main_data['mobile_no'], $main_data['wechat_id'], $main_data['qq_no'],
         );
 
+        //debug($update_left_right_sql);
+        //debug($insert_sql_user);
         $this->objDB->trans_start();
 
-        $this->objDB->query("set constraints all deferred");
+        $this->objDB->query("set constraints all deferred;");
         $this->objDB->query($update_left_right_sql);
         $this->objDB->query($insert_sql_user, $binds);
 
@@ -201,6 +205,8 @@ class MUser extends CI_Model
         $query = $this->objDB->query($query_sql);
         if($query->num_rows() > 0) {
             $count = $query->row()->count;
+        }else{
+            return 0;
         }
 
         $query->free_result();
@@ -228,11 +234,117 @@ class MUser extends CI_Model
             foreach ($query->result() as $key => $val) {
                 $data[] = $val;
             }
+        }else{
+            return 0;
         }
         $query->free_result();
 
         //debug($data);
         return $data;
+    }
+
+    public function objGetUserInfo($id = '')
+    {
+        $query_sql = "";
+        $query_sql .= "
+            select
+                *
+            from
+                users
+            where
+                id = ?
+        ";
+        $binds = array($id);
+        $data = array();
+        $query = $this->objDB->query($query_sql, $binds);
+        if($query->num_rows() > 0){
+            return $query->result()[0];
+        }else{
+        }
+        $query->free_result();
+
+        //debug($data);
+        return $data;
+    }
+
+    public function update($data, $id)
+    {
+        $update_sql = $this->objDB->update_string("users", $data, array("id" => $id));
+        $result = $this->objDB->query($update_sql);
+
+        if($result === true) {
+            return true;
+        }else {
+            return false;
+        }
+    }
+
+    public function objGetSubUserList($where = '', $order = '', $limit = '')
+    {
+        $query_sql = "
+            SELECT so.*
+                FROM users AS su, users AS so
+                WHERE so.lft BETWEEN su.lft AND su .rgt
+                and so.lft <> su.lft
+                {$where}
+                {$order}
+                {$limit}
+        ";
+        $query = $this->objDB->query($query_sql);
+        if($query->num_rows() > 0){
+            foreach ($query->result() as $key => $val) {
+                $data[] = $val;
+            }
+        }else{
+            return 0;
+        }
+        $query->free_result();
+
+        return $data;
+    }
+
+    public function intGetSubUsersCount($where = '')
+    {
+        $query_sql = "
+            SELECT count(so.id)
+                FROM users AS su, users AS so
+                WHERE so.lft BETWEEN su.lft AND su.rgt
+                and so.lft <> su.lft
+                and so.pid = su.id
+                {$where}
+        ";
+        $query = $this->objDB->query($query_sql);
+        if($query->num_rows() > 0) {
+            $count = $query->row()->count;
+        }
+
+        $query->free_result();
+
+        return $count;
+    }
+
+    public function isParent($pid, $id)
+    {
+        $query_sql = "
+            select count(so.id)
+                from users as su, users as so
+                where so.lft between su.lft and su.rgt
+                and so.lft <> su.lft
+                and so.pid = su.id
+                and su.id = ?
+                and so.id = ?
+        ";
+        $binds = array($pid, $id);
+        $query = $this->objDB->query($query_sql, $binds);
+        if($query->num_rows() > 0) {
+            $count = $query->row()->count;
+        }else{
+            return false;
+        }
+
+        $query->free_result();
+        if($count > 0)
+            return true;
     }
 
 }

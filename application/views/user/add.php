@@ -1,3 +1,21 @@
+
+<div id="container">
+
+
+
+    <!-- begin: #col1 - first float column -->
+    <div id="col1" role="complementary" style="display: block;">
+        <div id="col1_content" class="clearfix">
+
+            <ul id="left_menu">
+                <li>
+                    <a href='<?=base_url()?>user/listpage' ><div>我的下级代理 </div></a>
+                </li>
+                <li><a href='<?=base_url();?>user/add' ><div>新增代理 </div></a></li>
+            </ul>
+        </div>
+    </div>
+    <!-- end: #col1 -->
 <!-- begin: #col3 static column -->
 <div id="col3" role="main" class="one_column">
     <div id="col3_content" class="clearfix">
@@ -33,7 +51,7 @@
                         <th><label for="password">代理密码 <span>*</span></label></th>
                         <td>
                             <input type="password" name="password" data-validate="required,size(8,30)"
-                                   maxlength="30" value="<?=set_value('username')?>"/>
+                                   maxlength="30" value="<?=set_value('password')?>"/>
                         </td>
                     </tr>
                     <tr>

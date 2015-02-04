@@ -5,6 +5,8 @@ class Order extends CI_Controller {
     public $db;
     public function __construct(){
         parent::__construct();
+        if($this->session->userdata('role') != 'admin' && $this->session->userdata('role') != 'user')
+            redirect('error404');
         $this->load->model('MProduct', 'MProduct');
         $this->load->model('MOrder', 'MOrder');
         $this->load->model('MUser', 'MUser');
@@ -14,8 +16,88 @@ class Order extends CI_Controller {
         $this->level = 1;
     }
 
+    public function index_sub($offset = 0)
+    {
+        if($this->session->userdata('role') != 'user')
+            exit('You are the admin.');
+        $current_user_id = $this->session->userdata('current_user_id');
+        $get_config = array(
+            array(
+                'field' =>  'search',
+                'label' =>  '用戶名',
+                'rules' =>  'trim|xss_clean'
+            ),
+            array(
+                'field' =>  'level',
+                'label' =>  'Level',
+                'rules' =>  'trim|xss_clean|is_natural'
+            ),
+        );
+        $this->form_validation->set_rules($get_config);
+        if($this->input->get('search', true) != '' ||
+            $this->input->get('level', true) != ''
+        )
+        {
+            $search = $this->input->get('search', true);
+            $search = $this->db->escape_like_str($search);
+            $level = $this->input->get('level', true);
+            $data = array();
+            if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
+            $config['base_url'] = base_url()."order/index_sub/";
+            $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
+            $where = " and su.id = {$current_user_id} ";
+            //$where .= ' and p.is_valid = true ';
+            $where .= $this->__get_search_str($search, $level);
+            $config['total_rows'] = $this->MUser->intGetSubUsersCount($where);
+            $config['per_page'] = 30;
+            $this->pagination->initialize($config);
+            $data['page'] = $this->pagination->create_links();
+            $limit = '';
+            $limit .= " limit {$config['per_page']} offset {$offset} ";
+            //$where = '';
+            //$where = ' and is_admin = false ';
+            $order = '';
+            $data['users'] = $this->MUser->objGetSubUserList($where, $order, $limit);
+            $this->load->view('templates/header_user', $data);
+            $this->load->view('order/index_sub', $data);
+        }else{
+            $data = array();
+            if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
+            $config['base_url'] = base_url()."order/index_sub/";
+            $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
+            $where = " and su.id = {$current_user_id} ";
+            $config['total_rows'] = $this->MUser->intGetSubUsersCount($where);
+            $config['per_page'] = 30;
+            $this->pagination->initialize($config);
+            $data['page'] = $this->pagination->create_links();
+            $limit = '';
+            $limit .= " limit {$config['per_page']} offset {$offset} ";
+            //$where = ' and p.is_valid = true ';
+            $order = '';
+            $data['users'] = $this->MUser->objGetSubUserList($where, $order, $limit);
+            $this->load->view('templates/header_user', $data);
+            $this->load->view('order/index_sub', $data);
+        }
+    }
+
+    public function query_sub($id)
+    {
+        if($this->session->userdata('role') != 'user')
+            exit('You are the admin.');
+        $pid = $this->session->userdata('current_user_id');
+        if(!is_numeric($id))
+            exit('ERROR');
+        if(!$this->MUser->isParent($pid, $id))
+            exit('You are not the Superior of this user');
+        $data['id'] = $id;
+        $this->load->view('templates/header_user');
+        $this->load->view('order/query_sub', $data);
+    }
+
     public function listpage_admin($offset = 0)
     {
+        if($this->session->userdata('role') != 'admin')
+            exit('You are not the admin.');
         $get_config = array(
             array(
                 'field' =>  'search',
@@ -27,16 +109,16 @@ class Order extends CI_Controller {
                 'label' =>  'User Id',
                 'rules' =>  'trim|xss_clean|numeric'
             ),
-            array(
+            /*array(
                 'field' =>  'is_finish',
                 'label' =>  'Is Finish',
                 'rules' =>  'trim|xss_clean|boolean'
-            ),
+            ),*/
         );
         $this->form_validation->set_rules($get_config);
         if($this->input->get('search', true) != '' ||
             $this->input->get('uid', true) != '' ||
-            $this->input->get('is_finsh', true) != ''
+            $this->input->get('is_finish', true) != ''
         )
         {
             $search = $this->input->get('search', true);
@@ -45,6 +127,8 @@ class Order extends CI_Controller {
             $is_finish = $this->input->get('is_finish', true);
             $data = array();
             $config['base_url'] = base_url()."order/listpage_admin/";
+            if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
+            $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $where = '';
             //$where .= ' and p.is_valid = true ';
             $where .= $this->__get_search_str($search, $uid, $is_finish);
@@ -63,6 +147,8 @@ class Order extends CI_Controller {
             $data = array();
             $where = ' and ( o.is_pay = true or o.is_correct = false ) ';
             $config['base_url'] = base_url()."order/listpage_admin/";
+            if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
+            $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $config['total_rows'] = $this->MOrder->intGetOrdersCount($where);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
@@ -76,11 +162,156 @@ class Order extends CI_Controller {
         }
     }
 
+    public function listpage($offset = 0)
+    {
+        if($this->session->userdata('role') != 'user')
+            exit('You are the admin.');
+        $get_config = array(
+            array(
+                'field' =>  'search',
+                'label' =>  'Search Keyword',
+                'rules' =>  'trim|xss_clean'
+            ),
+            /*array(
+                'field' =>  'uid',
+                'label' =>  'User Id',
+                'rules' =>  'trim|xss_clean|numeric'
+            ),*/
+            /*array(
+                'field' =>  'is_finish',
+                'label' =>  'Is Finish',
+                'rules' =>  'trim|xss_clean|boolean'
+            ),*/
+        );
+        $uid = $this->session->userdata('current_user_id');
+        $this->form_validation->set_rules($get_config);
+        if($this->input->get('search', true) != '' ||
+            //$this->input->get('uid', true) != '' ||
+            $this->input->get('is_finish', true) != ''
+        )
+        {
+            $search = $this->input->get('search', true);
+            $search = $this->db->escape_like_str($search);
+            //$uid = $this->input->get('uid', true);
+            $is_finish = $this->input->get('is_finish', true);
+            $data = array();
+            $config['base_url'] = base_url()."order/listpage/";
+            if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
+            $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
+            $where = '';
+            //$where .= ' and p.is_valid = true ';
+            $where .= $this->__get_search_str($search, $uid, $is_finish);
+            $config['total_rows'] = $this->MOrder->intGetOrdersCount($where);
+            $config['per_page'] = 30;
+            $this->pagination->initialize($config);
+            $data['page'] = $this->pagination->create_links();
+            $limit = '';
+            $limit .= " limit {$config['per_page']} offset {$offset} ";
+            //$where = '';
+            $order = ' order by o.create_time desc ';
+            $data['orders'] = $this->MOrder->objGetOrderList($where, $order, $limit);
+            $this->load->view('templates/header_user', $data);
+            $this->load->view('order/listpage', $data);
+        }else{
+            $data = array();
+            $where = ' and ( o.is_pay = true or o.is_correct = false ) and o.user_id = '. $uid;
+            $config['base_url'] = base_url()."order/listpage/";
+            if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
+            $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
+            $config['total_rows'] = $this->MOrder->intGetOrdersCount($where);
+            $config['per_page'] = 30;
+            $this->pagination->initialize($config);
+            $data['page'] = $this->pagination->create_links();
+            $limit = '';
+            $limit .= " limit {$config['per_page']} offset {$offset} ";
+            $order = ' order by o.create_time desc';
+            $data['orders'] = $this->MOrder->objGetOrderList($where, $order, $limit);
+            $this->load->view('templates/header_user', $data);
+            $this->load->view('order/listpage', $data);
+        }
+    }
+
+    public function listpage_sub($offset = 0)
+    {
+        if($this->session->userdata('role') != 'user')
+            exit('You are the admin.');
+        $pid = $this->session->userdata('current_user_id');
+        $current_user_id = $this->input->get('user');
+        if(!is_numeric($current_user_id))
+            exit('User Id Error');
+        if(!$this->MUser->isParent($pid, $current_user_id))
+            exit('You are not the Superior of this user');
+        $get_config = array(
+            array(
+                'field' =>  'search',
+                'label' =>  'Search Keyword',
+                'rules' =>  'trim|xss_clean'
+            ),
+            /*array(
+                'field' =>  'uid',
+                'label' =>  'User Id',
+                'rules' =>  'trim|xss_clean|numeric'
+            ),*/
+            array(
+                'field' =>  'is_finish',
+                'label' =>  'Is Finish',
+                'rules' =>  'trim|xss_clean|boolean'
+            ),
+        );
+        //$uid = $this->session->userdata('current_user_id');
+        $uid = $current_user_id;
+        $this->form_validation->set_rules($get_config);
+        if($this->input->get('search', true) != '' ||
+            //$this->input->get('uid', true) != '' ||
+            $this->input->get('is_finsh', true) != ''
+        )
+        {
+            $search = $this->input->get('search', true);
+            $search = $this->db->escape_like_str($search);
+            //$uid = $this->input->get('uid', true);
+            $is_finish = $this->input->get('is_finish', true);
+            $data = array();
+            $config['base_url'] = base_url()."order/listpage/";
+            if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
+            $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
+            $where = '';
+            //$where .= ' and p.is_valid = true ';
+            $where .= $this->__get_search_str($search, $uid, $is_finish);
+            $config['total_rows'] = $this->MOrder->intGetOrdersCount($where);
+            $config['per_page'] = 30;
+            $this->pagination->initialize($config);
+            $data['page'] = $this->pagination->create_links();
+            $limit = '';
+            $limit .= " limit {$config['per_page']} offset {$offset} ";
+            //$where = '';
+            $order = ' order by o.create_time desc ';
+            $data['orders'] = $this->MOrder->objGetOrderList($where, $order, $limit);
+            $this->load->view('templates/header_user', $data);
+            $this->load->view('order/listpage', $data);
+        }else{
+            $data = array();
+            $where = ' and ( o.is_pay = true or o.is_correct = false ) and o.user_id = '. $uid;
+            $config['base_url'] = base_url()."order/listpage/";
+            if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
+            $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
+            $config['total_rows'] = $this->MOrder->intGetOrdersCount($where);
+            $config['per_page'] = 30;
+            $this->pagination->initialize($config);
+            $data['page'] = $this->pagination->create_links();
+            $limit = '';
+            $limit .= " limit {$config['per_page']} offset {$offset} ";
+            $order = ' order by o.create_time desc';
+            $data['orders'] = $this->MOrder->objGetOrderList($where, $order, $limit);
+            $this->load->view('templates/header_user', $data);
+            $this->load->view('order/listpage', $data);
+        }
+
+    }
+
     public function details_admin($order_id)
     {
-        /*if($this->session->userdata('admin') == ""){
-            redirect('forecast/index', 'refresh');
-        }*/
+        if($this->session->userdata('role') != 'admin')
+            exit('You are not the admin.');
         $data = array();
         $data['v'] = $this->MOrder->objGetOrderInfo($order_id);
         if($this->input->post('finish', true) != '')
@@ -197,9 +428,8 @@ class Order extends CI_Controller {
 
     public function add($product_id)
     {
-        /*if(!isset($_SESSION['admin'])){
-            redirect('login', 'refresh');
-        }*/
+        if($this->session->userdata('role') == 'admin')
+            exit('You are the admin.');
         $data = array();
         $data['error'] = '';
         $config = array(
@@ -231,7 +461,7 @@ class Order extends CI_Controller {
             array(
                 'field'   => 'count',
                 'label'   => 'Purchase quantity',
-                'rules'   => 'trim|xss_clean|integer'
+                'rules'   => 'trim|xss_clean|is_natural|greater_than[0]'
             ),
         );
         if($this->input->post('is_post') === true)
@@ -289,17 +519,17 @@ class Order extends CI_Controller {
                     if($this->input->post('is_post') === true)
                         redirect('order/pay/'.$result_id);
                     else
-                        redirect('order/add');
+                        redirect('order/add/'.$product_id);
                 }
                 else{
                     $this->session->set_flashdata('flashdata', '订单添加失败');
-                    redirect('order/add');
+                    redirect('order/add'.$product_id);
                 }
             }
         }else{
             $data['product_name'] = $this->MProduct->strGetProductTitle($product_id);
             $data['product_id'] = $product_id;
-            $this->load->view('templates/header', $data);
+            $this->load->view('templates/header_user', $data);
             $this->load->view('order/add', $data);
         }
 
@@ -318,7 +548,10 @@ class Order extends CI_Controller {
         }
         if($is_finish != null)
         {
-            $where .= " and o.is_pay = true and o.is_correct = true ";
+            if($is_finish == '1')
+                $where .= " and o.is_pay = true and o.is_correct = true ";
+            elseif($is_finish == '0')
+                $where .= " and (o.is_pay = false or o.is_correct = false) ";
         }
         return $where;
     }
