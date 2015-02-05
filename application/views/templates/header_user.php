@@ -2,7 +2,8 @@
 <html>
 <head>
     <link rel="stylesheet" href="<?=base_url();?>assets/navigator_memu.css" type="text/css" media="screen, projection" >
-
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>UNVWEB Management System 远维网络</title>
 
