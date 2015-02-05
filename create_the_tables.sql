@@ -699,6 +699,8 @@ ALTER TABLE ONLY zents_bills ALTER COLUMN id SET DEFAULT nextval('zents_bills_id
 COPY address_books (id, user_id, contact, province_id, city_id, address_info, remark, create_time, mobile) FROM stdin;
 14	2	王祖藍	1	2	花都区屌你老味	0	2015-02-01 03:42:48.338158	13234535466
 24	8	王祖藍	1	2	花都区屌你老味	0	2015-02-02 16:17:19.181142	13322232322
+25	8	sdf	1	2	sdf	0	2015-02-04 02:02:22.256967	sdf
+26	8	王祖藍	1	2	花都区屌你老味	0	2015-02-04 03:32:27.94735	13234535466
 \.
 
 
@@ -706,7 +708,7 @@ COPY address_books (id, user_id, contact, province_id, city_id, address_info, re
 -- Name: address_books_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('address_books_id_seq', 24, true);
+SELECT pg_catalog.setval('address_books_id_seq', 26, true);
 
 
 --
@@ -722,6 +724,14 @@ COPY amounts (id, amount, order_id, level) FROM stdin;
 9	$500.00	7	2
 10	$600.00	7	3
 11	$700.00	7	0
+12	$3.10	8	1
+13	$4.10	8	2
+14	$4.50	8	3
+15	$5.00	8	0
+16	$30.00	9	1
+17	$40.00	9	2
+18	$50.00	9	3
+19	$60.00	9	0
 \.
 
 
@@ -729,7 +739,7 @@ COPY amounts (id, amount, order_id, level) FROM stdin;
 -- Name: amounts_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('amounts_id_seq', 11, true);
+SELECT pg_catalog.setval('amounts_id_seq', 19, true);
 
 
 --
@@ -739,6 +749,8 @@ SELECT pg_catalog.setval('amounts_id_seq', 11, true);
 COPY bills (id, user_id, order_id, sub_user_id, volume, type, reason, create_time, pay_amt_without_post_fee) FROM stdin;
 4	2	7	8	$10,000.00	2	2	2015-02-02 17:02:23.636264	$0.00
 3	2	7	8	$70,000.00	1	1	2015-02-02 17:02:23.636264	$70,000.00
+5	8	9	\N	$60,000.00	1	1	2015-02-04 03:33:04.824669	$60,000.00
+6	2	9	8	$10,000.00	2	2	2015-02-04 03:33:04.824669	$0.00
 \.
 
 
@@ -746,7 +758,7 @@ COPY bills (id, user_id, order_id, sub_user_id, volume, type, reason, create_tim
 -- Name: bills_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('bills_id_seq', 4, true);
+SELECT pg_catalog.setval('bills_id_seq', 6, true);
 
 
 --
@@ -754,8 +766,14 @@ SELECT pg_catalog.setval('bills_id_seq', 4, true);
 --
 
 COPY captcha (captcha_id, ip_address, word, captcha_time) FROM stdin;
-56	127.0.0.1	ra9di	1422898058
-57	127.0.0.1	7F5U3	1422902545
+71	127.0.0.1	QEg6U	1423005012
+72	127.0.0.1	BjG0r	1423006606
+73	127.0.0.1	x2Ghd	1423006613
+74	127.0.0.1	KPS6f	1423007531
+75	127.0.0.1	X9Zpm	1423007538
+76	127.0.0.1	h2H0b	1423007635
+77	127.0.0.1	A9RDV	1423007796
+78	127.0.0.1	dZMv4	1423007801
 \.
 
 
@@ -763,7 +781,7 @@ COPY captcha (captcha_id, ip_address, word, captcha_time) FROM stdin;
 -- Name: captcha_captcha_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('captcha_captcha_id_seq', 57, true);
+SELECT pg_catalog.setval('captcha_captcha_id_seq', 78, true);
 
 
 --
@@ -774,6 +792,7 @@ COPY finish_log (order_id, pay_amt, user_id, parent_user_id, is_root, pay_amt_wi
 5	$0.00	2	1	t	$46.50	\N	1
 5	$46.50	2	1	t	$46.50	\N	2
 7	$70,000.00	8	2	f	$70,000.00	t	3
+9	$60,000.00	8	2	f	$60,000.00	f	4
 \.
 
 
@@ -781,7 +800,7 @@ COPY finish_log (order_id, pay_amt, user_id, parent_user_id, is_root, pay_amt_wi
 -- Name: finish_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('finish_log_id_seq', 3, true);
+SELECT pg_catalog.setval('finish_log_id_seq', 4, true);
 
 
 --
@@ -796,7 +815,7 @@ SELECT pg_catalog.setval('forecast_id_seq', 1, false);
 --
 
 COPY forecasts (id, content, create_time) FROM stdin;
-1	老味你	2015-01-27 23:46:04.924766
+1	hsdkjhwkejtlwjeltkjwlket	2015-01-27 23:46:04.924766
 \.
 
 
@@ -823,6 +842,22 @@ COPY level_update_log (id, user_id, new_level, upgrade_time, original_profit, or
 26	8	0	2015-02-02 16:47:42.621001	\N	0	$0.00	$70,000.00	$70,000.00	0	0	$70,000.00	$70,000.00
 27	11	0	2015-02-02 16:47:45.229745	\N	0	$0.00	$0.00	$0.00	0	0	$0.00	$0.00
 28	12	0	2015-02-02 16:49:02.933152	\N	0	$0.00	$0.00	$0.00	0	0	$0.00	$0.00
+29	2	3	2015-02-04 03:03:40.207007	$0.00	3	$0.00	$0.00	$0.00	3	3	$0.00	$0.00
+30	8	0	2015-02-04 03:03:40.207007	$0.00	0	$0.00	$70,000.00	$70,000.00	0	0	$70,000.00	$70,000.00
+31	11	0	2015-02-04 03:03:40.207007	$0.00	0	$0.00	$0.00	$0.00	0	0	$0.00	$0.00
+32	12	0	2015-02-04 03:03:40.207007	$0.00	0	$0.00	$0.00	$0.00	0	0	$0.00	$0.00
+33	8	0	2015-02-04 03:33:04.824669	$0.00	0	$0.00	$70,000.00	$70,000.00	0	0	$70,000.00	$130,000.00
+34	8	2	2015-02-04 03:33:04.824669	$0.00	0	$0.00	$70,000.00	$70,000.00	0	0	$130,000.00	$130,000.00
+35	2	3	2015-02-04 03:33:04.824669	$0.00	3	$10,000.00	$0.00	$0.00	3	3	$0.00	$0.00
+36	2	3	2015-02-04 03:33:04.824669	$10,000.00	3	$10,000.00	$0.00	$0.00	3	3	$0.00	$0.00
+37	8	2	2015-02-04 03:39:16.14921	$0.00	2	$0.00	$70,000.00	$70,000.00	0	0	$130,000.00	$130,000.00
+38	11	0	2015-02-04 03:39:20.042514	$0.00	0	$0.00	$0.00	$0.00	0	0	$0.00	$0.00
+39	12	0	2015-02-04 03:39:22.274765	$0.00	0	$0.00	$0.00	$0.00	0	0	$0.00	$0.00
+40	13	0	2015-02-04 03:39:25.431634	$0.00	0	$0.00	$0.00	$0.00	0	0	$0.00	$0.00
+41	8	2	2015-02-04 07:23:24.061087	$0.00	2	$0.00	$70,000.00	$70,000.00	0	0	$130,000.00	$130,000.00
+42	8	2	2015-02-04 07:23:30.199588	$0.00	2	$0.00	$70,000.00	$70,000.00	0	0	$130,000.00	$130,000.00
+43	8	2	2015-02-04 07:24:29.096004	$0.00	2	$0.00	$70,000.00	$70,000.00	0	0	$130,000.00	$130,000.00
+44	1	0	2015-02-04 07:53:52.653634	$0.00	0	$0.00	$0.00	$0.00	0	0	$0.00	$0.00
 \.
 
 
@@ -830,7 +865,7 @@ COPY level_update_log (id, user_id, new_level, upgrade_time, original_profit, or
 -- Name: level_update_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('level_update_log_id_seq', 28, true);
+SELECT pg_catalog.setval('level_update_log_id_seq', 44, true);
 
 
 --
@@ -840,6 +875,8 @@ SELECT pg_catalog.setval('level_update_log_id_seq', 28, true);
 COPY orders (id, user_id, create_time, update_time, product_id, is_pay, pay_amt, is_correct, count, is_cancelled, is_deleted, level, parent_level, pay_time, address_book_id, is_post, post_fee, finish_time, is_pay_online, is_first, pay_amt_without_post_fee) FROM stdin;
 5	2	2015-02-01 03:42:48.338158	2015-02-02 04:13:25	8	t	$46.50	t	15	f	f	1	1	\N	14	f	$0.00	2015-02-02 04:13:25	\N	\N	$46.50
 7	8	2015-02-02 16:17:19.181142	2015-02-02 16:29:59	13	t	$70,000.00	t	100	f	f	0	3	\N	24	f	$0.00	2015-02-02 16:29:59	f	t	$70,000.00
+8	8	2015-02-04 02:02:22.256967	\N	8	f	$0.00	f	1	f	f	0	3	\N	25	f	$0.00	\N	f	f	\N
+9	8	2015-02-04 03:32:27.94735	2015-02-04 03:33:04	9	t	$60,000.00	t	1000	f	f	0	3	\N	26	f	$0.00	2015-02-04 03:33:04	f	f	$60,000.00
 \.
 
 
@@ -847,7 +884,7 @@ COPY orders (id, user_id, create_time, update_time, product_id, is_pay, pay_amt,
 -- Name: orders_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('orders_id_seq', 7, true);
+SELECT pg_catalog.setval('orders_id_seq', 9, true);
 
 
 --
@@ -931,11 +968,12 @@ SELECT pg_catalog.setval('root_ids_id_seq', 8, true);
 --
 
 COPY users (username, password, create_time, update_time, is_valid, level, name, citizen_id, mobile_no, wechat_id, qq_no, property, lft, rgt, pid, root_id, profit, is_admin, id, is_root, first_purchase, basic_level, turnover) FROM stdin;
-zentssuperadmin	21232f297a57a5a743894a0e4a801fc3	2015-01-27 23:00:46.60982	\N	t	0	管理员	8888888888	8888888	888888888	23008600	$88,888,888,888.00	1	2	\N	\N	$0.00	t	1	f	$0.00	0	$0.00
-testuser	05a671c66aefea124cc08b76ea6d30bb	2015-01-31 21:52:06.22617	\N	t	3	家家酒	4401010101010101	12381274891	尸杰尸杰	87495	\N	1	8	1	8	$0.00	f	2	t	$0.00	3	$0.00
-subuser	21232f297a57a5a743894a0e4a801fc3	2015-02-01 00:20:04.60615	\N	\N	0	家家酒	237498237958723	12381274892	尸杰尸杰	23589235	\N	2	3	2	8	$0.00	f	8	f	$70,000.00	0	$70,000.00
-subuser2	e8408cb7570728580e2cb66f1a4b1ee4	2015-02-01 00:24:36.284857	\N	\N	0	yweuir	jkljluioiwer	66672234223	33445333	73589273	\N	4	5	2	8	$0.00	f	11	f	$0.00	0	$0.00
-sdffwer	8e8a359d605a815dc118db3877c22b0e	2015-02-01 01:24:47.842887	\N	\N	0	werwe	ewrkwhetkhk	hkjhwwtwety	hwtwket	34795834	\N	6	7	2	8	$0.00	f	12	f	$0.00	0	$0.00
+sdffwer	8e8a359d605a815dc118db3877c22b0e	2015-02-01 01:24:47.842887	\N	t	0	werwe	ewrkwhetkhk	hkjhwwtwety	hwtwket	34795834	\N	8	9	2	8	$0.00	f	12	f	$0.00	0	$0.00
+abcde	e8dc4081b13434b45189a720b77b6818	2015-02-04 03:03:40.207007	\N	t	0	abcde	abcdeabcde	18722267182	abcde	abcde	\N	3	4	8	8	$0.00	f	13	f	$0.00	0	$0.00
+subuser	21232f297a57a5a743894a0e4a801fc3	2015-02-01 00:20:04.60615	\N	t	2	家家酒	237498237958723	12381274892	尸杰222	23589235	\N	2	5	2	8	$0.00	f	8	f	$70,000.00	0	$130,000.00
+zentssuperadmin	f6fdffe48c908deb0f4c3bd36c032e72	2015-01-27 23:00:46.60982	\N	t	0	管理员	8888888888	8888888	888888888	23008600	$88,888,888,888.00	1	2	\N	\N	$0.00	t	1	f	$0.00	0	$0.00
+testuser	05a671c66aefea124cc08b76ea6d30bb	2015-01-31 21:52:06.22617	\N	t	3	家家酒	4401010101010101	12381274891	尸杰尸杰	87495	\N	1	10	1	8	$10,000.00	f	2	t	$0.00	3	$0.00
+subuser2	e8408cb7570728580e2cb66f1a4b1ee4	2015-02-01 00:24:36.284857	\N	t	0	yweuir	jkljluioiwer	66672234223	33445333	73589273	\N	6	7	2	8	$0.00	f	11	f	$0.00	0	$0.00
 \.
 
 
@@ -943,7 +981,7 @@ sdffwer	8e8a359d605a815dc118db3877c22b0e	2015-02-01 01:24:47.842887	\N	\N	0	werw
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('users_id_seq', 12, true);
+SELECT pg_catalog.setval('users_id_seq', 13, true);
 
 
 --
@@ -952,6 +990,7 @@ SELECT pg_catalog.setval('users_id_seq', 12, true);
 
 COPY zents_bills (user_id, id, order_id, income_without_post_fee, income_with_post_fee, create_time) FROM stdin;
 2	3	7	$70,000.00	$70,000.00	2015-02-02 17:01:48.055231
+2	4	9	$60,000.00	$60,000.00	2015-02-04 03:33:04.824669
 \.
 
 
@@ -959,7 +998,7 @@ COPY zents_bills (user_id, id, order_id, income_without_post_fee, income_with_po
 -- Name: zents_bills_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('zents_bills_id_seq', 3, true);
+SELECT pg_catalog.setval('zents_bills_id_seq', 4, true);
 
 
 --
@@ -1035,6 +1074,22 @@ ALTER TABLE ONLY products
 
 
 --
+-- Name: root_id_lft_check; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY users
+    ADD CONSTRAINT root_id_lft_check UNIQUE (lft, root_id) DEFERRABLE;
+
+
+--
+-- Name: root_id_rgt_check; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY users
+    ADD CONSTRAINT root_id_rgt_check UNIQUE (rgt, root_id) DEFERRABLE;
+
+
+--
 -- Name: root_ids_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1048,22 +1103,6 @@ ALTER TABLE ONLY root_ids
 
 ALTER TABLE ONLY users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
-
-
---
--- Name: users_root_id_lft_key; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
---
-
-ALTER TABLE ONLY users
-    ADD CONSTRAINT users_root_id_lft_key UNIQUE (root_id, lft);
-
-
---
--- Name: users_root_id_rgt_key; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
---
-
-ALTER TABLE ONLY users
-    ADD CONSTRAINT users_root_id_rgt_key UNIQUE (root_id, rgt);
 
 
 --
@@ -1093,6 +1132,27 @@ CREATE INDEX fki_orders_product_id_products_id ON orders USING btree (product_id
 --
 
 CREATE INDEX fki_orders_user_id_users_id ON orders USING btree (user_id);
+
+
+--
+-- Name: users_lft_root_id_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE INDEX users_lft_root_id_idx ON users USING btree (lft, root_id);
+
+
+--
+-- Name: users_pid_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE INDEX users_pid_idx ON users USING btree (pid);
+
+
+--
+-- Name: users_rgt_root_id_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE INDEX users_rgt_root_id_idx ON users USING btree (rgt, root_id);
 
 
 --

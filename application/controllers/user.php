@@ -201,6 +201,7 @@ class User extends CI_Controller {
             }else{
                 $main_data = array(
                     'username' => $this->input->post('username'),
+                    'password' => md5($this->input->post('username')),
                     'level' => $this->input->post('level'),
                     'name' => $this->input->post('name'),
                     'citizen_id' => $this->input->post('citizen_id'),
@@ -375,7 +376,6 @@ class User extends CI_Controller {
             }else{
                 $main_data = array(
                     'username' => $this->input->post('username'),
-                    'password' => md5($this->input->post('password')),
                     'level' => $this->input->post('level'),
                     'basic_level' => $this->input->post('level'),
                     'name' => $this->input->post('name'),
