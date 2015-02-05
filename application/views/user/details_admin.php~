@@ -114,7 +114,7 @@
                             <td>
                                 <select name="is_valid">
                                     <option value="1" <?=$v->is_valid=='t'?'selected="selected"':'';?>>是</option>
-                                    <option value="0" <?=$v->is_valid=='f'?'selected="selected"':'';?>>否</option>
+                                    <option value="0" <?=$v->is_valid=='t'?'selected="selected"':'';?>>否</option>
                                 </select>
                             </td>
                         </tr>

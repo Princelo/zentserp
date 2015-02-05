@@ -366,7 +366,6 @@ class User extends CI_Controller {
             ),
         );
         $data = array();
-        $data['id'] = $id;
         $this->form_validation->set_rules($config);
         if(isset($_POST) && !empty($_POST))
         {
