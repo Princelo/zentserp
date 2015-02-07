@@ -26,6 +26,40 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 SET search_path = public, pg_catalog;
 
 --
+-- Name: log_profit_change_to_bills(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION log_profit_change_to_bills() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+	update bills set volume = NEW.profit::decimal - OLD.profit::decimal
+		where id = NEW.current_bill_id;
+	RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.log_profit_change_to_bills() OWNER TO postgres;
+
+--
+-- Name: log_turnover_change_to_bills(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION log_turnover_change_to_bills() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+	update bills set volume = NEW.turnover::decimal - OLD.turnover::decimal
+		where id = NEW.current_bill_id;
+	RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.log_turnover_change_to_bills() OWNER TO postgres;
+
+--
 -- Name: log_upgrade_level(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -535,6 +569,9 @@ CREATE TABLE users (
     first_purchase money DEFAULT 0,
     basic_level integer DEFAULT 0,
     turnover money DEFAULT 0,
+    assign_level integer,
+    initiation boolean DEFAULT false,
+    current_bill_id integer,
     CONSTRAINT users_check CHECK ((lft < rgt)),
     CONSTRAINT users_lft_check CHECK ((lft > 0)),
     CONSTRAINT users_rgt_check CHECK ((rgt > 1))
@@ -701,6 +738,11 @@ COPY address_books (id, user_id, contact, province_id, city_id, address_info, re
 24	8	王祖藍	1	2	花都区屌你老味	0	2015-02-02 16:17:19.181142	13322232322
 25	8	sdf	1	2	sdf	0	2015-02-04 02:02:22.256967	sdf
 26	8	王祖藍	1	2	花都区屌你老味	0	2015-02-04 03:32:27.94735	13234535466
+27	8	111	1	2	1111111111	0	2015-02-08 02:40:21.432873	1111111111
+30	17	王祖藍	1	2	花都区屌你老味	0	2015-02-08 04:01:19.378581	13234535466
+32	17	王祖藍	1	2	花都区屌你老味	0	2015-02-08 04:06:42.512565	13234535466
+33	17	王祖藍	1	2	花都区屌你老味	0	2015-02-08 04:14:03.040705	13234535466
+34	18	王祖藍	1	2	花都区屌你老味	0	2015-02-08 04:32:21.447332	13234535466
 \.
 
 
@@ -708,7 +750,7 @@ COPY address_books (id, user_id, contact, province_id, city_id, address_info, re
 -- Name: address_books_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('address_books_id_seq', 26, true);
+SELECT pg_catalog.setval('address_books_id_seq', 34, true);
 
 
 --
@@ -732,6 +774,26 @@ COPY amounts (id, amount, order_id, level) FROM stdin;
 17	$40.00	9	2
 18	$50.00	9	3
 19	$60.00	9	0
+20	$1.00	10	1
+21	$2.00	10	2
+22	$3.00	10	3
+23	$4.00	10	0
+24	$30.00	10	1
+25	$40.00	10	2
+26	$50.00	10	3
+27	$60.00	10	0
+28	$30.00	11	1
+29	$40.00	11	2
+30	$50.00	11	3
+31	$60.00	11	0
+32	$3.10	12	1
+33	$4.10	12	2
+34	$4.50	12	3
+35	$5.00	12	0
+36	$30.00	13	1
+37	$40.00	13	2
+38	$50.00	13	3
+39	$60.00	13	0
 \.
 
 
@@ -739,7 +801,7 @@ COPY amounts (id, amount, order_id, level) FROM stdin;
 -- Name: amounts_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('amounts_id_seq', 19, true);
+SELECT pg_catalog.setval('amounts_id_seq', 39, true);
 
 
 --
@@ -751,6 +813,18 @@ COPY bills (id, user_id, order_id, sub_user_id, volume, type, reason, create_tim
 3	2	7	8	$70,000.00	1	1	2015-02-02 17:02:23.636264	$70,000.00
 5	8	9	\N	$60,000.00	1	1	2015-02-04 03:33:04.824669	$60,000.00
 6	2	9	8	$10,000.00	2	2	2015-02-04 03:33:04.824669	$0.00
+9	8	10	\N	$2.00	3	1	2015-02-08 02:43:35.385961	$0.00
+10	8	10	\N	$2.00	1	1	2015-02-08 02:43:35.385961	$2.00
+11	2	10	8	$0.00	2	2	2015-02-08 02:43:35.385961	$0.00
+12	17	11	\N	$6,000.00	3	1	2015-02-08 04:09:51.754365	$0.00
+13	17	11	\N	$6,000.00	1	1	2015-02-08 04:09:51.754365	$6,000.00
+14	1	11	17	$0.00	2	2	2015-02-08 04:09:51.754365	$0.00
+15	17	12	\N	$5.00	3	1	2015-02-08 04:14:55.206526	$0.00
+16	17	12	\N	$5.00	1	1	2015-02-08 04:14:55.206526	$5.00
+17	1	12	17	$0.00	2	2	2015-02-08 04:14:55.206526	$0.00
+18	18	13	\N	$599,000.00	3	1	2015-02-08 04:32:52.12694	$0.00
+19	18	13	\N	$600,000.00	1	1	2015-02-08 04:32:52.12694	$600,000.00
+20	17	13	18	$1,000.00	2	2	2015-02-08 04:32:52.12694	$0.00
 \.
 
 
@@ -758,7 +832,7 @@ COPY bills (id, user_id, order_id, sub_user_id, volume, type, reason, create_tim
 -- Name: bills_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('bills_id_seq', 6, true);
+SELECT pg_catalog.setval('bills_id_seq', 20, true);
 
 
 --
@@ -766,14 +840,29 @@ SELECT pg_catalog.setval('bills_id_seq', 6, true);
 --
 
 COPY captcha (captcha_id, ip_address, word, captcha_time) FROM stdin;
-71	127.0.0.1	QEg6U	1423005012
-72	127.0.0.1	BjG0r	1423006606
-73	127.0.0.1	x2Ghd	1423006613
-74	127.0.0.1	KPS6f	1423007531
-75	127.0.0.1	X9Zpm	1423007538
-76	127.0.0.1	h2H0b	1423007635
-77	127.0.0.1	A9RDV	1423007796
-78	127.0.0.1	dZMv4	1423007801
+146	127.0.0.1	32108	1423334427
+147	127.0.0.1	08739	1423334625
+148	127.0.0.1	14751	1423337360
+149	127.0.0.1	40161	1423337368
+150	127.0.0.1	98278	1423337464
+151	127.0.0.1	62393	1423338568
+152	127.0.0.1	14800	1423338577
+153	127.0.0.1	02572	1423339063
+154	127.0.0.1	32155	1423339072
+155	127.0.0.1	89426	1423339106
+156	127.0.0.1	71350	1423339315
+157	127.0.0.1	03810	1423339343
+158	127.0.0.1	08639	1423339762
+159	127.0.0.1	19520	1423339811
+160	127.0.0.1	23665	1423340057
+161	127.0.0.1	67062	1423340115
+162	127.0.0.1	09441	1423340139
+163	127.0.0.1	35000	1423340206
+164	127.0.0.1	68667	1423340798
+165	127.0.0.1	45915	1423341144
+166	127.0.0.1	84963	1423341177
+167	127.0.0.1	86718	1423341212
+145	127.0.0.1	16200	1423334042
 \.
 
 
@@ -781,7 +870,7 @@ COPY captcha (captcha_id, ip_address, word, captcha_time) FROM stdin;
 -- Name: captcha_captcha_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('captcha_captcha_id_seq', 78, true);
+SELECT pg_catalog.setval('captcha_captcha_id_seq', 167, true);
 
 
 --
@@ -793,6 +882,10 @@ COPY finish_log (order_id, pay_amt, user_id, parent_user_id, is_root, pay_amt_wi
 5	$46.50	2	1	t	$46.50	\N	2
 7	$70,000.00	8	2	f	$70,000.00	t	3
 9	$60,000.00	8	2	f	$60,000.00	f	4
+10	$2.00	8	2	f	$2.00	f	5
+11	$6,000.00	17	1	f	$6,000.00	t	6
+12	$5.00	17	1	f	$5.00	f	7
+13	$600,000.00	18	17	f	$600,000.00	t	8
 \.
 
 
@@ -800,7 +893,7 @@ COPY finish_log (order_id, pay_amt, user_id, parent_user_id, is_root, pay_amt_wi
 -- Name: finish_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('finish_log_id_seq', 4, true);
+SELECT pg_catalog.setval('finish_log_id_seq', 8, true);
 
 
 --
@@ -858,6 +951,19 @@ COPY level_update_log (id, user_id, new_level, upgrade_time, original_profit, or
 42	8	2	2015-02-04 07:23:30.199588	$0.00	2	$0.00	$70,000.00	$70,000.00	0	0	$130,000.00	$130,000.00
 43	8	2	2015-02-04 07:24:29.096004	$0.00	2	$0.00	$70,000.00	$70,000.00	0	0	$130,000.00	$130,000.00
 44	1	0	2015-02-04 07:53:52.653634	$0.00	0	$0.00	$0.00	$0.00	0	0	$0.00	$0.00
+48	8	0	2015-02-08 02:43:35.385961	$0.00	2	$0.00	$70,000.00	$70,000.00	0	0	$130,000.00	$130,000.00
+49	8	1	2015-02-08 02:43:35.385961	$0.00	0	$0.00	$70,000.00	$70,000.00	0	0	$130,002.00	$130,002.00
+50	2	3	2015-02-08 02:43:35.385961	$10,000.00	3	$10,000.00	$0.00	$0.00	3	3	$0.00	$0.00
+51	17	0	2015-02-08 04:09:51.754365	$0.00	0	$0.00	$0.00	$0.00	0	0	$0.00	$0.00
+52	17	0	2015-02-08 04:09:51.754365	$0.00	0	$0.00	$0.00	$0.00	0	0	$6,000.00	$6,000.00
+53	1	0	2015-02-08 04:09:51.754365	$0.00	0	$0.00	$0.00	$0.00	0	0	$0.00	$0.00
+54	17	3	2015-02-08 04:14:55.206526	$0.00	0	$0.00	$0.00	$0.00	3	3	$6,000.00	$6,000.00
+55	17	3	2015-02-08 04:14:55.206526	$0.00	3	$0.00	$0.00	$0.00	3	3	$6,005.00	$6,005.00
+56	1	0	2015-02-08 04:14:55.206526	$0.00	0	$0.00	$0.00	$0.00	0	0	$0.00	$0.00
+58	18	0	2015-02-08 04:23:07.537511	$0.00	0	$0.00	$0.00	$0.00	0	0	$0.00	$0.00
+59	18	1	2015-02-08 04:32:52.12694	$0.00	0	$0.00	$0.00	$0.00	1	1	$0.00	$0.00
+60	18	1	2015-02-08 04:32:52.12694	$0.00	1	$0.00	$0.00	$0.00	1	1	$599,000.00	$599,000.00
+61	17	3	2015-02-08 04:32:52.12694	$1,000.00	3	$1,000.00	$0.00	$0.00	3	3	$6,005.00	$6,005.00
 \.
 
 
@@ -865,7 +971,7 @@ COPY level_update_log (id, user_id, new_level, upgrade_time, original_profit, or
 -- Name: level_update_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('level_update_log_id_seq', 44, true);
+SELECT pg_catalog.setval('level_update_log_id_seq', 61, true);
 
 
 --
@@ -877,6 +983,10 @@ COPY orders (id, user_id, create_time, update_time, product_id, is_pay, pay_amt,
 7	8	2015-02-02 16:17:19.181142	2015-02-02 16:29:59	13	t	$70,000.00	t	100	f	f	0	3	\N	24	f	$0.00	2015-02-02 16:29:59	f	t	$70,000.00
 8	8	2015-02-04 02:02:22.256967	\N	8	f	$0.00	f	1	f	f	0	3	\N	25	f	$0.00	\N	f	f	\N
 9	8	2015-02-04 03:32:27.94735	2015-02-04 03:33:04	9	t	$60,000.00	t	1000	f	f	0	3	\N	26	f	$0.00	2015-02-04 03:33:04	f	f	$60,000.00
+10	8	2015-02-08 02:40:21.432873	2015-02-08 02:43:35	10	t	$2.00	t	1	f	f	2	3	\N	27	f	$0.00	2015-02-08 02:43:35	f	f	$2.00
+11	17	2015-02-08 04:06:42.512565	2015-02-08 04:09:51	9	t	$6,000.00	t	100	f	f	0	0	\N	32	f	$0.00	2015-02-08 04:09:51	f	t	$6,000.00
+12	17	2015-02-08 04:14:03.040705	2015-02-08 04:14:55	8	t	$5.00	t	1	f	f	0	0	\N	33	f	$0.00	2015-02-08 04:14:55	f	f	$5.00
+13	18	2015-02-08 04:32:21.447332	2015-02-08 04:32:52	9	t	$600,000.00	t	10000	f	f	0	3	\N	34	f	$0.00	2015-02-08 04:32:52	f	t	$600,000.00
 \.
 
 
@@ -884,7 +994,7 @@ COPY orders (id, user_id, create_time, update_time, product_id, is_pay, pay_amt,
 -- Name: orders_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('orders_id_seq', 9, true);
+SELECT pg_catalog.setval('orders_id_seq', 13, true);
 
 
 --
@@ -953,6 +1063,7 @@ SELECT pg_catalog.setval('products_id_seq', 13, true);
 
 COPY root_ids (create_time, id) FROM stdin;
 2015-01-31 21:52:06	8
+2015-02-08 03:57:37	11
 \.
 
 
@@ -960,20 +1071,23 @@ COPY root_ids (create_time, id) FROM stdin;
 -- Name: root_ids_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('root_ids_id_seq', 8, true);
+SELECT pg_catalog.setval('root_ids_id_seq', 11, true);
 
 
 --
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY users (username, password, create_time, update_time, is_valid, level, name, citizen_id, mobile_no, wechat_id, qq_no, property, lft, rgt, pid, root_id, profit, is_admin, id, is_root, first_purchase, basic_level, turnover) FROM stdin;
-sdffwer	8e8a359d605a815dc118db3877c22b0e	2015-02-01 01:24:47.842887	\N	t	0	werwe	ewrkwhetkhk	hkjhwwtwety	hwtwket	34795834	\N	8	9	2	8	$0.00	f	12	f	$0.00	0	$0.00
-abcde	e8dc4081b13434b45189a720b77b6818	2015-02-04 03:03:40.207007	\N	t	0	abcde	abcdeabcde	18722267182	abcde	abcde	\N	3	4	8	8	$0.00	f	13	f	$0.00	0	$0.00
-subuser	21232f297a57a5a743894a0e4a801fc3	2015-02-01 00:20:04.60615	\N	t	2	家家酒	237498237958723	12381274892	尸杰222	23589235	\N	2	5	2	8	$0.00	f	8	f	$70,000.00	0	$130,000.00
-zentssuperadmin	f6fdffe48c908deb0f4c3bd36c032e72	2015-01-27 23:00:46.60982	\N	t	0	管理员	8888888888	8888888	888888888	23008600	$88,888,888,888.00	1	2	\N	\N	$0.00	t	1	f	$0.00	0	$0.00
-testuser	05a671c66aefea124cc08b76ea6d30bb	2015-01-31 21:52:06.22617	\N	t	3	家家酒	4401010101010101	12381274891	尸杰尸杰	87495	\N	1	10	1	8	$10,000.00	f	2	t	$0.00	3	$0.00
-subuser2	e8408cb7570728580e2cb66f1a4b1ee4	2015-02-01 00:24:36.284857	\N	t	0	yweuir	jkljluioiwer	66672234223	33445333	73589273	\N	6	7	2	8	$0.00	f	11	f	$0.00	0	$0.00
+COPY users (username, password, create_time, update_time, is_valid, level, name, citizen_id, mobile_no, wechat_id, qq_no, property, lft, rgt, pid, root_id, profit, is_admin, id, is_root, first_purchase, basic_level, turnover, assign_level, initiation, current_bill_id) FROM stdin;
+abcde	e8dc4081b13434b45189a720b77b6818	2015-02-04 03:03:40.207007	\N	t	0	abcde	abcdeabcde	18722267182	abcde	abcde	\N	3	4	8	8	$0.00	f	13	f	$0.00	0	$0.00	\N	\N	\N
+sdfsdfdfsdf	f6fdffe48c908deb0f4c3bd36c032e72	2015-02-08 03:57:37.50946	\N	t	3	ssdfsdf	374957348957394857	73891723981	71289471	279123	\N	1	4	1	11	$1,000.00	f	17	f	$0.00	3	$6,005.00	3	t	20
+subusersdf	f6fdffe48c908deb0f4c3bd36c032e72	2015-02-08 04:16:35.70265	\N	t	1	sdfzung	2983092385028305	28957235297	72389525	27348239	\N	2	3	17	11	$0.00	f	18	f	$0.00	1	$599,000.00	1	t	18
+zentssuperadmin	f6fdffe48c908deb0f4c3bd36c032e72	2015-01-27 23:00:46.60982	\N	t	0	管理员	8888888888	8888888	888888888	23008600	$88,888,888,888.00	1	2	\N	\N	$0.00	t	1	f	$0.00	0	$0.00	\N	\N	17
+sdffwer	8e8a359d605a815dc118db3877c22b0e	2015-02-01 01:24:47.842887	\N	t	0	werwe	ewrkwhetkhk	hkjhwwtwety	hwtwket	34795834	\N	10	11	2	8	$0.00	f	12	f	$0.00	0	$0.00	\N	\N	\N
+subuser2	e8408cb7570728580e2cb66f1a4b1ee4	2015-02-01 00:24:36.284857	\N	t	0	yweuir	jkljluioiwer	66672234223	33445333	73589273	\N	8	9	2	8	$0.00	f	11	f	$0.00	0	$0.00	\N	\N	\N
+subuser	21232f297a57a5a743894a0e4a801fc3	2015-02-01 00:20:04.60615	\N	t	1	家家酒	237498237958723	12381274892	尸杰222	23589235	\N	2	7	2	8	$0.00	f	8	f	$70,000.00	0	$130,002.00	\N	\N	9
+testuser	05a671c66aefea124cc08b76ea6d30bb	2015-01-31 21:52:06.22617	\N	t	3	家家酒	4401010101010101	12381274891	尸杰尸杰	87495	\N	1	12	1	8	$10,000.00	f	2	t	$0.00	3	$0.00	\N	\N	11
+subsubuser	d1803d4b97f042ca74ee54ba32cf3321	2015-02-08 02:57:10.964149	\N	\N	0	subsubuser	238490238509283059	28309582309	23849023	2389402384	\N	5	6	8	8	$0.00	f	14	f	$0.00	0	$0.00	2	f	\N
 \.
 
 
@@ -981,7 +1095,7 @@ subuser2	e8408cb7570728580e2cb66f1a4b1ee4	2015-02-01 00:24:36.284857	\N	t	0	yweu
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('users_id_seq', 13, true);
+SELECT pg_catalog.setval('users_id_seq', 18, true);
 
 
 --
@@ -1106,6 +1220,14 @@ ALTER TABLE ONLY users
 
 
 --
+-- Name: users_username_key; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY users
+    ADD CONSTRAINT users_username_key UNIQUE (username);
+
+
+--
 -- Name: zents_bills_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1156,10 +1278,24 @@ CREATE INDEX users_rgt_root_id_idx ON users USING btree (rgt, root_id);
 
 
 --
--- Name: last_name_changes; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: check_update_level; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
-CREATE TRIGGER last_name_changes AFTER UPDATE ON users FOR EACH ROW EXECUTE PROCEDURE log_upgrade_level();
+CREATE TRIGGER check_update_level AFTER UPDATE OF level ON users FOR EACH ROW EXECUTE PROCEDURE log_upgrade_level();
+
+
+--
+-- Name: check_update_profit; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER check_update_profit AFTER UPDATE OF profit ON users FOR EACH ROW EXECUTE PROCEDURE log_profit_change_to_bills();
+
+
+--
+-- Name: check_update_turnover; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER check_update_turnover AFTER UPDATE OF turnover ON users FOR EACH ROW EXECUTE PROCEDURE log_turnover_change_to_bills();
 
 
 --

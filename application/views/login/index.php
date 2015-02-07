@@ -81,7 +81,7 @@
                     <div>
                         <h1 class="title">欢迎来到臻芝俱乐部</h1>
                         <h2 class="">使用您的Zents帐号登陆</h2>
-                        <p stype="width:100%; text-align:center; color:#f00;"><?=$error;?></p>
+                        <p style="width:100%; text-align:center; color:#f00;"><?=$error;?></p>
                         <div class="choose-block" style="display:none;">
                             <div class="choose">
                                 <div id="drpro" onClick="$('#bal').removeClass();$('#onespine').removeClass();this.className='selected'"><span>Dr Pro</span></div>

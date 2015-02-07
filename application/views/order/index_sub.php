@@ -32,14 +32,6 @@
                     <!--<col width="50%">
                     <col width="50%">-->
                     <tr>
-                        <th>搜索
-                        </th>
-                        <form action="<?=base_url()?>order/index_sub" method="post">
-                            <td colspan="9"><input type="text" name="search" value=""  /><input type="submit" />
-                            </td>
-                        </form>
-                    </tr>
-                    <tr>
                         <th>代理ID</th>
                         <th>用戶名</th>
                         <th>姓名</th>

@@ -29,7 +29,7 @@
                 <?=$this->session->flashdata('flashdata', 'value');?>
             </span>
             <div class="c50l">
-                <h3>编辑产品</h3>
+                <h3>产品详情</h3>
             </div>
         </div>
 
@@ -37,7 +37,7 @@
         <?=form_open_multipart('product/details_admin/'.$v->id);?>
 
         <fieldset>
-            <legend>添加产品 </legend>
+            <legend>产品详情 </legend>
 
             <table>
                 <col width="150">
@@ -68,25 +68,25 @@
                     </td>
                 </tr>
                 <tr>
-                    <th><label for="price_special">特约代理价 <span>*</span></label></th>
+                    <th><label for="price_special"><?=getLevelName(1)?>价 <span>*</span></label></th>
                     <td>
                         <input disabled  name="price_special" data-validate="required,decimal" value="<?=cny($v->price_special)?>"/>(单位: 元)
                     </td>
                 </tr>
                 <tr>
-                    <th><label for="price_last_2">一级代理价 <span>*</span></label></th>
+                    <th><label for="price_last_2"><?=getLevelName(2)?>价 <span>*</span></label></th>
                     <td>
                         <input disabled  name="price_last_2" data-validate="required,decimal" value="<?=cny($v->price_last_2)?>"/>(单位: 元)
                     </td>
                 </tr>
                 <tr>
-                    <th><label for="price_last_3">二级代理价 <span>*</span></label></th>
+                    <th><label for="price_last_3"><?=getLevelName(3)?>价 <span>*</span></label></th>
                     <td>
                         <input disabled  name="price_last_3" data-validate="required,decimal" value="<?=cny($v->price_last_3)?>"/>(单位: 元)
                     </td>
                 </tr>
                 <tr>
-                    <th><label for="price_normal">零售价 <span>*</span></label></th>
+                    <th><label for="price_normal"><?=getLevelName(0)?>价 <span>*</span></label></th>
                     <td>
                         <input disabled  name="price_normal" data-validate="required,decimal" value="<?=cny($v->price_normal)?>"/>(单位: 元)
                     </td>

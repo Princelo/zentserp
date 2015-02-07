@@ -33,7 +33,7 @@
             </div>
 
 
-            <form action="<?=base_url()?>user/details_admin" method="post">
+            <form action="<?=base_url()?>user/details_admin/<?=$id?>" method="post">
 
                 <fieldset>
                     <legend>代理编辑 </legend>
@@ -55,10 +55,30 @@
                             <th><label for="level">代理级別 <span>*</span></label></th>
                             <td>
                                 <select name="level">
-                                    <option value="1" <?=$v->level=='1'?'selected="selected"':'';?>>特約代理</option>
-                                    <option value="2" <?=$v->level=='2'?'selected="selected"':'';?>>一級代理</option>
-                                    <option value="3" <?=$v->level=='3'?'selected="selected"':'';?>>二級代理</option>
-                                    <option value="0" <?=$v->level=='0'?'selected="selected"':'';?>>零售商</option>
+                                    <option value="1" <?=$v->level=='1'?'selected="selected"':'';?>><?=getLevelName(1)?></option>
+                                    <option value="2" <?=$v->level=='2'?'selected="selected"':'';?>><?=getLevelName(2)?></option>
+                                    <option value="3" <?=$v->level=='3'?'selected="selected"':'';?>><?=getLevelName(3)?></option>
+                                    <option value="0" <?=$v->level=='0'?'selected="selected"':'';?>><?=getLevelName(0)?></option>
+                                </select>
+                            </td>
+                            <script>
+                                /*$('select[name="level"]').change(function(){
+                                    if($(this).val() == 0){
+                                        $('#assign_level').show();
+                                    }else{
+                                        $('#assign_level').val(null);
+                                        $('#assign_level').hide();
+                                    }
+                                });*/
+                            </script>
+                        </tr>
+                        <tr style="display:none;" id="assign_level">
+                            <th><label for="assign_level">推荐代理级別 <span>*</span></label></th>
+                            <td>
+                                <select name="assign_level">
+                                    <option value="1"><?=getLevelName(1);?></option>
+                                    <option value="2"><?=getLevelName(2);?></option>
+                                    <option value="3"><?=getLevelName(3);?></option>
                                 </select>
                             </td>
                         </tr>
@@ -114,7 +134,7 @@
                             <td>
                                 <select name="is_valid">
                                     <option value="1" <?=$v->is_valid=='t'?'selected="selected"':'';?>>是</option>
-                                    <option value="0" <?=$v->is_valid=='t'?'selected="selected"':'';?>>否</option>
+                                    <option value="0" <?=$v->is_valid=='f'?'selected="selected"':'';?>>否</option>
                                 </select>
                             </td>
                         </tr>

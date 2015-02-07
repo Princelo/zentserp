@@ -12,6 +12,9 @@
                     <a href='<?=base_url()?>user/listpage' ><div>我的下级代理 </div></a>
                 </li>
                 <li><a href='<?=base_url();?>user/add' ><div>新增代理 </div></a></li>
+                <li>
+                    <a href='<?=base_url()?>user/my_superior' ><div>我的上级代理信息 </div></a>
+                </li>
             </ul>
         </div>
     </div>
@@ -52,6 +55,17 @@
                         <td>
                             <input type="password" name="password" data-validate="required,size(8,30)"
                                    maxlength="30" value="<?=set_value('password')?>"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="">推荐代理级别 <span>*</span></label></th>
+                        <td>
+                            <select name="level" data-validate="required">
+                                <option></option>
+                                <option value="1"><?=getLevelName(1);?></option>
+                                <option value="2"><?=getLevelName(2);?></option>
+                                <option value="3"><?=getLevelName(3);?></option>
+                            </select>
                         </td>
                     </tr>
                     <tr>

@@ -70,6 +70,7 @@
                         <th>他的收益</th>
                         <th>是否生效</th>
                         <th></th>
+                        <th></th>
                     </tr>
                     <? $n = 0; ?>
                     <? if(!empty($users)) {?>
@@ -87,6 +88,7 @@
                             <td><?=cny($v->turnover)?></td>
                             <td><?=cny($v->profit)?></td>
                             <td><?=$v->is_valid=='t'?'是':'否'?></td>
+                            <td><a href="<?=base_url()?>user/sublistpage/<?=$v->id?>">他的下级</a></td>
                             <td><a href="<?=base_url()?>user/details_admin/<?=$v->id?>">编辑</a></td>
                         </tr>
                     <? } ?>

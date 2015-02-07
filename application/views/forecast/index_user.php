@@ -24,7 +24,7 @@
 
             <div class="">
                 <h2>你的信息:</h2>
-
+                <h4><?=$tip?></h4>
                 <form action="<?=base_url()?>forecast/index" method="post">
 
                     <fieldset>

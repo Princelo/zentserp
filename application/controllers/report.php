@@ -1,6 +1,7 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class Report extends CI_Controller {
+include('application/libraries/MY_Controller.php');
+class Report extends MY_Controller {
 
     public $db;
     public function __construct(){
@@ -137,10 +138,11 @@ class Report extends CI_Controller {
             $config['base_url'] = base_url()."report/index_sub/";
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
-            $where = " and su.id = {$current_user_id} ";
+            $iwhere = " and p.id = {$current_user_id} ";
             //$where .= ' and p.is_valid = true ';
+            $where = "";
             $where .= $this->__get_search_str($search, $level);
-            $config['total_rows'] = $this->MUser->intGetSubUsersCount($where);
+            $config['total_rows'] = $this->MUser->intGetSubUsersCount($where, $iwhere);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
             $data['page'] = $this->pagination->create_links();
@@ -149,16 +151,17 @@ class Report extends CI_Controller {
             //$where = '';
             //$where = ' and is_admin = false ';
             $order = '';
-            $data['users'] = $this->MUser->objGetSubUserList($where, $order, $limit);
+            $data['users'] = $this->MUser->objGetSubUserList($where, $iwhere, $order, $limit);
             $this->load->view('templates/header_user', $data);
             $this->load->view('report/index_sub', $data);
         }else{
             $data = array();
-            $config['base_url'] = base_url()."user/listpage/";
+            $config['base_url'] = base_url()."report/index_sub/";
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
-            $where = " and su.id = {$current_user_id} ";
-            $config['total_rows'] = $this->MUser->intGetSubUsersCount($where);
+            $iwhere = " and p.id = {$current_user_id} ";
+            $where = "";
+            $config['total_rows'] = $this->MUser->intGetSubUsersCount($where, $iwhere);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
             $data['page'] = $this->pagination->create_links();
@@ -166,7 +169,7 @@ class Report extends CI_Controller {
             $limit .= " limit {$config['per_page']} offset {$offset} ";
             //$where = ' and p.is_valid = true ';
             $order = '';
-            $data['users'] = $this->MUser->objGetSubUserList($where, $order, $limit);
+            $data['users'] = $this->MUser->objGetSubUserList($where, $iwhere, $order, $limit);
             $this->load->view('templates/header_user', $data);
             $this->load->view('report/index_sub', $data);
         }
@@ -834,9 +837,9 @@ class Report extends CI_Controller {
     {
         $where = '';
         if($search != '')
-            $where .= " and (username like '%{$search}%' or name like '%{$search}%' ) ";
+            $where .= " and (u.username like '%{$search}%' or u.name like '%{$search}%' ) ";
         if($level != '')
-            $where .= " and level = {$level} ";
+            $where .= " and u.level = {$level} ";
         return $where;
     }
 

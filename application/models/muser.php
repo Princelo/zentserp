@@ -59,15 +59,17 @@ class MUser extends CI_Model
         $insert_sql_user = "";
         $insert_sql_user .= "
             insert into users
-            (username, password, level, basic_level, name, citizen_id, mobile_no, wechat_id, qq_no, is_valid, root_id, pid, lft, rgt)
+                (username, password, level, basic_level, name, citizen_id, mobile_no, wechat_id, qq_no, is_valid,
+                assign_level, root_id, pid, lft, rgt)
             values
-            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, currval('root_ids_id_seq'),{$current_user_id}, 1, 2);
+                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, currval('root_ids_id_seq'), 1, 1, 2);
+            update users set initiation = true where level <> 0 and id = currval('users_id_seq');
         ";
         $binds = array(
             $main_data['username'], $main_data['password'], $main_data['level'], $main_data['level'],
             $main_data['name'],
             $main_data['citizen_id'], $main_data['mobile_no'], $main_data['wechat_id'], $main_data['qq_no'],
-            $main_data['is_valid']
+            $main_data['is_valid'], $main_data['assign_level'],
         );
 
         $this->objDB->trans_start();
@@ -124,14 +126,15 @@ class MUser extends CI_Model
         $insert_sql_user .= "
             --with variables as (select rgt-2 rgt, root_id from users where id = {$current_user_id})
             insert into users
-            (username, password, name, citizen_id, mobile_no, wechat_id, qq_no, root_id, pid, lft, rgt)
+            (username, password, name, citizen_id, mobile_no, wechat_id, qq_no, assign_level, root_id, pid, lft, rgt)
             values
-            (?, ?, ?, ?, ?, ?, ?, (select root_id from variables), {$current_user_id},
+            (?, ?, ?, ?, ?, ?, ?, ?, (select root_id from variables), {$current_user_id},
             (select rgt from variables), (select rgt + 1 from variables));
         ";
         $binds = array(
             $main_data['username'], $main_data['password'], $main_data['name'],
             $main_data['citizen_id'], $main_data['mobile_no'], $main_data['wechat_id'], $main_data['qq_no'],
+            $main_data['assign_level'],
         );
 
         //debug($update_left_right_sql);
@@ -198,7 +201,7 @@ class MUser extends CI_Model
     public function intGetUsersCount($where = '')
     {
         $query_sql = "
-            select count(1) from users
+            select count(1) from users u
             where 1 = 1
             {$where};
         ";
@@ -219,9 +222,9 @@ class MUser extends CI_Model
         $query_sql = "";
         $query_sql .= "
             select
-                *
+                u.*
             from
-                users
+                users u
             where
                 1 = 1
                 {$where}
@@ -270,7 +273,19 @@ class MUser extends CI_Model
     public function update($data, $id)
     {
         $update_sql = $this->objDB->update_string("users", $data, array("id" => $id));
-        $result = $this->objDB->query($update_sql);
+        if($data['level'] != '0')
+            $update_sql_initiation = "update users set initiation = true where initiation = false and id = {$id};";
+        else
+            $update_sql_initiation = "";
+        $this->objDB->trans_start();
+
+        $this->objDB->query($update_sql);
+        if($data['level'] != '0')
+            $this->objDB->query($update_sql_initiation);
+
+        $this->objDB->trans_complete();
+
+        $result = $this->objDB->trans_status();
 
         if($result === true) {
             return true;
@@ -279,14 +294,33 @@ class MUser extends CI_Model
         }
     }
 
-    public function objGetSubUserList($where = '', $order = '', $limit = '')
+    public function objGetSubUserList($where = '', $iwhere = '', $order = '', $limit = '')
     {
         $query_sql = "
-            SELECT so.*
-                FROM users AS su, users AS so
-                WHERE so.lft BETWEEN su.lft AND su .rgt
-                and so.lft <> su.lft
-                {$where}
+            SELECT u.*
+                FROM users AS u,
+                        users AS p,
+                        users AS sub_parent,
+                        (
+                                SELECT p.id, (COUNT(iparent.id) - 1) AS idepth
+                                FROM users AS p,
+                                        users AS iparent
+                                WHERE p.lft BETWEEN iparent.lft AND iparent.rgt
+                                        --and p.rgt between iparent.lft and iparent.rgt
+                                        and p.root_id = iparent.root_id
+                                        {$iwhere}
+                                GROUP BY p.id
+                                ORDER BY p.lft
+                        )AS sub_tree
+                WHERE u.lft BETWEEN p.lft AND p.rgt
+                        AND u.lft BETWEEN sub_parent.lft AND sub_parent.rgt
+                        --and node.rgt between sub_parent.lft and sub_parent.rgt
+                        AND sub_parent.id = sub_tree.id
+                        and u.root_id = sub_parent.root_id
+                        and p.root_id = u.root_id
+                        {$where}
+                GROUP BY u.id, sub_tree.idepth
+                HAVING  (COUNT(p.id) - (sub_tree.idepth + 1)) = 1
                 {$order}
                 {$limit}
         ";
@@ -303,17 +337,39 @@ class MUser extends CI_Model
         return $data;
     }
 
-    public function intGetSubUsersCount($where = '')
+    public function intGetSubUsersCount($where = '', $iwhere = '')
     {
         $query_sql = "
-            SELECT count(so.id)
-                FROM users AS su, users AS so
-                WHERE so.lft BETWEEN su.lft AND su.rgt
-                and so.lft <> su.lft
-                and so.pid = su.id
-                {$where}
+            SELECT count(u.id)
+                FROM users AS u,
+                        users AS p,
+                        users AS sub_parent,
+                        (
+                                SELECT p.id, (COUNT(iparent.id) - 1) AS idepth
+                                FROM users AS p,
+                                        users AS iparent
+                                WHERE p.lft BETWEEN iparent.lft AND iparent.rgt
+                                        --and p.rgt between iparent.lft and iparent.rgt
+                                        and p.root_id = iparent.root_id
+                                        {$iwhere}
+                                GROUP BY p.id
+                                ORDER BY p.lft
+                        )AS sub_tree
+                WHERE u.lft BETWEEN p.lft AND p.rgt
+                        AND u.lft BETWEEN sub_parent.lft AND sub_parent.rgt
+                        --and node.rgt between sub_parent.lft and sub_parent.rgt
+                        AND sub_parent.id = sub_tree.id
+                        and u.root_id = 8
+                        and sub_parent.root_id = 8
+                        and p.root_id= 8
+                        {$where}
+                GROUP BY u.id, sub_tree.idepth
+                HAVING  (COUNT(p.id) - (sub_tree.idepth + 1)) = 1
+                limit 1;
         ";
+        //debug($query_sql);exit;
         $query = $this->objDB->query($query_sql);
+        $count = 0;
         if($query->num_rows() > 0) {
             $count = $query->row()->count;
         }
@@ -325,14 +381,13 @@ class MUser extends CI_Model
 
     public function isParent($pid, $id)
     {
-        $query_sql = "
+        $query_sql = "";
+        $query_sql .= "
             select count(so.id)
-                from users as su, users as so
-                where so.lft between su.lft and su.rgt
-                and so.lft <> su.lft
-                and so.pid = su.id
-                and su.id = ?
-                and so.id = ?
+                from users as p, users as u
+                and u.pid = p.id
+                and p.id = ?
+                and u.id = ?
         ";
         $binds = array($pid, $id);
         $query = $this->objDB->query($query_sql, $binds);
@@ -345,6 +400,23 @@ class MUser extends CI_Model
         $query->free_result();
         if($count > 0)
             return true;
+    }
+
+    public function getSuperiorInfo($id)
+    {
+        $query_sql = "
+            select * from users where id = (select pid from users where id = ?);
+        ";
+        $binds = array($id);
+        $query = $this->objDB->query($query_sql, $binds);
+        if($query->num_rows() > 0){
+            $data = $query->result()[0];
+        }else{
+        }
+        $query->free_result();
+
+        //debug($data);
+        return $data;
     }
 
 }

@@ -40,10 +40,10 @@
                                     等级:
                                     <select name="level">
                                         <option ></option>
-                                        <option value="1">特約代理</option>
-                                        <option value="2">一級代理</option>
-                                        <option value="3">二級代理</option>
-                                        <option value="0">零售商</option>
+                                        <option value="1"><?=getLevelName(1)?></option>
+                                        <option value="2"><?=getLevelName(2)?></option>
+                                        <option value="3"><?=getLevelName(3)?></option>
+                                        <option value="0"><?=getLevelName(0)?></option>
                                     </select>
                                 </th>
                                 <th>

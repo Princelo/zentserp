@@ -14,8 +14,11 @@ class Login extends CI_Controller {
 
     public function index($error = '')
     {
-        if($this->session->userdata('user') != "")
+        if($this->session->userdata('user') != ""){
             redirect('forecast/index');
+        }else{
+            $this->session->sess_destroy();
+        }
         $vals = array(
             //'word' => random_string('alnum', 5),
             'word' => random_string('numeric', 5),
