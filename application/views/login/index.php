@@ -14,6 +14,52 @@
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script language="javascript">google.load("jquery", "1.7.1"); </script>
     -->
+    <style>
+        body{font-family: "Microsoft Yahei" !important;}
+        .google_textfield{
+            -webkit-appearance: none;
+            appearance: none;
+            display: inline-block;
+            height: 36px;
+            padding: 0 8px;
+            margin: 0;
+            background: #fff;
+            border: 1px solid #d9d9d9;
+            border-top: 1px solid #c0c0c0;
+            -moz-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            -moz-border-radius: 1px;
+            -webkit-border-radius: 1px;
+            border-radius: 1px;
+            font-size: 15px;
+            color: #404040;
+            width: 100%;
+            display: block;
+            margin-bottom: 10px;
+            z-index: 1;
+            position: relative;
+            -moz-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            direction: ltr;
+            height: 44px;
+            font-size: 16px;
+            width:274px;
+        }
+        .google_email{
+            margin-bottom:0;
+        }
+        .yform{
+            width:274px;
+        }
+        .captcha{width:110px; display:inline-block;}
+        .div-captcha img{float:right;}
+        .type-button{padding-top: 0;}
+        table{border-spacing: 0;}
+        h1{color:#555; font-family: "Microsoft Yahei"; margin-bottom:15px; font-weight: normal !important; font-size: 38px !important;}
+        h2{color:#555; font-family: "Microsoft Yahei"; margin-bottom:15px; font-weight: normal !important; font-size: 18px !important;}
+    </style>
 </head>
 <body>
 
@@ -33,7 +79,8 @@
 
                     <!--<div style="background:url('includes/images/login_interface.jpg'); width:500px; height:300px;border:6px solid #fff">-->
                     <div>
-                        <p class="title">ZENTS ERP System 臻芝订单管理系統</p>
+                        <h1 class="title">欢迎来到臻芝俱乐部</h1>
+                        <h2 class="">使用您的Zents帐号登陆</h2>
                         <p stype="width:100%; text-align:center; color:#f00;"><?=$error;?></p>
                         <div class="choose-block" style="display:none;">
                             <div class="choose">
@@ -52,33 +99,18 @@
 
                             <div align="left">
                                 <form action="<?=base_url()?>login/check" method="post" class="yform columnar" id="frm">
-                                    <fieldset>
-                                        <legend>登入系统 </legend>
-
-                                        <table>
-                                            <tr>
-                                                <td class="display_field"></td><td class="input_field"><input type="text" name="login_id" value="" id="login_id" class="textfield" placeholder="登入编号 "  /></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="display_field"></td><td class="input_field"><input type="password" name="password" value="" id="password" class="textfield" placeholder="密码 "  /></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="display_field">
-                                                </td>
-                                                <td class="input_field">
-                                                    <input type="text" name="captcha" value="" />
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td></td>
-                                                <td>
-                                                    <?=$captcha;?>
-                                                </td>
-                                            </tr>
-                                        </table>
 
 
-                                    </fieldset>
+                                    <div style="width:113px; margin:0 auto; margin-bottom: 10px;">
+                                        <img src="<?=base_url()?>assets/images/photo.png" style="width:113px; margin:0 auto"/>
+                                    </div>
+                                    <input type="text" name="login_id" value="" id="login_id" class="google_textfield google_email" placeholder="登入帐号 "  />
+                                    <input type="password" name="password" value="" id="password" class="google_textfield google_email" placeholder="密码 "  />
+                                    <div style="padding-top:5px; padding-bottom:5px;" class="div-captcha">
+                                        <input type="text" name="captcha" class="google_textfield captcha" placeholder="编证码" value="" />
+                                        <?=$captcha;?>
+                                    </div>
+
                                     <div class="info_msg">
                                     </div>
 

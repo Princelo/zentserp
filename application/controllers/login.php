@@ -17,9 +17,12 @@ class Login extends CI_Controller {
         if($this->session->userdata('user') != "")
             redirect('forecast/index');
         $vals = array(
-            'word' => random_string('alnum', 5),
+            //'word' => random_string('alnum', 5),
+            'word' => random_string('numeric', 5),
             'img_path' => './captcha/',
             'img_url' => base_url().'captcha/',
+            'img_widget' => '130',
+            'img_height' => '44',
         );
 
         $cap = create_captcha($vals);
