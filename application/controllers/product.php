@@ -1,6 +1,7 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class Product extends CI_Controller {
+include('application/libraries/MY_Controller.php');
+class Product extends MY_Controller {
 
     public $db;
     public function __construct(){
@@ -264,6 +265,18 @@ class Product extends CI_Controller {
         }
         $this->load->view('templates/header', $data);
         $this->load->view('product/details_admin', $data);
+    }
+
+    public function details($product_id)
+    {
+        if($this->session->userdata('role') != 'user')
+            exit('You are not admin.');
+        $data = array();
+        $data['v'] = $this->MProduct->objGetProductInfo($product_id);
+        if($data['v']->is_valid == 'f')
+            exit('The product is invalid');
+        $this->load->view('templates/header_user', $data);
+        $this->load->view('product/details', $data);
     }
 
     public function add($error = '')

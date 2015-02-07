@@ -1,6 +1,7 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class User extends CI_Controller {
+include('application/libraries/MY_Controller.php');
+class User extends MY_Controller {
 
     public $db;
     public function __construct(){
@@ -43,10 +44,11 @@ class User extends CI_Controller {
             $config['base_url'] = base_url()."user/listpage/";
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
-            $where = " and su.id = {$current_user_id} ";
+            $iwhere = " and p.id = {$current_user_id} ";
             //$where .= ' and p.is_valid = true ';
+            $where = "";
             $where .= $this->__get_search_str($search, $level);
-            $config['total_rows'] = $this->MUser->intGetSubUsersCount($where);
+            $config['total_rows'] = $this->MUser->intGetSubUsersCount($where, $iwhere);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
             $data['page'] = $this->pagination->create_links();
@@ -55,7 +57,7 @@ class User extends CI_Controller {
             //$where = '';
             //$where = ' and is_admin = false ';
             $order = '';
-            $data['users'] = $this->MUser->objGetSubUserList($where, $order, $limit);
+            $data['users'] = $this->MUser->objGetSubUserList($where, $iwhere, $order, $limit);
             $this->load->view('templates/header_user', $data);
             $this->load->view('user/listpage', $data);
         }else{
@@ -63,8 +65,9 @@ class User extends CI_Controller {
             $config['base_url'] = base_url()."user/listpage/";
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
-            $where = " and su.id = {$current_user_id} ";
-            $config['total_rows'] = $this->MUser->intGetSubUsersCount($where);
+            $iwhere = " and p.id = {$current_user_id} ";
+            $where = "";
+            $config['total_rows'] = $this->MUser->intGetSubUsersCount($where, $iwhere);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
             $data['page'] = $this->pagination->create_links();
@@ -72,9 +75,76 @@ class User extends CI_Controller {
             $limit .= " limit {$config['per_page']} offset {$offset} ";
             //$where = ' and p.is_valid = true ';
             $order = '';
-            $data['users'] = $this->MUser->objGetSubUserList($where, $order, $limit);
+            $data['users'] = $this->MUser->objGetSubUserList($where, $iwhere, $order, $limit);
             $this->load->view('templates/header_user', $data);
             $this->load->view('user/listpage', $data);
+        }
+    }
+
+    public function sublistpage($id, $offset = 0)
+    {
+        if($this->session->userdata('role') != 'admin')
+            exit('You are not the admin.');
+        $current_user_id = //$this->session->userdata('current_user_id');
+            $id;
+        $get_config = array(
+            array(
+                'field' =>  'search',
+                'label' =>  '用戶名',
+                'rules' =>  'trim|xss_clean'
+            ),
+            array(
+                'field' =>  'level',
+                'label' =>  'Level',
+                'rules' =>  'trim|xss_clean|is_natural'
+            ),
+        );
+        $this->form_validation->set_rules($get_config);
+        if($this->input->get('search', true) != '' ||
+            $this->input->get('level', true) != ''
+        )
+        {
+            $search = $this->input->get('search', true);
+            $search = $this->db->escape_like_str($search);
+            $level = $this->input->get('level', true);
+            $data = array();
+            $config['base_url'] = base_url()."user/sublistpage/".$id;
+            if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
+            $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
+            $iwhere = " and p.id = {$current_user_id} ";
+            //$where .= ' and p.is_valid = true ';
+            $where = "";
+            $where .= $this->__get_search_str($search, $level);
+            $config['total_rows'] = $this->MUser->intGetSubUsersCount($where, $iwhere);
+            $config['per_page'] = 30;
+            $this->pagination->initialize($config);
+            $data['page'] = $this->pagination->create_links();
+            $limit = '';
+            $limit .= " limit {$config['per_page']} offset {$offset} ";
+            //$where = '';
+            //$where = ' and is_admin = false ';
+            $order = '';
+            $data['users'] = $this->MUser->objGetSubUserList($where, $iwhere, $order, $limit);
+            $this->load->view('templates/header', $data);
+            $this->load->view('user/sublistpage', $data);
+        }else{
+            $data = array();
+            $config['base_url'] = base_url()."user/sublistpage/".$id;
+            if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
+            $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
+            $iwhere = " and p.id = {$current_user_id} ";
+            $where = "";
+            $config['total_rows'] = $this->MUser->intGetSubUsersCount($where, $iwhere);
+            $config['per_page'] = 30;
+            $this->pagination->initialize($config);
+            $data['page'] = $this->pagination->create_links();
+            $limit = '';
+            $limit .= " limit {$config['per_page']} offset {$offset} ";
+            //$where = ' and p.is_valid = true ';
+            $order = '';
+            $data['users'] = $this->MUser->objGetSubUserList($where, $iwhere, $order, $limit);
+            $this->load->view('templates/header', $data);
+            $this->load->view('user/sublistpage', $data);
         }
     }
 
@@ -106,7 +176,7 @@ class User extends CI_Controller {
             $config['base_url'] = base_url()."user/listpage_admin/";
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
-            $where = ' and is_admin = false ';
+            $where = ' and u.is_admin = false ';
             //$where .= ' and p.is_valid = true ';
             $where .= $this->__get_search_str($search, $level);
             $config['total_rows'] = $this->MUser->intGetUsersCount($where);
@@ -126,7 +196,7 @@ class User extends CI_Controller {
             $config['base_url'] = base_url()."user/listpage_admin/";
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
-            $where = ' and is_admin = false ';
+            $where = ' and u.is_admin = false ';
             $config['total_rows'] = $this->MUser->intGetUsersCount($where);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
@@ -203,6 +273,7 @@ class User extends CI_Controller {
                     'username' => $this->input->post('username'),
                     'password' => md5($this->input->post('username')),
                     'level' => $this->input->post('level'),
+                    'assign_level' => $this->input->post('assign_level'),
                     'name' => $this->input->post('name'),
                     'citizen_id' => $this->input->post('citizen_id'),
                     'mobile_no' => $this->input->post('mobile_no'),
@@ -271,6 +342,11 @@ class User extends CI_Controller {
                 'label'   => 'QQ号',
                 'rules'   => 'trim|xss_clean|required|min_length[5]|max_length[50]|is_unique[users.qq_no]'
             ),
+            array(
+                'field'  => 'level',
+                'label'  => 'Level',
+                'rules'  => 'trim|xss_clean|required|is_natural|greater_than[0]|less_than[4]'
+            ),
             /*array(
                 'field'   => 'is_valid',
                 'label'   => '是否生效',
@@ -294,6 +370,7 @@ class User extends CI_Controller {
                     'mobile_no' => $this->input->post('mobile_no'),
                     'wechat_id' => $this->input->post('wechat_id'),
                     'qq_no' => $this->input->post('qq_no'),
+                    'assign_level' => $this->input->post('level'),
                     //'is_valid' => $this->input->post('is_valid'),
                 );
                 $result = $this->MUser->add($main_data);
@@ -398,10 +475,20 @@ class User extends CI_Controller {
             }
         }else{
             $data['v'] = $this->MUser->objGetUserInfo($id);
+            $data['id'] = $id;
             $this->load->view('templates/header', $data);
             $this->load->view('user/details_admin', $data);
         }
 
+    }
+
+    public function my_superior()
+    {
+        if($this->session->userdata('role') != 'user')
+            exit('You are the admin.');
+        $data['v'] = $this->MUser->getSuperiorInfo($this->session->userdata('current_user_id'));
+        $this->load->view('templates/header_user', $data);
+        $this->load->view('user/my_superior', $data);
     }
 
     public function password($error = ''){
@@ -417,6 +504,7 @@ class User extends CI_Controller {
         }
         $this->load->view('user/password', $data);
     }
+
 
     public function passwordupdate(){
         if(isset($_POST['password']) && isset($_POST['password2']) && $_POST['password'] != "" && $_POST['password2'] != ""
@@ -438,9 +526,9 @@ class User extends CI_Controller {
     {
         $where = '';
         if($search != '')
-            $where .= " and (username like '%{$search}%' or name like '%{$search}%' ) ";
+            $where .= " and (u.username like '%{$search}%' or u.name like '%{$search}%' ) ";
         if($level != '')
-            $where .= " and level = {$level} ";
+            $where .= " and u.level = {$level} ";
         return $where;
     }
 }

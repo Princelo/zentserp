@@ -58,10 +58,30 @@
                         <th><label for="level">代理级別 <span>*</span></label></th>
                         <td>
                             <select name="level">
-                                <option value="1">特約代理</option>
-                                <option value="2">一級代理</option>
-                                <option value="3">二級代理</option>
-                                <option value="0">零售商</option>
+                                <option value="1"><?=getLevelName(1);?></option>
+                                <option value="2"><?=getLevelName(2);?></option>
+                                <option value="3"><?=getLevelName(3);?></option>
+                                <option value="0"><?=getLevelName(0);?></option>
+                            </select>
+                        </td>
+                        <script>
+                            $('select[name="level"]').change(function(){
+                                if($(this).val() == 0){
+                                    $('#assign_level').show();
+                                }else{
+                                    $('#assign_level').val(null);
+                                    $('#assign_level').hide();
+                                }
+                            });
+                        </script>
+                    </tr>
+                    <tr style="display:none;" id="assign_level">
+                        <th><label for="assign_level">推荐代理级別 <span>*</span></label></th>
+                        <td>
+                            <select name="assign_level">
+                                <option value="1"><?=getLevelName(1);?></option>
+                                <option value="2"><?=getLevelName(2);?></option>
+                                <option value="3"><?=getLevelName(3);?></option>
                             </select>
                         </td>
                     </tr>

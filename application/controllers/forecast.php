@@ -1,6 +1,7 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class Forecast extends CI_Controller {
+include('application/libraries/MY_Controller.php');
+class Forecast extends MY_Controller {
 
     public function __construct(){
         parent::__construct();
@@ -14,6 +15,7 @@ class Forecast extends CI_Controller {
     public function index()
     {
         $data = array();
+
         $config = array(
             array(
                 'field'   => 'name',
@@ -77,9 +79,51 @@ class Forecast extends CI_Controller {
             $this->load->view('forecast/index', $data);
         }
         else{
+            $data['tip'] = $this->_getTips($data);
             $this->load->view('templates/header_user', $data);
             $this->load->view('forecast/index_user', $data);
         }
+    }
+
+    private function _getTips($data)
+    {
+        if($this->session->userdata('level') == 0 && $data['v']->assign_level == 1)
+        {
+            $turnoverandprofit = money($data['v']->turnover) + money($data['v']->profit);
+            $target = 19800 - $turnoverandprofit;
+            $tip = "你当前等级为".getLevelName(0)."，你的业绩+收益为 ￥".$turnoverandprofit." ，离升级至 ".getLevelName(1)." 还需要 ￥{$target}";
+        }
+        if($this->session->userdata('level') == 0 && $data['v']->assign_level == 2)
+        {
+            $turnoverandprofit = money($data['v']->turnover) + money($data['v']->profit);
+            $target = 3980 - $turnoverandprofit;
+            $tip = "你当前等级为".getLevelName(0)."，你的业绩+收益为 ￥".$turnoverandprofit." ，离升级至 ".getLevelName(2)." 还需要 ￥{$target}";
+        }
+        if($this->session->userdata('level') == 0 && $data['v']->assign_level == 3)
+        {
+            $turnoverandprofit = money($data['v']->turnover) + money($data['v']->profit);
+            $target = 1980 - $turnoverandprofit;
+            $tip = "你当前等级为".getLevelName(0)."，你的业绩+收益为 ￥".$turnoverandprofit." ，离升级至 ".getLevelName(3)." 还需要 ￥{$target}";
+        }
+        if($this->session->userdata('level') == 1)
+        {
+            $turnoverandprofit = money($data['v']->turnover) + money($data['v']->profit);
+            //$target = 3980 - $turnoverandprofit;
+            $tip = "你当前等级为".getLevelName(1)."，你的业绩+收益为 ￥".$turnoverandprofit."";// ，离升级至 ".getLevelName(1)." 还需要 ￥{$target}";
+        }
+        if($this->session->userdata('level') == 2)
+        {
+            $turnoverandprofit = money($data['v']->turnover) + money($data['v']->profit);
+            $target = 39800 - $turnoverandprofit;
+            $tip = "你当前等级为".getLevelName(2)."，你的业绩+收益为 ￥".$turnoverandprofit." ，离升级至 ".getLevelName(1)." 还需要 ￥{$target}";
+        }
+        if($this->session->userdata('level') == 3)
+        {
+            $turnoverandprofit = money($data['v']->turnover) + money($data['v']->profit);
+            $target = 19800 - $turnoverandprofit;
+            $tip = "你当前等级为".getLevelName(3)."，你的业绩+收益为 ￥".$turnoverandprofit." ，离升级至 ".getLevelName(2)." 还需要 ￥{$target}";
+        }
+        return $tip;
     }
 }
 

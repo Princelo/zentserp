@@ -370,20 +370,20 @@ function getLevelName($level){
             $level_name = '零售商';
             break;
         case 1:
-            $level_name = '特约代理';
+            $level_name = '总代理';
             break;
         case 2:
-            $level_name = '一级代理';
+            $level_name = '市级代理';
             break;
         case 3:
-            $level_name = '二级代理';
+            $level_name = '经销商';
             break;
     }
     return $level_name;
 }
 function money($money)
 {
-    return str_replace("$", "", $money);
+    return str_replace(",", "", str_replace("$", "", $money));
 }
 function thumb($img)
 {

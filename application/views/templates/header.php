@@ -105,7 +105,7 @@
             </li>
             <li class="" onmouseover="$(this).children('div').show();" onmouseout="$(this).children('div').hide()">
                 <a href="javascript:;" class="parent" ><span>产品 </span></a>
-                <div style="display:none; height: 108px; overflow: hidden;">
+                <div style="display:none; height: 108px; overflow: hidden; z-index: 999;">
                     <ul>
                         <li><a href="<?=base_url()?>product/listpage_admin" class="" style="background: none;"><span>产品列表(上架) </span></a>
                         </li>
@@ -118,7 +118,7 @@
             </li>
             <li class="" onmouseover="$(this).children('div').show();" onmouseout="$(this).children('div').hide()">
                 <a href="javascript:;" class="parent" ><span>代理 </span></a>
-                <div style="display:none; height: 108px; overflow: hidden;">
+                <div style="display:none; height: 108px; overflow: hidden; z-index: 999;">
                     <ul>
                         <li><a href="<?=base_url()?>user/listpage_admin" class="" style="background: none;"><span>代理列表 </span></a>
                         </li>
@@ -130,7 +130,7 @@
             </li>
             <li class="" onmouseover="$(this).children('div').show();" onmouseout="$(this).children('div').hide()">
                 <a href="javascript:;" class="parent" ><span>订单系统 </span></a>
-                <div style="display:none; height: 108px; overflow: hidden;">
+                <div style="display:none; height: 108px; overflow: hidden; z-index: 999;">
                     <ul>
                         <li><a href="<?=base_url()?>order/listpage_admin" class="" style="background: none;"><span>订单列表 </span></a>
                         </li>
@@ -140,7 +140,7 @@
             </li>
             <li class="" onmouseover="$(this).children('div').show();" onmouseout="$(this).children('div').hide()">
                 <a href="javascript:;" class="parent" ><span>报表系统 </span></a>
-                <div style="display:none; height: 108px; overflow: hidden;">
+                <div style="display:none; height: 108px; overflow: hidden; z-index: 999;">
                     <ul>
                         <li><a href="<?=base_url()?>report/index_admin" class="" style="background: none;"><span>代理报表查询 </span></a>
                         </li>

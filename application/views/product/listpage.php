@@ -53,10 +53,10 @@
                     <th>规格</th>
                     <th>产品功效</th>
                     <th>产品图片</th>
-                    <th><span <?=$level==1?"class=\"red\"":"";?>>特约代理价</span></th>
-                    <th><span <?=$level==2?"class=\"red\"":"";?>>一级代理价</span></th>
-                    <th><span <?=$level==3?"class=\"red\"":"";?>>二级代理价</span></th>
-                    <th><span <?=$level==0?"class=\"red\"":"";?>>零售价</span></th>
+                    <th><span <?=$level==1?"class=\"red\"":"";?>><?=getLevelName(1)?>价</span></th>
+                    <th><span <?=$level==2?"class=\"red\"":"";?>><?=getLevelName(2)?>价</span></th>
+                    <th><span <?=$level==3?"class=\"red\"":"";?>><?=getLevelName(3)?>价</span></th>
+                    <th><span <?=$level==0?"class=\"red\"":"";?>><?=getLevelName(0)?>价</span></th>
                     <th></th>
                     <th></th>
                 </tr>

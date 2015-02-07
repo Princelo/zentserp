@@ -8,9 +8,12 @@
 
             <ul id="left_menu">
                 <li>
-                    <a href='<?=base_url()?>user/listpage_admin' ><div>我的下级代理 </div></a>
+                    <a href='<?=base_url()?>user/listpage' ><div>我的下级代理 </div></a>
                 </li>
-                <li><a href='<?=base_url();?>user/addRootUser' ><div>新增代理 </div></a></li>
+                <li><a href='<?=base_url();?>user/add' ><div>新增代理 </div></a></li>
+                <li>
+                    <a href='<?=base_url()?>user/my_superior' ><div>我的上级代理信息 </div></a>
+                </li>
             </ul>
         </div>
     </div>
@@ -29,7 +32,7 @@
                 <?=$this->session->flashdata('flashdata', 'value');?>
             </span>
                 <div>
-                    <form action="<?=base_url()?>user/listpage_admin" method="get">
+                    <form action="<?=base_url()?>user/listpage" method="get">
                         <table>
                             <tr>
                                 <th>搜索</th>
@@ -40,10 +43,10 @@
                                     等级:
                                     <select name="level">
                                         <option ></option>
-                                        <option value="1">特約代理</option>
-                                        <option value="2">一級代理</option>
-                                        <option value="3">二級代理</option>
-                                        <option value="0">零售商</option>
+                                        <option value="1"><?=getLevelName(1)?></option>
+                                        <option value="2"><?=getLevelName(2)?></option>
+                                        <option value="3"><?=getLevelName(3)?></option>
+                                        <option value="0"><?=getLevelName(0)?></option>
                                     </select>
                                 </th>
                                 <th>

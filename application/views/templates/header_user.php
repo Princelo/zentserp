@@ -84,6 +84,7 @@
     <div id='head_info'>
 
 									<span style="margin-right:40px">
+                                        尊敬的<?=$this->session->userdata('user');?>，您好！您当前等级是<?=getLevelName($this->session->userdata('level'))?>
 					</span>
         <!--
         <a href=""  class="image_button"  title="Tutor Buffer Table"><img src='/cgi-bin/common/images/page_white_gear.png'></a>
@@ -105,7 +106,7 @@
             </li>
             <li class="" onmouseover="$(this).children('div').show();" onmouseout="$(this).children('div').hide()">
                 <a href="javascript:;" class="parent" ><span>产品 </span></a>
-                <div style="display:none; height: 108px; overflow: hidden;">
+                <div style="display:none; height: 108px; overflow: hidden; z-index: 999;">
                     <ul>
                         <li><a href="<?=base_url()?>product/listpage" class="" style="background: none;"><span>产品列表 </span></a>
                         </li>
@@ -118,11 +119,13 @@
             </li>
             <li class="" onmouseover="$(this).children('div').show();" onmouseout="$(this).children('div').hide()">
                 <a href="javascript:;" class="parent" ><span>代理 </span></a>
-                <div style="display:none; height: 108px; overflow: hidden;">
+                <div style="display:none; height: 108px; overflow: hidden; z-index: 999;">
                     <ul>
                         <li><a href="<?=base_url()?>user/listpage" class="" style="background: none;"><span>我的下级代理 </span></a>
                         </li>
                         <li><a href="<?=base_url()?>user/add" class="" style="background: none;"><span>新增代理 </span></a>
+                        </li>
+                        <li><a href="<?=base_url()?>user/my_superior" class="" style="background: none;"><span>我的上级代理信息 </span></a>
                         </li>
                     </ul>
                 </div>
@@ -130,7 +133,7 @@
             </li>
             <li class="" onmouseover="$(this).children('div').show();" onmouseout="$(this).children('div').hide()">
                 <a href="javascript:;" class="parent" ><span>订单系统 </span></a>
-                <div style="display:none; height: 108px; overflow: hidden;">
+                <div style="display:none; height: 108px; overflow: hidden; z-index: 999;">
                     <ul>
                         <li><a href="<?=base_url()?>order/listpage" class="" style="background: none;"><span>订单列表 </span></a>
                         </li>
@@ -142,7 +145,7 @@
             </li>
             <li class="" onmouseover="$(this).children('div').show();" onmouseout="$(this).children('div').hide()">
                 <a href="javascript:;" class="parent" ><span>报表系统 </span></a>
-                <div style="display:none; height: 108px; overflow: hidden;">
+                <div style="display:none; height: 108px; overflow: hidden; z-index: 999;">
                     <ul>
                         <li><a href="<?=base_url()?>report/index" class="" style="background: none;"><span>报表查询 </span></a>
                         </li>
