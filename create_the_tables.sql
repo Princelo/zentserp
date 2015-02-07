@@ -1236,13 +1236,6 @@ ALTER TABLE ONLY zents_bills
 
 
 --
--- Name: fki_d｜木; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
---
-
-CREATE INDEX "fki_d｜木" ON price USING btree (product_id);
-
-
---
 -- Name: fki_orders_product_id_products_id; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -1254,6 +1247,13 @@ CREATE INDEX fki_orders_product_id_products_id ON orders USING btree (product_id
 --
 
 CREATE INDEX fki_orders_user_id_users_id ON orders USING btree (user_id);
+
+
+--
+-- Name: price_product_id_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE INDEX price_product_id_idx ON price USING btree (product_id);
 
 
 --
