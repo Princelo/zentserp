@@ -54,6 +54,7 @@ class MOrder extends CI_Model
                 a.level = o.level
                 and
                 o.is_deleted = false
+                and o.is_valid = true
                 {$where}
             {$order}
             {$limit}
@@ -70,7 +71,7 @@ class MOrder extends CI_Model
         return $data;
     }
 
-    public function intAddReturnOrderId($main_data, $address_info)
+    public function intAddNonMemberReturnOrderId($main_data, $address_info)
     {
         $post_fee = $this->intCalcPostFee();
         $current_user_id = $this->session->userdata('current_user_id');
@@ -91,7 +92,7 @@ class MOrder extends CI_Model
         $insert_sql_order = "";
         $insert_sql_order .= "
 
-            insert into orders (user_id, product_id, count, level, parent_level, address_book_id, is_post, post_fee, is_first)
+            insert into orders (user_id, product_id, count, level, parent_level, address_book_id, is_post, post_fee, is_first, cart_id, is_valid)
             select {$current_user_id} user_id,
                     ? product_id,
                     ? count,
@@ -100,7 +101,9 @@ class MOrder extends CI_Model
                     currval('address_books_id_seq') address_book_id,
                     ? is_post,
                     ? post_fee,
-                    case when not exists (select id from orders where user_id = {$current_user_id}) then true else false end
+                    case when not exists (select id from orders where user_id = {$current_user_id}) then true else false end,
+                    (select id from cart where user_id = {$current_user_id}),
+                    false
                 from
                 (select c.level as level, p.level plevel
                     from users c, users p where c.id = {$current_user_id}
@@ -163,6 +166,113 @@ class MOrder extends CI_Model
         }else{
             return 0;
         }
+    }
+    public function intAddReturnOrderId($main_data, $address_info)
+    {
+        $post_fee = $this->intCalcPostFee();
+        $current_user_id = $this->session->userdata('current_user_id');
+        $insert_sql_address = "";
+        $insert_sql_address .= "
+            insert into address_books
+            (user_id, contact, province_id, city_id, address_info, remark, mobile)
+            values ({$current_user_id},?,?,?,?,?,?);
+        ";
+        $binds_address = array(
+            $address_info['contact'],
+            $address_info['province_id'],
+            $address_info['city_id'],
+            $address_info['address_info'],
+            $address_info['remark'],
+            $address_info['mobile'],
+        );
+        $insert_sql_order = "";
+        $insert_sql_order .= "
+
+            insert into orders (user_id, product_id, count, level, parent_level, address_book_id, is_post, post_fee, is_first, cart_id)
+            select {$current_user_id} user_id,
+                    ? product_id,
+                    ? count,
+                    u.level as level,
+                    u.plevel parent_level,
+                    currval('address_books_id_seq') address_book_id,
+                    ? is_post,
+                    ? post_fee,
+                    case when not exists (select id from orders where user_id = {$current_user_id}) then true else false end,
+                    (select id from cart where user_id = {$current_user_id})
+                from
+                (select c.level as level, p.level plevel
+                    from users c, users p where c.id = {$current_user_id}
+                        and c.pid = p.id) as u
+            ;
+        ";
+        $binds_order = array(
+            $main_data['product_id'], $main_data['count'], $main_data['is_post'], $post_fee,
+        );
+
+        $insert_sql_amount = "";
+        $insert_sql_amount .= "
+            insert into amounts (amount, order_id, level)
+            values
+            (
+                (select pr.price from products p, price pr where pr.product_id = p.id and level = 1 and p.id = ?),
+                currval('orders_id_seq'),
+                1
+            ),
+            (
+                (select pr.price from products p, price pr where pr.product_id = p.id and level = 2 and p.id = ?),
+                currval('orders_id_seq'),
+                2
+            ),
+            (
+                (select pr.price from products p, price pr where pr.product_id = p.id and level = 3 and p.id = ?),
+                currval('orders_id_seq'),
+                3
+            ),
+            (
+                (select pr.price from products p, price pr where pr.product_id = p.id and level = 0 and p.id = ?),
+                currval('orders_id_seq'),
+                0
+            )
+            ;
+        ";
+        $binds_amount = array($main_data['product_id'], $main_data['product_id'], $main_data['product_id'], $main_data['product_id']);
+
+
+        $this->objDB->trans_start();
+
+        $this->objDB->query($insert_sql_address, $binds_address);
+        $this->objDB->query($insert_sql_order, $binds_order);
+        $this->objDB->query($insert_sql_amount, $binds_amount);
+        $inserted_order_id_result = $this->objDB->query(
+            "select currval('orders_id_seq') id;"
+        );
+
+        $this->objDB->trans_complete();
+
+        $result = $this->objDB->trans_status();
+
+        if($result === true){
+            if($inserted_order_id_result->num_rows() > 0) {
+                $inserted_order_id = $inserted_order_id_result->row()->id;
+            }
+
+            $inserted_order_id_result->free_result();
+            return $inserted_order_id;
+        }else{
+            return 0;
+        }
+    }
+
+    public function enableCart($user_id)
+    {
+        $update_sql = "
+            update orders set is_valid = true where cart_id = (select id from cart where user_id = {$user_id});
+        ";
+        $result = $this->objDB->query($update_sql);
+        if($result === true)
+            return true;
+        else
+            return false;
     }
 
     public function intCalcPostFee(){
@@ -536,5 +646,31 @@ class MOrder extends CI_Model
             return false;
         }
 
+    }
+
+    public function checkIsOwn($user_id, $order_id)
+    {
+        $query_sql = "select count(1) from orders where id = ? and user_id = ?;";
+        $binds = array($order_id, $user_id);
+        $data = array();
+        $query = $this->objDB->query($query_sql, $binds);
+        if($query->num_rows() > 0){
+            if($query->result()[0]->count > 0 )
+                return true;
+            else
+                return false;
+        }else{
+            return false;
+        }
+    }
+
+    public function delete($order_id)
+    {
+        $this->objDB->from("orders o");
+        $this->objDB->from("amounts a");
+        $this->objDB->where("o.id", $order_id);
+        $this->objDB->where("a.order_id", $order_id);
+        $this->objDB->delete();
+        return ($this->objDB->affected_rows() > 0 );
     }
 }
