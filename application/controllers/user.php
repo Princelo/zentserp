@@ -271,7 +271,7 @@ class User extends MY_Controller {
             }else{
                 $main_data = array(
                     'username' => $this->input->post('username'),
-                    'password' => md5($this->input->post('username')),
+                    'password' => md5($this->input->post('password')),
                     'level' => $this->input->post('level'),
                     'assign_level' => $this->input->post('assign_level'),
                     'name' => $this->input->post('name'),
