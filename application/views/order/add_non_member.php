@@ -124,7 +124,7 @@
                             <td><?=cny($v->amount)?></td>
                             <td><?=bcmul(money($v->amount), $v->count, 2)?></td>
                             <td><?=$v->post_fee?></td>
-                            <td><a href="<?=base_url()?>order/delete/<?=$v->order_id?>">移出购物车</a></td>
+                            <td><a href="<?=base_url()?>order/delete/<?=$v->order_id?>/<?=$product_id?>">移出购物车</a></td>
                         </tr>
                         <?}?>
 
