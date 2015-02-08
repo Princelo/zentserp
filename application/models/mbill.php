@@ -93,14 +93,15 @@ class MBill extends CI_Model
         $interval = date_diff(new \DateTime($date_from), new \DateTime($date_to), true);
         $days = $interval->days + 1;
         $query_sql = "
-            SELECT d.date, count(b.id), sum(b.income_without_post_fee) volume FROM (
+            SELECT d.date, count(b.id), sum(b.volume) volume FROM (
                 select to_char(date_trunc('day', (date('{$date_from}') + offs)), 'YYYY-MM-DD')
                 AS date
                 FROM generate_series(0, {$days}, 1)
                 AS offs
                 ) d
-            LEFT OUTER JOIN zents_bills b
+            LEFT OUTER JOIN bills b
             ON (d.date=to_char(date_trunc('day', b.create_time), 'YYYY-MM-DD'))
+                and b.type = 1
             left join orders o
             on o.id = b.order_id
             GROUP BY d.date
@@ -202,7 +203,7 @@ class MBill extends CI_Model
         $months = $interval->y*12 + $interval->m + 1;
 
         $query_sql = "
-            SELECT to_char(date_trunc('month', d.date), 'YYYY-MM') date, count(b.id), sum(b.income_without_post_fee) volume FROM (
+            SELECT to_char(date_trunc('month', d.date), 'YYYY-MM') date, count(b.id), sum(b.volume) volume FROM (
                 select DATE '{$date_from}' + (interval '1' month * generate_series(0,month_count::int)) date
                     from (
                        select extract(year from diff) * 12 + extract(month from diff) as month_count
@@ -211,8 +212,9 @@ class MBill extends CI_Model
                        ) td
                     ) t
                 ) d
-            left join zents_bills b
+            left join bills b
             ON (to_char(date_trunc('month', d.date), 'YYYY-MM')=to_char(date_trunc('month', b.create_time), 'YYYY-MM'))
+                and b.type = 1
             left join orders o
             on o.id = b.order_id
             GROUP BY d.date
@@ -312,7 +314,7 @@ class MBill extends CI_Model
         $interval = date_diff(new \DateTime($date_from), new \DateTime($date_to), true);
         $years = $interval->y + 1;
         $query_sql = "
-            SELECT to_char(date_trunc('year', d.date), 'YYYY') date, count(b.id), sum(b.income_without_post_fee) volume FROM (
+            SELECT to_char(date_trunc('year', d.date), 'YYYY') date, count(b.id), sum(b.volume) volume FROM (
                 select DATE '{$date_from}' + (interval '1' year * generate_series(0,year_count::int)) date
                     from (
                        select extract(year from diff) as year_count
@@ -321,8 +323,9 @@ class MBill extends CI_Model
                        ) td
                     ) t
                 ) d
-            left join zents_bills b
+            left join bills b
             ON (to_char(date_trunc('year', d.date), 'YYYY')=to_char(date_trunc('year', b.create_time), 'YYYY'))
+                and b.type = 1
             left join orders o
             on o.id = b.order_id
             GROUP BY d.date
