@@ -76,6 +76,7 @@ class MUser extends CI_Model
 
         $this->objDB->query($insert_sql_root_id);
         $this->objDB->query($insert_sql_user, $binds);
+        $this->objDB->query("insert into cart(user_id) values(currval('users_id_seq'));");
 
         $this->objDB->trans_complete();
 
@@ -144,6 +145,7 @@ class MUser extends CI_Model
         $this->objDB->query("set constraints all deferred;");
         $this->objDB->query($update_left_right_sql);
         $this->objDB->query($insert_sql_user, $binds);
+        $this->objDB->query("insert into cart(user_id) values(currval('users_id_seq'));");
 
         $this->objDB->trans_complete();
 
