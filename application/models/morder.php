@@ -666,10 +666,8 @@ class MOrder extends CI_Model
 
     public function delete($order_id)
     {
-        $this->objDB->from("orders o");
-        $this->objDB->from("amounts a");
-        $this->objDB->where("o.id", $order_id);
-        $this->objDB->where("a.order_id", $order_id);
+        $this->objDB->from("orders");
+        $this->objDB->where("id", $order_id);
         $this->objDB->delete();
         return ($this->objDB->affected_rows() > 0 );
     }
