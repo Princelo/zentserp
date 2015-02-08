@@ -716,7 +716,7 @@ class Order extends MY_Controller {
             $this->session->set_flashdata('flashdata', '移除成功');
         else
             $this->session->set_flashdata('flashdata', '移除失败');
-        redirect('product/add_non_member/'.$product_id);
+        redirect('order/add_non_member/'.$product_id);
     }
 
     private function __get_search_str($search = '', $uid = '', $is_finish = null)
