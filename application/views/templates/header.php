@@ -98,6 +98,10 @@
 <div id="mainmenu">
 
     <!-- begin: main navigation #nav -->
+    <style>
+        #mainmenu #menu .menu li {position: relative;}
+        #mainmenu #menu .menu li div {position: absolute; left: 0; top:43px; z-index: 999;}
+    </style>
     <div id="menu">
         <ul class="menu">
             <li class="">
