@@ -132,7 +132,6 @@
                             <th>购物车总价</th>
                             <th>￥<?=$total?></th>
                             <th>运费：￥<?=$total_post_fee?></th>
-                            <th>目标金额：￥<?=$target?></th>
                         </tr>
                     </table>
                 <?
@@ -148,6 +147,7 @@
                         <?if(!$enable){?>
                         <span>你当前购物车总额为￥<?=$total?>，需满￥<?=$target?>才可结算购物车。</span>
                         <?}?>
+                        <br /><span>成功交易满￥1980即可升做<?=getLevelName(3)?>，满￥3980即可升做<?=getLevelName(2)?>，满￥19800即可升做<?=getLevelName(1)?></span>
                     </div>
                     <div class="c50r right">
                     </div>

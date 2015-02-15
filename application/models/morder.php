@@ -101,7 +101,8 @@ class MOrder extends CI_Model
                     currval('address_books_id_seq') address_book_id,
                     ? is_post,
                     ? post_fee,
-                    case when not exists (select id from orders where user_id = {$current_user_id}) then true else false end,
+                    --case when not exists (select id from orders where user_id = {$current_user_id}) then true else false end,
+                    true,
                     (select id from cart where user_id = {$current_user_id}),
                     false
                 from
@@ -197,7 +198,8 @@ class MOrder extends CI_Model
                     currval('address_books_id_seq') address_book_id,
                     ? is_post,
                     ? post_fee,
-                    case when not exists (select id from orders where user_id = {$current_user_id}) then true else false end,
+                    --case when not exists (select id from orders where user_id = {$current_user_id}) then true else false end,
+                    false,
                     (select id from cart where user_id = {$current_user_id})
                 from
                 (select c.level as level, p.level plevel
@@ -374,24 +376,24 @@ class MOrder extends CI_Model
                 set basic_level = case
                 when
                     turnover::decimal + profit::decimal + {$pay_amt_without_post_fee} >= 1980
-                    --and turnover::decimal + {$pay_amt_without_post_fee} < 3980
+                    and turnover::decimal + profit::decimal + {$pay_amt_without_post_fee} < 3980
                     and basic_level = 0
-                    and assign_level = 3
+                    --and assign_level = 3
                     then 3
                 when
                     turnover::decimal + profit::decimal + {$pay_amt_without_post_fee} >= 3980
-                    --and turnover::decimal + {$pay_amt_without_post_fee} < 19800
+                    and turnover::decimal + profit::decimal + {$pay_amt_without_post_fee} < 19800
                     and (basic_level = 0 or basic_level = 3)
-                    and assign_level = 2
+                    --and assign_level = 2
                     then 2
                 when
                     turnover::decimal + profit::decimal + {$pay_amt_without_post_fee} >= 19800
-                    and assign_level = 1
+                    --and assign_level = 1
                     then 1
                     else basic_level
                 end
             where id = {$user_id};
-            update users set level = basic_level where id = {$user_id};
+            update users set level = basic_level, assign_level = basic_level where id = {$user_id};
             --update users set first_purchase = first_purchase::decimal + {$pay_amt_without_post_fee} where id = {$user_id};
         ";
         $update_sql = "
@@ -419,6 +421,11 @@ class MOrder extends CI_Model
                             then (ua.amount::decimal - pa.amount::decimal)*o.count
                             else 0 end
                             + case when ua.level = 0 and u.level <> 0 and u.initiation = false and p.is_admin = false
+                                  and not exists
+                                      ( select id from orders
+                                        where
+                                        (is_pay = false or is_correct = false) and is_valid = true and is_first = true and user_id = {$user_id})
+                                         --the last of first purchase
                                    then
                                    case when p.level = 1 and u.level = 1
                                         then 5000
@@ -500,6 +507,11 @@ class MOrder extends CI_Model
                     then (ua.amount::decimal - pa.amount::decimal)*o.count
                     else 0 end
                     + case when ua.level = 0 and u.level <> 0 and u.initiation = false
+                                  and not exists
+                                      ( select id from orders
+                                        where
+                                        (is_pay = false or is_correct = false) and is_valid = true and is_first = true and user_id = {$user_id})
+                                        --the last of first purchase
                            then
                            case when p.level = 1 and u.level = 1
                                 then 5000
@@ -589,7 +601,17 @@ class MOrder extends CI_Model
             where id = {$parent_user_id}
         ";
         $update_sql_initiation = "
-            update users set initiation = true where initiation = false and level <> 0 and id = {$user_id};
+            update
+                users
+                set initiation = true
+            where initiation = false
+                  and level <> 0
+                  and id = {$user_id}
+                  and not exists
+                      ( select id from orders
+                        where
+                        (is_pay = false or is_correct = false) and is_valid = true and is_first = true and user_id = {$user_id})
+                        -- the last of first purchase
         ";
         $finish_log = "
             insert into
@@ -625,7 +647,7 @@ class MOrder extends CI_Model
         $this->objDB->trans_start();
 
         $this->objDB->query("set constraints all deferred");
-        //if($is_first == 't')
+        if($is_first == 't')
             $this->objDB->query($update_sql_first_purchase);
         $this->objDB->query($update_sql);
         if($is_root == 'f')

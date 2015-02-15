@@ -57,10 +57,10 @@
                                    maxlength="30" value="<?=set_value('password')?>"/>
                         </td>
                     </tr>
-                    <tr>
+                    <tr style="display:none;">
                         <th><label for="">推荐代理级别 <span>*</span></label></th>
                         <td>
-                            <select name="level" data-validate="required">
+                            <select name="level" data-validate-bak="required">
                                 <option></option>
                                 <option value="1"><?=getLevelName(1);?></option>
                                 <option value="2"><?=getLevelName(2);?></option>

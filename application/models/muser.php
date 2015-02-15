@@ -60,16 +60,16 @@ class MUser extends CI_Model
         $insert_sql_user .= "
             insert into users
                 (username, password, level, basic_level, name, citizen_id, mobile_no, wechat_id, qq_no, is_valid,
-                assign_level, root_id, pid, lft, rgt)
+                root_id, pid, lft, rgt)
             values
-                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, currval('root_ids_id_seq'), 1, 1, 2);
+                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, currval('root_ids_id_seq'), 1, 1, 2);
             update users set initiation = true where level <> 0 and id = currval('users_id_seq');
         ";
         $binds = array(
             $main_data['username'], $main_data['password'], $main_data['level'], $main_data['level'],
             $main_data['name'],
             $main_data['citizen_id'], $main_data['mobile_no'], $main_data['wechat_id'], $main_data['qq_no'],
-            $main_data['is_valid'], $main_data['assign_level'],
+            $main_data['is_valid'],
         );
 
         $this->objDB->trans_start();
@@ -127,15 +127,14 @@ class MUser extends CI_Model
         $insert_sql_user .= "
             --with variables as (select rgt-2 rgt, root_id from users where id = {$current_user_id})
             insert into users
-            (username, password, name, citizen_id, mobile_no, wechat_id, qq_no, assign_level, root_id, pid, lft, rgt)
+            (username, password, name, citizen_id, mobile_no, wechat_id, qq_no, root_id, pid, lft, rgt)
             values
-            (?, ?, ?, ?, ?, ?, ?, ?, (select root_id from variables), {$current_user_id},
+            (?, ?, ?, ?, ?, ?, ?, (select root_id from variables), {$current_user_id},
             (select rgt from variables), (select rgt + 1 from variables));
         ";
         $binds = array(
             $main_data['username'], $main_data['password'], $main_data['name'],
             $main_data['citizen_id'], $main_data['mobile_no'], $main_data['wechat_id'], $main_data['qq_no'],
-            $main_data['assign_level'],
         );
 
         //debug($update_left_right_sql);

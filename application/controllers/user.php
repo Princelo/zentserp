@@ -273,7 +273,7 @@ class User extends MY_Controller {
                     'username' => $this->input->post('username'),
                     'password' => md5($this->input->post('password')),
                     'level' => $this->input->post('level'),
-                    'assign_level' => $this->input->post('assign_level'),
+                    //'assign_level' => $this->input->post('assign_level'),
                     'name' => $this->input->post('name'),
                     'citizen_id' => $this->input->post('citizen_id'),
                     'mobile_no' => $this->input->post('mobile_no'),
@@ -342,11 +342,11 @@ class User extends MY_Controller {
                 'label'   => 'QQ号',
                 'rules'   => 'trim|xss_clean|required|min_length[5]|max_length[50]|is_unique[users.qq_no]'
             ),
-            array(
+            /*array(
                 'field'  => 'level',
                 'label'  => 'Level',
                 'rules'  => 'trim|xss_clean|required|is_natural|greater_than[0]|less_than[4]'
-            ),
+            ),*/
             /*array(
                 'field'   => 'is_valid',
                 'label'   => '是否生效',
@@ -370,7 +370,7 @@ class User extends MY_Controller {
                     'mobile_no' => $this->input->post('mobile_no'),
                     'wechat_id' => $this->input->post('wechat_id'),
                     'qq_no' => $this->input->post('qq_no'),
-                    'assign_level' => $this->input->post('level'),
+                    //'assign_level' => $this->input->post('level'),
                     //'is_valid' => $this->input->post('is_valid'),
                 );
                 $result = $this->MUser->add($main_data);
@@ -446,10 +446,18 @@ class User extends MY_Controller {
         $this->form_validation->set_rules($config);
         if(isset($_POST) && !empty($_POST))
         {
+            $data['v'] = $this->MUser->objGetUserInfo($id);
+            if($this->input->post('level') == 0 && $data['v']->level != 0)
+            {
+                $this->session->set_flashdata('flashdata', '错误：不能设代理降级至零售商');
+                redirect('user/details_admin/' . $id);
+            }
+
             if ($this->form_validation->run() == FALSE)
             {
-                $this->load->view('templates/header', $data);
-                $this->load->view('user/details_admin', $data);
+                //$this->load->view('templates/header', $data);
+                //$this->load->view('user/details_admin', $data);
+                redirect('user/details_admin/' . $id);
             }else{
                 $main_data = array(
                     'username' => $this->input->post('username'),

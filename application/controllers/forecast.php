@@ -17,7 +17,7 @@ class Forecast extends MY_Controller {
         $data = array();
 
         $config = array(
-            array(
+            /*array(
                 'field'   => 'name',
                 'label'   => '姓名',
                 'rules'   => 'trim|xss_clean|required|min_length[2]|max_length[10]'
@@ -26,7 +26,7 @@ class Forecast extends MY_Controller {
                 'field'   => 'citizen_id',
                 'label'   => '身份证',
                 'rules'   => 'trim|xss_clean|min_length[10]|max_length[20]'
-            ),
+            ),*/
             array(
                 'field'   => 'mobile_no',
                 'label'   => '移动电话',
@@ -56,8 +56,8 @@ class Forecast extends MY_Controller {
                 }
             }
             $main_data = array(
-                'name' => $this->input->post('name'),
-                'citizen_id' => $this->input->post('citizen_id'),
+                //'name' => $this->input->post('name'),
+                //'citizen_id' => $this->input->post('citizen_id'),
                 'mobile_no' => $this->input->post('mobile_no'),
                 'wechat_id' => $this->input->post('wechat_id'),
                 'qq_no' => $this->input->post('qq_no'),
@@ -87,7 +87,7 @@ class Forecast extends MY_Controller {
 
     private function _getTips($data)
     {
-        if($this->session->userdata('level') == 0 && $data['v']->assign_level == 1)
+        /*if($this->session->userdata('level') == 0 && $data['v']->assign_level == 1)
         {
             $turnoverandprofit = money($data['v']->turnover) + money($data['v']->profit);
             $target = 19800 - $turnoverandprofit;
@@ -104,6 +104,11 @@ class Forecast extends MY_Controller {
             $turnoverandprofit = money($data['v']->turnover) + money($data['v']->profit);
             $target = 1980 - $turnoverandprofit;
             $tip = "你当前等级为".getLevelName(0)."，你的业绩+收益为 ￥".$turnoverandprofit." ，离升级至 ".getLevelName(3)." 还需要 ￥{$target}";
+        }*/
+        if($this->session->userdata('level') == 0)
+        {
+            $tip = "你当前等级为".getLevelName(0)."<br>你尚未完成首次交易，成功首次交易满￥1980即可升做".getLevelName(3).
+                ", 满￥3980即可升做".getLevelName(2).", 满￥19800即可升做".getLevelName(1);
         }
         if($this->session->userdata('level') == 1)
         {

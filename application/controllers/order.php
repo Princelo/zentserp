@@ -647,7 +647,7 @@ class Order extends MY_Controller {
             $data['product_name'] = $this->MProduct->strGetProductTitle($product_id);
             $data['product_info'] = $this->MProduct->objGetProductInfo($product_id);
             $data['cart'] = $this->MProduct->objGetCart($this->session->userdata('current_user_id'));
-            if(isset($data['cart'][0])){
+            /*if(isset($data['cart'][0])){
                 if($data['cart'][0]->level == 1)
                     $data['target'] = 19800;
                 if($data['cart'][0]->level == 2)
@@ -663,7 +663,8 @@ class Order extends MY_Controller {
                     $data['target'] = 3980;
                 if($assign_level == 3)
                     $data['target'] = 1980;
-            }
+            }*/
+            $data['target'] = 1980;
             $data['product_id'] = $product_id;
             $this->load->view('templates/header_user', $data);
             $this->load->view('order/add_non_member', $data);
@@ -678,12 +679,14 @@ class Order extends MY_Controller {
         if($this->session->userdata('level') != 0)
             exit('You are a member');
         $data = $this->MProduct->objGetCart($this->session->userdata('current_user_id'));
-        if($data[0]->level == 1)
+        /*if($data[0]->level == 1)
             $target = 19800;
         if($data[0]->level == 2)
             $target = 3980;
         if($data[0]->level == 3)
             $target = 1980;
+        */
+        $target = 1980;
         $total = 0;
         foreach($data as $k => $v)
         {
