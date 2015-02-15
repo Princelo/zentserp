@@ -57,14 +57,14 @@
                             <tr>
                                 <th><label for="name">姓名 <span>*</span></label></th>
                                 <td>
-                                    <input type="text" name="name" data-validate="required,size(2,10)"
+                                    <input type="text" name="name" data-validate="required,size(2,10)" disabled
                                            maxlength="10" value="<?=$v->name?>"/>
                                 </td>
                             </tr>
                             <tr>
                                 <th><label for="citizen_id">身份证号码 <span>*</span></label></th>
                                 <td>
-                                    <input type="text" name="citizen_id" data-validate="required,citizen_id"
+                                    <input type="text" name="citizen_id" data-validate="required,citizen_id" disabled
                                            maxlength="18" value="<?=$v->citizen_id?>"/>
                                 </td>
                             </tr>
