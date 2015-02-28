@@ -112,21 +112,20 @@ class Forecast extends MY_Controller {
         }
         if($this->session->userdata('level') == 1)
         {
-            $turnoverandprofit = money($data['v']->turnover) + money($data['v']->profit);
-            //$target = 3980 - $turnoverandprofit;
-            $tip = "你当前等级为".getLevelName(1)."，你的业绩+收益为 ￥".$turnoverandprofit."";// ，离升级至 ".getLevelName(1)." 还需要 ￥{$target}";
+            $turnover = money($data['v']->turnover);
+            $tip = "你当前等级为".getLevelName(1)."，你的业绩为 ￥".$turnover."";// ，离升级至 ".getLevelName(1)." 还需要 ￥{$target}";
         }
         if($this->session->userdata('level') == 2)
         {
-            $turnoverandprofit = money($data['v']->turnover) + money($data['v']->profit);
-            $target = 39800 - $turnoverandprofit;
-            $tip = "你当前等级为".getLevelName(2)."，你的业绩+收益为 ￥".$turnoverandprofit." ，离升级至 ".getLevelName(1)." 还需要 ￥{$target}";
+            $turnover = money($data['v']->turnover);
+            $target = 39800 - $turnover;
+            $tip = "你当前等级为".getLevelName(2)."，你的业绩为 ￥".$turnover." ，离升级至 ".getLevelName(1)." 还需要 ￥{$target}";
         }
         if($this->session->userdata('level') == 3)
         {
-            $turnoverandprofit = money($data['v']->turnover) + money($data['v']->profit);
-            $target = 19800 - $turnoverandprofit;
-            $tip = "你当前等级为".getLevelName(3)."，你的业绩+收益为 ￥".$turnoverandprofit." ，离升级至 ".getLevelName(2)." 还需要 ￥{$target}";
+            $turnover = money($data['v']->turnover);
+            $target = 19800 - $turnover;
+            $tip = "你当前等级为".getLevelName(3)."，你的业绩为 ￥".$turnover." ，离升级至 ".getLevelName(2)." 还需要 ￥{$target}";
         }
         return $tip;
     }

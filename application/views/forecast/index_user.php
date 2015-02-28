@@ -47,10 +47,10 @@
                                 <th><label for="level">代理级別 <span>*</span></label></th>
                                 <td>
                                     <select name="" disabled="disabled">
-                                        <option value="1" <?=$v->level=='1'?'selected="selected"':'';?>>特約代理</option>
-                                        <option value="2" <?=$v->level=='2'?'selected="selected"':'';?>>一級代理</option>
-                                        <option value="3" <?=$v->level=='3'?'selected="selected"':'';?>>二級代理</option>
-                                        <option value="0" <?=$v->level=='0'?'selected="selected"':'';?>>零售商</option>
+                                        <option value="1" <?=$v->level=='1'?'selected="selected"':'';?>><?=getLevelName(1)?></option>
+                                        <option value="2" <?=$v->level=='2'?'selected="selected"':'';?>><?=getLevelName(2)?></option>
+                                        <option value="3" <?=$v->level=='3'?'selected="selected"':'';?>><?=getLevelName(3)?></option>
+                                        <option value="0" <?=$v->level=='0'?'selected="selected"':'';?>><?=getLevelName(0)?></option>
                                     </select>
                                 </td>
                             </tr>
