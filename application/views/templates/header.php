@@ -54,7 +54,8 @@
     <link type="text/css" rel="stylesheet" href="<?=base_url();?>assets/js/jquery.clockpick.1.2.7.css"/>
 
     <!-- ********** :: Animated jQuery Menu Style 08  ********** -->
-    <script type="text/javascript" src="<?=base_url();?>assets/js/menu.js"></script>
+    <!--
+    <script type="text/javascript" src="<?=base_url();?>assets/js/menu.js"></script>-->
     <link type="text/css" rel="stylesheet" href="<?=base_url();?>assets/menu.css" />
 
     <!-- ********** :: colorbox-master  ********** -->
@@ -72,6 +73,45 @@
 
         );
     </script>
+    <style>
+        .li-menu {position: relative;}
+        .li-menu:hover .dropdown-menu{display:block;}
+        .dropdown-menu{
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 1000;
+            display: none;
+            float: left;
+            min-width: 160px;
+            padding: 5px 0;
+            margin: 2px 0 0;
+            list-style: none;
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            -webkit-border-radius: 6px;
+            -moz-border-radius: 6px;
+            border-radius: 6px;
+            -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            -webkit-background-clip: padding-box;
+            -moz-background-clip: padding;
+            background-clip: padding-box;
+            width:140px;
+            padding-left:3px;
+        }
+        .dropdown-menu li{
+            line-height: 20px;
+            display: list-item;
+            text-align: -webkit-match-parent;
+            padding:0;
+        }
+        .dropdown-menu li a{color:#000; text-decoration: none; display: block; width:143px; padding-left:14px;
+            line-height: 50px;}
+        .dropdown-menu li a:hover{color:#fff; background:#007dbc;}
+    </style>
 </head>
 
 <body>
@@ -104,58 +144,50 @@
     </style>
     <div id="menu">
         <ul class="menu">
-            <li class="">
+            <li class="li-menu">
                 <a href="<?=base_url()?>forecast/index" class="parent" ><span>首页 </span></a>
             </li>
-            <li class="" onmouseover="$(this).children('div').show();" onmouseout="$(this).children('div').hide()">
-                <a href="javascript:;" class="parent" ><span>产品 </span></a>
-                <div style="display:none; height: 108px; overflow: hidden; z-index: 999;">
-                    <ul>
-                        <li><a href="<?=base_url()?>product/listpage_admin" class="" style="background: none;"><span>产品列表(上架) </span></a>
-                        </li>
-                        <li><a href="<?=base_url()?>product/listpage_admin_invalid" class="" style="background: none;"><span>产品列表(下架) </span></a>
-                        </li>
-                        <li><a href="<?=base_url()?>product/add" class="" style="background: none;"><span>新增产品 </span></a></li>
-                    </ul>
-                </div>
-
+            <li class="li-menu">
+                <a href="javascript:;" class="parent"><span>产品</span></a>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a href="<?=base_url()?>product/listpage_admin" class="" style="background: none;"><span>产品列表(上架) </span></a>
+                    </li>
+                    <li>
+                        <a href="<?=base_url()?>product/listpage_admin_invalid" class="" style="background: none;"><span>产品列表(下架) </span></a>
+                    </li>
+                    <li><a href="<?=base_url()?>product/add" class="" style="background: none;"><span>新增产品 </span></a></li>
+                </ul>
             </li>
-            <li class="" onmouseover="$(this).children('div').show();" onmouseout="$(this).children('div').hide()">
+            <li class="li-menu">
                 <a href="javascript:;" class="parent" ><span>代理 </span></a>
-                <div style="display:none; height: 108px; overflow: hidden; z-index: 999;">
-                    <ul>
-                        <li><a href="<?=base_url()?>user/listpage_admin" class="" style="background: none;"><span>代理列表 </span></a>
-                        </li>
-                        <li><a href="<?=base_url()?>user/addRootUser" class="" style="background: none;"><span>新增代理 </span></a>
-                        </li>
-                    </ul>
-                </div>
+                <ul class="dropdown-menu">
+                    <li><a href="<?=base_url()?>user/listpage_admin" class="" style="background: none;"><span>代理列表 </span></a>
+                    </li>
+                    <li><a href="<?=base_url()?>user/addRootUser" class="" style="background: none;"><span>新增代理 </span></a>
+                    </li>
+                </ul>
 
             </li>
-            <li class="" onmouseover="$(this).children('div').show();" onmouseout="$(this).children('div').hide()">
+            <li class="li-menu">
                 <a href="javascript:;" class="parent" ><span>订单系统 </span></a>
-                <div style="display:none; height: 108px; overflow: hidden; z-index: 999;">
-                    <ul>
-                        <li><a href="<?=base_url()?>order/listpage_admin" class="" style="background: none;"><span>订单列表 </span></a>
-                        </li>
-                    </ul>
-                </div>
+                <ul class="dropdown-menu">
+                    <li><a href="<?=base_url()?>order/listpage_admin" class="" style="background: none;"><span>订单列表 </span></a>
+                    </li>
+                </ul>
 
             </li>
-            <li class="" onmouseover="$(this).children('div').show();" onmouseout="$(this).children('div').hide()">
+            <li class="li-menu">
                 <a href="javascript:;" class="parent" ><span>报表系统 </span></a>
-                <div style="display:none; height: 108px; overflow: hidden; z-index: 999;">
-                    <ul>
-                        <li><a href="<?=base_url()?>report/index_admin" class="" style="background: none;"><span>代理报表查询 </span></a>
-                        </li>
-                        <li><a href="<?=base_url()?>report/index_zents" class="" style="background: none;"><span>Zents总报表查询 </span></a>
-                        </li>
-                    </ul>
-                </div>
-
+                <ul class="dropdown-menu">
+                    <li><a href="<?=base_url()?>report/index_admin" class="" style="background: none;"><span>代理报表查询 </span></a>
+                    </li>
+                    <li><a href="<?=base_url()?>report/index_zents" class="" style="background: none;"><span>Zents总报表查询 </span></a>
+                    </li>
+                </ul>
             </li>
-            <li class=""><a href="<?=base_url();?>user/password" class=""><span>修改密碼 </span></a></li>
-            <li class=""><a href="<?=base_url();?>logout" class=""><span>登出 </span></a></li>
+            <li class="li-menu"><a href="<?=base_url();?>user/password" class=""><span>修改密碼 </span></a></li>
+            <li class="li-menu"><a href="<?=base_url();?>logout" class=""><span>登出 </span></a></li>
         </ul>
     </div>
 
