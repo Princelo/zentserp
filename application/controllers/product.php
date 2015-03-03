@@ -205,7 +205,7 @@ class Product extends MY_Controller {
             //$where = '';
             $order = '';
             $data['products'] = $this->MProduct->objGetProductList($where, $order, $limit);
-            $this->load->view('templates/header', $data);
+            $this->load->view('templates/header_user', $data);
             $this->load->view('product/listpage', $data);
         }else{
             $data = array();
@@ -222,7 +222,7 @@ class Product extends MY_Controller {
             $order = '';
             $data['products'] = $this->MProduct->objGetProductList($where, $order, $limit);
             $data['level'] = $this->MUser->intGetCurrentUserLevel($this->session->userdata('current_user_id'));
-            $this->load->view('templates/header', $data);
+            $this->load->view('templates/header_user', $data);
             $this->load->view('product/listpage', $data);
         }
     }
