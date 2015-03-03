@@ -71,7 +71,7 @@
                             </select>
                         </td>
                     </tr>
-                    <tr style="ddisplay: none;">
+                    <tr style="display: none;">
                         <th><label>地址</label> <span>*</span></th>
                         <?
                             $provinces = getArrCity()->provinces;

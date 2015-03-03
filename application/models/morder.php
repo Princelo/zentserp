@@ -495,10 +495,10 @@ class MOrder extends CI_Model
             update
                 users
                 set level = case
-                            when turnover::decimal >= 19800 and turnover::decimal < 39800
+                            when turnover::decimal >= 19800 and turnover::decimal < 59600
                                 and (basic_level = 0 or basic_level = 3 )
                             then 2
-                            when turnover::decimal >= 39800
+                            when turnover::decimal >= 59600
                                 and (basic_level = 0 or basic_level = 3 or basic_level = 2)
                             then 1
                             else level
@@ -660,11 +660,11 @@ class MOrder extends CI_Model
                 when
                     turnover::decimal >= 19800
                     and
-                    turnover::decimal < 39800
+                    turnover::decimal < 59600
                     and (basic_level = 0 or basic_level = 3)
                     then 2
                 when
-                    turnover::decimal >= 39800
+                    turnover::decimal >= 59600
                     and (basic_level = 0 or basic_level = 3 or basic_level = 2)
                     then 1
                 else level

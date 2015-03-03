@@ -56,7 +56,7 @@ class User extends MY_Controller {
             $limit .= " limit {$config['per_page']} offset {$offset} ";
             //$where = '';
             //$where = ' and is_admin = false ';
-            $order = '';
+            $order = ' order by u.id ';
             $data['users'] = $this->MUser->objGetSubUserList($where, $iwhere, $order, $limit);
             $this->load->view('templates/header_user', $data);
             $this->load->view('user/listpage', $data);
@@ -74,7 +74,7 @@ class User extends MY_Controller {
             $limit = '';
             $limit .= " limit {$config['per_page']} offset {$offset} ";
             //$where = ' and p.is_valid = true ';
-            $order = '';
+            $order = ' order by u.id ';
             $data['users'] = $this->MUser->objGetSubUserList($where, $iwhere, $order, $limit);
             $this->load->view('templates/header_user', $data);
             $this->load->view('user/listpage', $data);
@@ -123,7 +123,7 @@ class User extends MY_Controller {
             $limit .= " limit {$config['per_page']} offset {$offset} ";
             //$where = '';
             //$where = ' and is_admin = false ';
-            $order = '';
+            $order = ' order by u.id ';
             $data['users'] = $this->MUser->objGetSubUserList($where, $iwhere, $order, $limit);
             $this->load->view('templates/header', $data);
             $this->load->view('user/sublistpage', $data);
@@ -141,7 +141,7 @@ class User extends MY_Controller {
             $limit = '';
             $limit .= " limit {$config['per_page']} offset {$offset} ";
             //$where = ' and p.is_valid = true ';
-            $order = '';
+            $order = ' order by u.id ';
             $data['users'] = $this->MUser->objGetSubUserList($where, $iwhere, $order, $limit);
             $this->load->view('templates/header', $data);
             $this->load->view('user/sublistpage', $data);
@@ -187,7 +187,7 @@ class User extends MY_Controller {
             $limit .= " limit {$config['per_page']} offset {$offset} ";
             //$where = '';
             //$where = ' and is_admin = false ';
-            $order = '';
+            $order = ' order by u.id ';
             $data['users'] = $this->MUser->objGetUserList($where, $order, $limit);
             $this->load->view('templates/header', $data);
             $this->load->view('user/listpage_admin', $data);
@@ -204,7 +204,7 @@ class User extends MY_Controller {
             $limit = '';
             $limit .= " limit {$config['per_page']} offset {$offset} ";
             //$where = ' and p.is_valid = true ';
-            $order = '';
+            $order = ' order by u.id ';
             $data['users'] = $this->MUser->objGetUserList($where, $order, $limit);
             $this->load->view('templates/header', $data);
             $this->load->view('user/listpage_admin', $data);
