@@ -498,10 +498,8 @@ class MOrder extends CI_Model
                             when turnover::decimal >= 19800 and turnover::decimal < 39800
                                 and (basic_level = 0 or basic_level = 3 )
                             then 2
-                            when turnover::decimal >= 39800 and turnover::decimal < 198000
+                            when turnover::decimal >= 39800
                                 and (basic_level = 0 or basic_level = 3 or basic_level = 2)
-                            then 1
-                            when turnover::decimal >= 198000
                             then 1
                             else level
                             end
@@ -663,20 +661,15 @@ class MOrder extends CI_Model
                     turnover::decimal >= 19800
                     and
                     turnover::decimal < 39800
-                    and basic_level = 0
-                    then 3
-                when
-                    turnover::decimal >= 39800
-                    and
-                    turnover::decimal < 198000
                     and (basic_level = 0 or basic_level = 3)
                     then 2
                 when
-                    turnover::decimal >= 198000
+                    turnover::decimal >= 39800
+                    and (basic_level = 0 or basic_level = 3 or basic_level = 2)
                     then 1
-                    else level
+                else level
                 end
-            where id = {$parent_user_id}
+            where id = {$parent_user_id};
         ";
         $update_sql_initiation = "
             update

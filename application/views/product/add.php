@@ -68,25 +68,25 @@
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="price_special">特约代理价 <span>*</span></label></th>
+                        <th><label for="price_special"><?=getLevelName(1)?>价 <span>*</span></label></th>
                         <td>
                             <input name="price_special" data-validate="required,decimal" value="<?=set_value('price_special')?>"/>(单位: 元)
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="price_last_2">一级代理价 <span>*</span></label></th>
+                        <th><label for="price_last_2"><?=getLevelName(2)?>价 <span>*</span></label></th>
                         <td>
                             <input name="price_last_2" data-validate="required,decimal" value="<?=set_value('price_last_2')?>"/>(单位: 元)
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="price_last_3">二级代理价 <span>*</span></label></th>
+                        <th><label for="price_last_3"><?=getLevelName(3)?>价 <span>*</span></label></th>
                         <td>
                             <input name="price_last_3" data-validate="required,decimal" value="<?=set_value('price_last_3')?>"/>(单位: 元)
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="price_normal">零售价 <span>*</span></label></th>
+                        <th><label for="price_normal"><?=getLevelName(0)?>价 <span>*</span></label></th>
                         <td>
                             <input name="price_normal" data-validate="required,decimal" value="<?=set_value('price_normal')?>"/>(单位: 元)
                         </td>
