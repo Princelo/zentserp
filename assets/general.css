@@ -3,7 +3,7 @@ html, body{  margin: 0; padding: 0; height:100%; width:100%;min-width:1280px;}
 body{font-family:sans-serif, Verdana,Arial,'Lucida Grande','Lucida Sans Unicode';font-size: 12px;background:#fff;color:#333}/*background:#18232E*/
 #header{border-top: 3px solid #FF7200;border-bottom: 5px solid #CCDBEA;background:#1F3C56;color:#fff;height:35px;clear:both;float:left;width:100%;position:relative;overflow:hidden;}
 #mainmenu{position:relative;clear:both;float:left;width:100%;}
-#container{position:relative;clear:both;float:left;width:100%;overflow:hidden;}
+#container{position:relative;clear:both;float:left;width:100%;}
 #footer{padding-top: 10px;font-size: 0.8em;text-align: center;border-top: 1px solid #dedede;clear:both;float:left;width:100%;}
 
 #logo{padding: 10px 20px;float:left;width:150px;}
