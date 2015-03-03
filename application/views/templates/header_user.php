@@ -66,7 +66,7 @@
 
     <!-- Mobile Detector  ********** -->
     <!--<script type="text/javascript" src="<?=base_url();?>assets/js/detectmobilebrowser.js"></script>-->
-    <script src="<?=base_url();?>assets/js/verify.notify.min.js"></script>
+    <script src="<?=base_url();?>assets/js/verify.notify.js"></script>
     <script>
         $(document).ready(
 

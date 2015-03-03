@@ -39,6 +39,18 @@
                                 </select>
                             </th>
                             <th>
+                                <label>筛选日期</label>
+                            </th>
+                            <th>
+                                从
+                                <input class="datepicker" name="date_from"/>
+                                到
+                                <input class="datepicker" name="date_to"/>
+                            </th>
+                            <th>
+                                最近<input data-validate="number" name="hour"/>小时
+                            </th>
+                            <th>
                                 <input type="submit" value="提交"/>
                             </th>
                         </tr>
@@ -133,6 +145,12 @@
 </div>
 <!-- end: #col4 -->	</div>
 
+<script>
+    $( ".datepicker" ).datepicker({
+        'dateFormat': 'yy-m-d',
+        'changeYear' : true
+    });
+</script>
 <div id="footer">
     Copyright &copy; <?=date('Y');?> by UNVWEB<br/>
     All Rights Reserved.<br/>

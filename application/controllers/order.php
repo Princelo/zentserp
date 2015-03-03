@@ -121,20 +121,26 @@ class Order extends MY_Controller {
         $this->form_validation->set_rules($get_config);
         if($this->input->get('search', true) != '' ||
             $this->input->get('uid', true) != '' ||
-            $this->input->get('is_finish', true) != ''
+            $this->input->get('is_finish', true) != '' ||
+            $this->input->get('date_from', true) != '' ||
+            $this->input->get('date_to', true) != '' ||
+            $this->input->get('hour', true) != ''
         )
         {
             $search = $this->input->get('search', true);
             $search = $this->db->escape_like_str($search);
             $uid = $this->input->get('uid', true);
             $is_finish = $this->input->get('is_finish', true);
+            $date_from = $this->input->get('date_from', true);
+            $date_to = $this->input->get('date_to', true);
+            $hour = $this->input->get('hour', true);
             $data = array();
             $config['base_url'] = base_url()."order/listpage_admin/";
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $where = '';
             //$where .= ' and p.is_valid = true ';
-            $where .= $this->__get_search_str($search, $uid, $is_finish);
+            $where .= $this->__get_search_str($search, $uid, $is_finish, $date_from, $date_to, $hour);
             $config['total_rows'] = $this->MOrder->intGetOrdersCount($where);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
@@ -722,7 +728,7 @@ class Order extends MY_Controller {
         redirect('order/add_non_member/'.$product_id);
     }
 
-    private function __get_search_str($search = '', $uid = '', $is_finish = null)
+    private function __get_search_str($search = '', $uid = '', $is_finish = null, $date_from = null, $date_to = null, $hour = null)
     {
         $where = '';
         if($search != '')
@@ -739,6 +745,22 @@ class Order extends MY_Controller {
                 $where .= " and o.is_pay = true and o.is_correct = true ";
             elseif($is_finish == '0')
                 $where .= " and (o.is_pay = false or o.is_correct = false) ";
+        }
+        if($date_from != null && $date_to == null && $hour == null)
+        {
+            $where = " and o.create_time between '{$date_from} 00:00:00' and now() ";
+        }
+        if($date_to != null && $date_from == null && $hour == null)
+        {
+            $where = " and o.create_time between '2014-12-30 00:00:00' and '{$date_to} 23:59:59' ";
+        }
+        if($date_from != null && $date_to != null && $hour == null)
+        {
+            $where = " and o.create_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59' ";
+        }
+        if($hour != null)
+        {
+            $where = " and o.create_time + interval '{$hour} hour' >= now() ";
         }
         return $where;
     }
