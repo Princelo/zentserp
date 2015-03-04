@@ -86,8 +86,16 @@
                         <td><?=$v->id?></td>
                         <td><?=$v->title?></td>
                         <td><?=getCategoryName($v->category)?></td>
-                        <td><?=$v->properties;?></td>
-                        <td><?=$v->feature?></td>
+                        <td class="max-width">
+                            <div class="max-width">
+                                <?=$v->properties;?>
+                            </div>
+                        </td>
+                        <td class="max-width">
+                            <div class="max-width">
+                                <?=$v->feature?>
+                            </div>
+                        </td>
                         <td><?//=$v->ingredient;?></td>
                         <td><img src="<?=base_url().'uploads/'.thumb($v->img)?>" /></td>
                         <td><?=cny($v->price_special)?></td>

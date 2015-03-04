@@ -158,3 +158,4 @@ p.success_box{color:green;padding:10px;text-align:center}
 .list_table{margin:10px 0; }
 .accept{background:url('images/accept.png'); width:16px; height:16px; display: block;}
 .cross{background:url('images/cross.png'); width:16px; height:16px; display: block;}
+.max-width{max-width: 200px;}
