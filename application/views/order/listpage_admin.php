@@ -82,8 +82,8 @@
                     <? $n ++; ?>
                     <tr class="<?=$n%2==0?"even":"odd";?>">
                         <td><?=$v->id?></td>
-                        <td><a href="/product/details_admin/<?=$v->pid?>"><?=$v->title;?>(<?=$v->pid?>)</a></td>
-                        <td><a href="/user/details_admin/<?=$v->uid?>"><?=$v->name_ch."(".$v->username."/".$v->uid.")"?></a></td>
+                        <td><a href="<?=base_url()?>product/details_admin/<?=$v->pid?>"><?=$v->title;?>(<?=$v->pid?>)</a></td>
+                        <td><a href="<?=base_url()?>user/details_admin/<?=$v->uid?>"><?=$v->name_ch."(".$v->username."/".$v->uid.")"?></a></td>
                         <td><?=$v->quantity;?></td>
                         <td><?="￥".bcmul(money($v->unit_price), $v->quantity, 2)?></td>
                         <td><span class="<?=$v->is_pay=='t'?"accept":"cross";?>"></span></td>
