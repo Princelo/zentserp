@@ -34,6 +34,16 @@
                     <table>
                         <tr>
                             <th>搜索</th>
+                            <th>所属分类&nbsp;&nbsp;
+                                <select name="category">
+                                    <option>所有</option>
+                                    <option value="0"><?=getCategoryName(0)?></option>
+                                    <option value="1"><?=getCategoryName(1)?></option>
+                                    <option value="2"><?=getCategoryName(2)?></option>
+                                    <option value="3"><?=getCategoryName(3)?></option>
+                                    <option value="4"><?=getCategoryName(4)?></option>
+                                </select>
+                            </th>
                             <th>
                                 产品名称、功效:<input type="text" name="search" value="<?=set_value('search')?>"  />
                             </th>
@@ -57,6 +67,7 @@
                 <tr>
                     <th>ID</th>
                     <th>产品名称</th>
+                    <td>所属分类</td>
                     <th>规格</th>
                     <th>产品功效</th>
                     <th>所含成分</th>
@@ -74,6 +85,7 @@
                     <tr class="<?=$n%2==0?"even":"odd";?>">
                         <td><?=$v->id?></td>
                         <td><?=$v->title?></td>
+                        <td><?=getCategoryName($v->category)?></td>
                         <td><?=$v->properties;?></td>
                         <td><?=$v->feature?></td>
                         <td><?//=$v->ingredient;?></td>

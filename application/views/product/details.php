@@ -46,23 +46,27 @@
                         </td>
                     </tr>
                     <tr>
+                        <th><label>所属分类</label></th>
+                        <td><?=getCategoryName($v->category)?></td>
+                    </tr>
+                    <tr>
                         <th><label for="properties">规格 </label></th>
-                        <td><textarea disabled  name="properties" cols="50" rows="6" id="remarks" size="20" ></textarea><br />
+                        <td><textarea disabled  name="properties" cols="50" rows="6" id="remarks" size="20" ><?=$v->properties?></textarea><br />
                         </td>
                     </tr>
                     <tr>
                         <th><label for="feature">产品功效 </label></th>
-                        <td><textarea disabled  name="feature" cols="50" rows="6" id="remarks" size="20" ></textarea><br />
+                        <td><textarea disabled  name="feature" cols="50" rows="6" id="remarks" size="20" ><?=$v->feature?></textarea><br />
                         </td>
                     </tr>
                     <tr>
                         <th><label for="usage_method">使用方法 </label></th>
-                        <td><textarea disabled  name="usage_method" cols="50" rows="6" id="remarks" size="20" ></textarea><br />
+                        <td><textarea disabled  name="usage_method" cols="50" rows="6" id="remarks" size="20" ><?=$v->usage_method?></textarea><br />
                         </td>
                     </tr>
                     <tr>
                         <th><label for="ingredient">所含成份 </label></th>
-                        <td><textarea disabled  name="ingredient" cols="50" rows="6" id="remarks" size="20" ></textarea><br />
+                        <td><textarea disabled  name="ingredient" cols="50" rows="6" id="remarks" size="20" ><?=$v->ingredient?></textarea><br />
                         </td>
                     </tr>
                     <tr>

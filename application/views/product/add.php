@@ -48,6 +48,18 @@
                         </td>
                     </tr>
                     <tr>
+                        <th><label>所属分类</label></th>
+                        <td>
+                            <select name="category">
+                                <option value="0"><?=getCategoryName(0)?></option>
+                                <option value="1"><?=getCategoryName(1)?></option>
+                                <option value="2"><?=getCategoryName(2)?></option>
+                                <option value="3"><?=getCategoryName(3)?></option>
+                                <option value="4"><?=getCategoryName(4)?></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
                         <th><label for="properties">规格 </label></th>
                         <td><textarea name="properties" cols="50" rows="6" id="remarks" size="20" ></textarea><br />
                         </td>

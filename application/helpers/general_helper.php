@@ -378,6 +378,9 @@ function getLevelName($level){
         case 3:
             $level_name = '经销商';
             break;
+        default:
+            $level_name = "未知";
+            break;
     }
     return $level_name;
 }
@@ -388,6 +391,32 @@ function money($money)
 function thumb($img)
 {
     return substr($img, 0, strpos($img, "."))."_thumb.png";
+}
+
+function getCategoryName($category)
+{
+    switch($category)
+    {
+        case 0:
+            $return = "护肤系列";
+            break;
+        case 1:
+            $return = "手工皂系列";
+            break;
+        case 2:
+            $return = "基础精油";
+            break;
+        case 3:
+            $return = "单方精油";
+            break;
+        case 4:
+            $return = "复方精油";
+            break;
+        default:
+            $return = "其他";
+            break;
+    }
+    return $return;
 }
 
 /*if(! function_exists('is_voted')){

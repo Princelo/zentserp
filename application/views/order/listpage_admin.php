@@ -63,7 +63,7 @@
                 <tr>
                     <th>订单号</th>
                     <th>产品名称(ID)</th>
-                    <th>用戶名(ID)</th>
+                    <th>用戶姓名(用戶名/ID)</th>
                     <th>订单数量</th>
                     <th>订单总价</th>
                     <th>是否已付款</th>
@@ -82,12 +82,12 @@
                     <? $n ++; ?>
                     <tr class="<?=$n%2==0?"even":"odd";?>">
                         <td><?=$v->id?></td>
-                        <td><?=$v->title;?>(<?=$v->pid?>)</td>
-                        <td><?=$v->username."(".$v->uid.")"?></td>
+                        <td><a href="/product/details_admin/<?=$v->pid?>"><?=$v->title;?>(<?=$v->pid?>)</a></td>
+                        <td><a href="/user/details_admin/<?=$v->uid?>"><?=$v->name_ch."(".$v->username."/".$v->uid.")"?></a></td>
                         <td><?=$v->quantity;?></td>
-                        <td><?="￥".bcmul(money($v->unit_price), $v->quantity, 4)?></td>
-                        <td><?=$v->is_pay=='t'?"√":"×";?></td>
-                        <td><?=$v->is_pay=='t'&&$v->is_correct=='t'?"√":"×";?></td>
+                        <td><?="￥".bcmul(money($v->unit_price), $v->quantity, 2)?></td>
+                        <td><span class="<?=$v->is_pay=='t'?"accept":"cross";?>"></span></td>
+                        <td><span class="<?=$v->is_pay=='t'&&$v->is_correct=='t'?"accept":"cross";?>"></span></td>
                         <td><?=$v->finish_time?></td>
                         <td><?=$v->is_post=='t'?"邮寄":"自取"?></td>
                         <td><?=$v->linkman?></td>
