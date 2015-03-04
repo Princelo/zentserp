@@ -156,3 +156,6 @@ p.success_box{color:green;padding:10px;text-align:center}
 
 .paging_toolbar{margin-bottom:10px;}
 .list_table{margin:10px 0; }
+
+.accept{background:url('images/accept.png'); width:16px; height:16px; display: block;}
+.cross{background:url('images/cross.png'); width:16px; height:16px; display: block;}

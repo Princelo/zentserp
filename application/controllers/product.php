@@ -40,20 +40,22 @@ class Product extends MY_Controller {
         $this->form_validation->set_rules($get_config);
         if($this->input->get('search', true) != '' ||
             $this->input->get('price_low', true) != '' ||
-            $this->input->get('price_high', true) != ''
+            $this->input->get('price_high', true) != '' ||
+            $this->input->get('category', true) != ''
         )
         {
             $search = $this->input->get('search', true);
             $search = $this->db->escape_like_str($search);
             $price_low = $this->input->get('price_low', true);
             $price_high = $this->input->get('price_high', true);
+            $category = $this->input->get('category', true);
             $data = array();
             $config['base_url'] = base_url()."product/listpage_admin/";
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $where = '';
             $where .= ' and p.is_valid = true ';
-            $where .= $this->__get_search_str($search, $price_low, $price_high);
+            $where .= $this->__get_search_str($search, $price_low, $price_high, $category);
             $config['total_rows'] = $this->MProduct->intGetProductsCount($where);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
@@ -109,20 +111,22 @@ class Product extends MY_Controller {
         $this->form_validation->set_rules($get_config);
         if($this->input->get('search', true) != '' ||
             $this->input->get('price_low', true) != '' ||
-            $this->input->get('price_high', true) != ''
+            $this->input->get('price_high', true) != '' ||
+            $this->input->get('category', true) != ''
         )
         {
             $search = $this->input->get('search', true);
             $search = $this->db->escape_like_str($search);
             $price_low = $this->input->get('price_low', true);
             $price_high = $this->input->get('price_high', true);
+            $category = $this->input->get('category', true);
             $data = array();
             $config['base_url'] = base_url()."product/listpage_admin_invalid/";
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $where = '';
             $where .= ' and p.is_valid = false ';
-            $where .= $this->__get_search_str($search, $price_low, $price_high);
+            $where .= $this->__get_search_str($search, $price_low, $price_high, $category);
             $config['total_rows'] = $this->MProduct->intGetProductsCount($where);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
@@ -182,20 +186,22 @@ class Product extends MY_Controller {
         $this->form_validation->set_rules($get_config);
         if($this->input->get('search', true) != '' ||
             $this->input->get('price_low', true) != '' ||
-            $this->input->get('price_high', true) != ''
+            $this->input->get('price_high', true) != '' ||
+            $this->input->get('category', true) != ''
         )
         {
             $search = $this->input->get('search', true);
             $search = $this->db->escape_like_str($search);
             $price_low = $this->input->get('price_low', true);
             $price_high = $this->input->get('price_high', true);
+            $category = $this->input->get('category', true);
             $data = array();
             $config['base_url'] = base_url()."product/listpage/";
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $where = '';
             $where .= ' and p.is_valid = true ';
-            $where .= $this->__get_search_str($search, $price_low, $price_high);
+            $where .= $this->__get_search_str($search, $price_low, $price_high, $category);
             $config['total_rows'] = $this->MProduct->intGetProductsCount($where);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
@@ -233,33 +239,72 @@ class Product extends MY_Controller {
             exit('You are not the admin.');
         $data = array();
         $data['v'] = $this->MProduct->objGetProductInfo($product_id);
+        $config = array(
+            array(
+                'field'   => 'title',
+                'label'   => '产品名称',
+                //'rules'   => 'trim|required|xss_clean|is_unique[products.title]'
+                'rules'   => 'trim|required|xss_clean'
+            ),
+            array(
+                'field' => 'category',
+                'label' => '所属分类',
+                'rules'   => 'trim|required|xss_clean|is_natural|less_than[5]',
+            ),
+        );
+
+        $this->form_validation->set_rules($config);
         if(isset($_POST) && !empty($_POST))
         {
-            if($this->input->post('is_valid') == '1' && $data['v']->is_valid == 't')
+            if ($this->form_validation->run() == FALSE)
             {
-                $this->session->set_flashdata('flashdata', '非法操作: 产品本已上架');
+                $this->load->view('templates/header', $data);
+                $this->load->view('product/add', $data);
+            }else{
+                /*if($this->input->post('is_valid') == '1' && $data['v']->is_valid == 't')
+                {
+                    $this->session->set_flashdata('flashdata', '非法操作: 产品本已上架');
+                    redirect('product/details_admin/'.$product_id);
+                }
+                if($this->input->post('is_valid') == '0' && $data['v']->is_valid == 'f')
+                {
+                    $this->session->set_flashdata('flashdata', '非法操作: 产品本已下架');
+                    redirect('product/details_admin/'.$product_id);
+                }*/
+                $main_data = array();
+                $main_data = array(
+                    'title' => $this->input->post('title'),
+                    'properties' => $this->input->post('properties'),
+                    'feature' => $this->input->post('feature'),
+                    'usage_method' => $this->input->post('usage_method'),
+                    'ingredient' => $this->input->post('ingredient'),
+                    'category' => $this->input->post('category'),
+                    'is_valid' => false,
+                );
+                $main_data['is_valid'] = $this->input->post('is_valid')=='1'?'true':'false';
+                if($this->MProduct->update($main_data, $product_id))
+                {
+                    $this->session->set_flashdata('flashdata', '产品更改成功');
+                }else{
+                    $this->session->set_flashdata('flashdata', '产品更改失败');
+                }
                 redirect('product/details_admin/'.$product_id);
-            }
-            if($this->input->post('is_valid') == '0' && $data['v']->is_valid == 'f')
-            {
-                $this->session->set_flashdata('flashdata', '非法操作: 产品本已下架');
-                redirect('product/details_admin/'.$product_id);
-            }
-            if($this->input->post('is_valid') == '1')
-            {
-                if($this->MProduct->enable($product_id))
-                    $this->session->set_flashdata('flashdata', '产品上架成功');
-                else
-                    $this->session->set_flashdata('flashdata', '产品上架失败');
-                redirect('product/details_admin/'.$product_id);
-            }
-            if($this->input->post('is_valid') == '0')
-            {
-                if($this->MProduct->disable($product_id))
-                    $this->session->set_flashdata('flashdata', '产品下架成功');
-                else
-                    $this->session->set_flashdata('flashdata', '产品下架失败');
-                redirect('product/details_admin/'.$product_id);
+                /*if($this->input->post('is_valid') == '1')
+                {
+                    if($this->MProduct->enable($product_id))
+                        $this->session->set_flashdata('flashdata', '产品上架成功');
+                    else
+                        $this->session->set_flashdata('flashdata', '产品上架失败');
+                    redirect('product/details_admin/'.$product_id);
+                }
+                if($this->input->post('is_valid') == '0')
+                {
+                    if($this->MProduct->disable($product_id))
+                        $this->session->set_flashdata('flashdata', '产品下架成功');
+                    else
+                        $this->session->set_flashdata('flashdata', '产品下架失败');
+                    redirect('product/details_admin/'.$product_id);
+                }*/
             }
 
         }
@@ -322,6 +367,13 @@ class Product extends MY_Controller {
                 $this->load->view('templates/header', $data);
                 $this->load->view('product/add', $data);
             }else{
+                if(!($this->input->post('price_special') < $this->input->post('price_last_2')
+                    && $this->input->post('price_last_2') < $this->input->post('price_last_3')
+                    && $this->input->post('price_last_3') < $this->input->post('price_normal'))
+                )
+                {
+                    exit('the price you set is not decreasing');
+                }
                 $config['upload_path'] = './uploads/';
                 $config['file_name'] = uniqid();
                 $config['allowed_types'] = 'jpg';
@@ -350,6 +402,7 @@ class Product extends MY_Controller {
                 );
                 $main_data = array(
                     'title' => $this->input->post('title'),
+                    'category' => $this->input->post('category'),
                     'properties' => $this->input->post('properties'),
                     'feature' => $this->input->post('feature'),
                     'usage_method' => $this->input->post('usage_method'),
@@ -375,7 +428,7 @@ class Product extends MY_Controller {
 
     }
 
-    private function __get_search_str($search = '', $price_low = '', $price_high = '')
+    private function __get_search_str($search = '', $price_low = '', $price_high = '', $category = null)
     {
         $where = '';
         if($search != '' && $price_low != '' && $price_high != '')
@@ -405,6 +458,11 @@ class Product extends MY_Controller {
         }elseif($search == '' && $price_low == '' && $price_high != '')
         {
             $where .= " and (cast(pr{$this->level}.price as numeric) < {$price_high} )";
+        }
+
+        if($category != null)
+        {
+            $where .= " and p.category = {$category} ";
         }
 
         return $where;

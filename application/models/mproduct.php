@@ -26,7 +26,8 @@ class MProduct extends CI_Model
                 pr1.price price_special,
                 pr2.price price_last_2,
                 pr3.price price_last_3,
-                pr0.price price_normal
+                pr0.price price_normal,
+                p.category category
             from
                 products p
                 join price pr1
@@ -75,7 +76,8 @@ class MProduct extends CI_Model
                 pr1.price price_special,
                 pr2.price price_last_2,
                 pr3.price price_last_3,
-                pr0.price price_normal
+                pr0.price price_normal,
+                p.category category
             from
                 products p
                 join price pr1
@@ -253,5 +255,23 @@ class MProduct extends CI_Model
             return true;
         else
             return false;
+    }
+
+    public function update($main_data, $id)
+    {
+        $update_sql = $this->objDB->update_string("products", $main_data, array("id" => $id));
+        $this->objDB->trans_start();
+
+        $this->objDB->query($update_sql);
+
+        $this->objDB->trans_complete();
+
+        $result = $this->objDB->trans_status();
+
+        if($result === true) {
+            return true;
+        }else {
+            return false;
+        }
     }
 }

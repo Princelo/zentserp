@@ -24,10 +24,20 @@
                 <?=$this->session->flashdata('flashdata', 'value');?>
             </span>
             <div>
-                <form action="<?=base_url()?>product/listpage_admin" method="get">
+                <form action="<?=base_url()?>product/listpage" method="get">
                     <table>
                         <tr>
                             <th>搜索</th>
+                            <th>所属分类&nbsp;&nbsp;
+                                <select name="category">
+                                    <option>所有</option>
+                                    <option value="0"><?=getCategoryName(0)?></option>
+                                    <option value="1"><?=getCategoryName(1)?></option>
+                                    <option value="2"><?=getCategoryName(2)?></option>
+                                    <option value="3"><?=getCategoryName(3)?></option>
+                                    <option value="4"><?=getCategoryName(4)?></option>
+                                </select>
+                            </th>
                             <th>
                                 产品名称、功效:<input type="text" name="search" value="<?=set_value('search')?>"  />
                             </th>
@@ -50,6 +60,7 @@
                 <col width="50%">-->
                 <tr>
                     <th>产品名称</th>
+                    <th>所属分类</th>
                     <th>规格</th>
                     <th>产品功效</th>
                     <th>产品图片</th>
@@ -66,6 +77,7 @@
                     <? $n ++; ?>
                     <tr class="<?=$n%2==0?"even":"odd";?>">
                         <td><?=$v->title?></td>
+                        <td><?=getCategoryName($v->category)?></td>
                         <td><?=$v->properties;?></td>
                         <td><?=$v->feature?></td>
                         <td><img src="<?=base_url().'uploads/'.thumb($v->img)?>" /></td>
