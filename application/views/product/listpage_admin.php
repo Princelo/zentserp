@@ -36,7 +36,7 @@
                             <th>搜索</th>
                             <th>所属分类&nbsp;&nbsp;
                                 <select name="category">
-                                    <option>所有</option>
+                                    <option value="">所有</option>
                                     <option value="0"><?=getCategoryName(0)?></option>
                                     <option value="1"><?=getCategoryName(1)?></option>
                                     <option value="2"><?=getCategoryName(2)?></option>
