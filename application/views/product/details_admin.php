@@ -60,6 +60,12 @@
                     </td>
                 </tr>
                 <tr>
+                    <th><label>总重量</label></th>
+                    <td>
+                        <input type="text" name="weight" data-validate="required,number" value="<?=$v->weight?>" />(单位: 克)
+                    </td>
+                </tr>
+                <tr>
                     <th><label for="properties">规格 </label></th>
                     <td><textarea name="properties" cols="50" rows="6" id="remarks" size="20" ><?=$v->properties?></textarea><br />
                     </td>
