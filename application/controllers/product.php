@@ -251,6 +251,11 @@ class Product extends MY_Controller {
                 'label' => '所属分类',
                 'rules'   => 'trim|required|xss_clean|is_natural|less_than[5]',
             ),
+            array(
+                'field' => 'weight',
+                'label' => '总重量',
+                'rules'   => 'trim|required|xss_clean|is_natural',
+            ),
         );
 
         $this->form_validation->set_rules($config);
@@ -279,6 +284,7 @@ class Product extends MY_Controller {
                     'usage_method' => $this->input->post('usage_method'),
                     'ingredient' => $this->input->post('ingredient'),
                     'category' => $this->input->post('category'),
+                    'weight' => $this->input->post('weight'),
                     'is_valid' => false,
                 );
                 $main_data['is_valid'] = $this->input->post('is_valid')=='1'?'true':'false';
@@ -357,6 +363,11 @@ class Product extends MY_Controller {
                 'label'  => '零售价',
                 'rules'   => 'trim|xss_clean|numeric|required'
             ),
+            array(
+                'field' => 'weight',
+                'label' => '总重量',
+                'rules'   => 'trim|required|xss_clean|is_natural',
+            ),
         );
 
         $this->form_validation->set_rules($config);
@@ -372,7 +383,7 @@ class Product extends MY_Controller {
                     && $this->input->post('price_last_3') < $this->input->post('price_normal'))
                 )
                 {
-                    exit('the price you set is not decreasing');
+                    exit('the price you set are not decreasing');
                 }
                 $config['upload_path'] = './uploads/';
                 $config['file_name'] = uniqid();
@@ -409,6 +420,7 @@ class Product extends MY_Controller {
                     'ingredient' => $this->input->post('ingredient'),
                     //'img' => $this->input->post('img'),
                     'img' => $fname,
+                    'weight' => $this->input->post('weight'),
                     'is_valid' => $this->input->post('is_valid'),
                 );
                 $result = $this->MProduct->add($main_data, $price_list);

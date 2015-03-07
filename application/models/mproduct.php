@@ -77,7 +77,8 @@ class MProduct extends CI_Model
                 pr2.price price_last_2,
                 pr3.price price_last_3,
                 pr0.price price_normal,
-                p.category category
+                p.category category,
+                p.weight weight
             from
                 products p
                 join price pr1
@@ -153,8 +154,8 @@ class MProduct extends CI_Model
         $insert_sql_product = "";
         $insert_sql_product .= "
             insert into products
-            (title, properties, feature, usage_method, ingredient, img, is_valid)
-            values (?,?,?,?,?,?,?);
+            (title, properties, feature, usage_method, ingredient, img, is_valid, weight)
+            values (?,?,?,?,?,?,?,?);
         ";
         $insert_sql_price = "";
         $insert_sql_price .= "
@@ -163,7 +164,7 @@ class MProduct extends CI_Model
         ";
         $binds_product = array(
             $main_data['title'], $main_data['properties'], $main_data['feature'], $main_data['usage_method'],
-            $main_data['ingredient'], $main_data['img'], $main_data['is_valid']
+            $main_data['ingredient'], $main_data['img'], $main_data['is_valid'], $main_data['weight']
         );
         $binds_price = array();
 
