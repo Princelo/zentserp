@@ -154,8 +154,8 @@ class MProduct extends CI_Model
         $insert_sql_product = "";
         $insert_sql_product .= "
             insert into products
-            (title, properties, feature, usage_method, ingredient, img, is_valid, weight)
-            values (?,?,?,?,?,?,?,?);
+            (title, properties, feature, usage_method, ingredient, img, is_valid, weight, category)
+            values (?,?,?,?,?,?,?,?,?);
         ";
         $insert_sql_price = "";
         $insert_sql_price .= "
@@ -164,7 +164,7 @@ class MProduct extends CI_Model
         ";
         $binds_product = array(
             $main_data['title'], $main_data['properties'], $main_data['feature'], $main_data['usage_method'],
-            $main_data['ingredient'], $main_data['img'], $main_data['is_valid'], $main_data['weight']
+            $main_data['ingredient'], $main_data['img'], $main_data['is_valid'], $main_data['weight'], $main_data['category']
         );
         $binds_price = array();
 
