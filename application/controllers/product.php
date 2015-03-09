@@ -211,6 +211,7 @@ class Product extends MY_Controller {
             //$where = '';
             $order = '';
             $data['products'] = $this->MProduct->objGetProductList($where, $order, $limit);
+            $data['level'] = $this->MUser->intGetCurrentUserLevel($this->session->userdata('current_user_id'));
             $this->load->view('templates/header_user', $data);
             $this->load->view('product/listpage', $data);
         }else{
@@ -264,7 +265,7 @@ class Product extends MY_Controller {
             if ($this->form_validation->run() == FALSE)
             {
                 $this->load->view('templates/header', $data);
-                $this->load->view('product/add', $data);
+                $this->load->view('product/details_admin/'.$product_id, $data);
             }else{
                 /*if($this->input->post('is_valid') == '1' && $data['v']->is_valid == 't')
                 {
