@@ -145,14 +145,25 @@
         #mainmenu #menu .menu li {position: relative;}
         #mainmenu #menu .menu li div {position: absolute; left: 0; top:43px; z-index: 999;}
     </style>
+    <script>
+        function showmenu(id)
+        {
+            $('other-menu').each(
+                function(){
+                    $(this).hide();
+                }
+            );
+            $('#'+id).show();
+        }
+    </script>
     <div id="menu">
         <ul class="menu">
             <li class="li-menu">
                 <a href="<?=base_url()?>forecast/index" class="parent" ><span>首页 </span></a>
             </li>
             <li class="li-menu">
-                <a href="javascript:;" class="parent"><span>产品</span></a>
-                <ul class="dropdown-menu">
+                <a href="javascript:;" onclick="showmenu('menu-product');" class="parent"><span>产品</span></a>
+                <ul class="dropdown-menu other-menu" id="menu-product">
                     <li>
                         <a href="<?=base_url()?>product/listpage_admin" class="" style="background: none;"><span>产品列表(上架) </span></a>
                     </li>
@@ -163,8 +174,8 @@
                 </ul>
             </li>
             <li class="li-menu">
-                <a href="javascript:;" class="parent" ><span>代理 </span></a>
-                <ul class="dropdown-menu">
+                <a href="javascript:;" onclick="showmenu('menu-user');" class="parent" ><span>代理 </span></a>
+                <ul class="dropdown-menu other-menu" id="menu-user">
                     <li><a href="<?=base_url()?>user/listpage_admin" class="" style="background: none;"><span>代理列表 </span></a>
                     </li>
                     <li><a href="<?=base_url()?>user/addRootUser" class="" style="background: none;"><span>新增代理 </span></a>
@@ -173,16 +184,16 @@
 
             </li>
             <li class="li-menu">
-                <a href="javascript:;" class="parent" ><span>订单系统 </span></a>
-                <ul class="dropdown-menu">
+                <a href="javascript:;" onclick="showmenu('menu-order')" class="parent" ><span>订单系统 </span></a>
+                <ul class="dropdown-menu other-menu" id="menu-order">
                     <li><a href="<?=base_url()?>order/listpage_admin" class="" style="background: none;"><span>订单列表 </span></a>
                     </li>
                 </ul>
 
             </li>
             <li class="li-menu">
-                <a href="javascript:;" class="parent" ><span>报表系统 </span></a>
-                <ul class="dropdown-menu">
+                <a href="javascript:;" onclick="showmenu('menu-report')" class="parent" ><span>报表系统 </span></a>
+                <ul class="dropdown-menu other-menu" id="menu-report">
                     <li><a href="<?=base_url()?>report/index_admin" class="" style="background: none;"><span>代理报表查询 </span></a>
                     </li>
                     <li><a href="<?=base_url()?>report/index_zents" class="" style="background: none;"><span>Zents总报表查询 </span></a>
