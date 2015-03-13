@@ -79,7 +79,7 @@
 
                     <!--<div style="background:url('includes/images/login_interface.jpg'); width:500px; height:300px;border:6px solid #fff">-->
                     <div>
-                        <h1 class="title">欢迎来到臻芝俱乐部</h1>
+                        <h1 class="title">臻芝化妆品有限公司</h1>
                         <h2 class="">使用您的Zents帐号登陆</h2>
                         <p style="width:100%; text-align:center; color:#f00;"><?=$error;?></p>
                         <div class="choose-block" style="display:none;">
