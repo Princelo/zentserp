@@ -162,6 +162,10 @@
                 <ul class="dropdown-menu other-menu" id="menu-product">
                     <li><a href="<?=base_url()?>product/listpage" class="" style="background: none;"><span>产品列表 </span></a>
                     </li>
+                    <? if($this->session->userdata('level') != 0) {?>
+                    <li><a href="<?=base_url()?>trial_product/listpage" class="" style="background: none;"><span>试用品列表 </span></a>
+                    </li>
+                    <? } ?>
                     <!--<li><a href="<?=base_url()?>product/listpage_admin_invalid" class="" style="background: none;"><span>产品列表(下架) </span></a>
                     </li>-->
                     <!--<li><a href="<?=base_url()?>product/add" class="" style="background: none;"><span>新增产品 </span></a></li>-->
@@ -185,6 +189,10 @@
                 <ul class="dropdown-menu other-menu" id="menu-order">
                     <li><a href="<?=base_url()?>order/listpage" class="" style="background: none;"><span>订单列表 </span></a>
                     </li>
+                    <? if($this->session->userdata('level') != 0) {?>
+                    <li><a href="<?=base_url()?>trial_order/listpage" class="" style="background: none;"><span>试用品订单列表 </span></a>
+                    </li>
+                    <?}?>
                     <li><a href="<?=base_url()?>order/index_sub" class="" style="background: none;"><span>下级代理订单查询 </span></a>
                     </li>
                 </ul>

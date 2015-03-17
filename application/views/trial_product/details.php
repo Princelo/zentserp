@@ -10,11 +10,9 @@
                 <li>
                     <a href='<?=base_url()?>product/listpage' ><div>产品列表 </div></a>
                 </li>
-                <? if($this->session->userdata('level') != 0) {?>
                 <li>
                     <a href='<?=base_url()?>trial_product/listpage' ><div>试用品列表 </div></a>
                 </li>
-                <?}?>
             </ul>
         </div>
     </div>
@@ -77,27 +75,9 @@
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="price_special"><?=getLevelName(1)?>价</label></th>
+                        <th><label for="price"><?=getLevelName(1)?>价</label></th>
                         <td>
-                            <input disabled  name="price_special" data-validate="required,decimal" value="<?=cny($v->price_special)?>"/>(单位: 元)
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><label for="price_last_2"><?=getLevelName(2)?>价</label></th>
-                        <td>
-                            <input disabled  name="price_last_2" data-validate="required,decimal" value="<?=cny($v->price_last_2)?>"/>(单位: 元)
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><label for="price_last_3"><?=getLevelName(3)?>价</label></th>
-                        <td>
-                            <input disabled  name="price_last_3" data-validate="required,decimal" value="<?=cny($v->price_last_3)?>"/>(单位: 元)
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><label for="price_normal"><?=getLevelName(0)?>价</label></th>
-                        <td>
-                            <input disabled  name="price_normal" data-validate="required,decimal" value="<?=cny($v->price_normal)?>"/>(单位: 元)
+                            <input disabled  name="price" data-validate="required,decimal" value="<?=cny($v->price)?>"/>(单位: 元)
                         </td>
                     </tr>
                     <tr>
@@ -108,7 +88,7 @@
                     </tr>
                     <tr>
                         <th>产品下订</th>
-                        <td><a href="<?=base_url()?>order/add/<?=$v->id?>">立即下订</a></td>
+                        <td><a href="<?=base_url()?>trial_order/add/<?=$v->id?>">立即下订</a></td>
                     </tr>
                 </table>
 

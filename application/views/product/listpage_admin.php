@@ -11,7 +11,12 @@
                     <a href='<?=base_url()?>product/listpage_admin' ><div>产品列表(上架) </div></a>
                 </li>
                 <li><a href='<?=base_url();?>product/listpage_admin_invalid' ><div>产品列表(下架) </div></a></li>
+                <li>
+                    <a href='<?=base_url()?>trial_product/listpage_admin' ><div>试用品(上架) </div></a>
+                </li>
+                <li><a href='<?=base_url();?>trial_product/listpage_admin_invalid' ><div>试用品(下架) </div></a></li>
                 <li><a href='<?=base_url();?>product/add' ><div>新增产品 </div></a></li>
+                <li><a href='<?=base_url();?>trial_product/add' ><div>新增试用品 </div></a></li>
             </ul>
         </div>
     </div>

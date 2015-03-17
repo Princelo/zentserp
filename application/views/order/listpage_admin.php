@@ -10,6 +10,9 @@
                 <li>
                     <a href='<?=base_url()?>order/listpage_admin' ><div>订单列表 </div></a>
                 </li>
+                <li>
+                    <a href='<?=base_url()?>trial_order/listpage_admin' ><div>试用品订单列表 </div></a>
+                </li>
             </ul>
         </div>
     </div>
