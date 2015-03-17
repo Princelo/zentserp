@@ -9,10 +9,13 @@
 
         <ul id="left_menu">
             <li>
-                <a href='<?=base_url()?>order/listpage_admin' ><div>订单列表 </div></a>
+                <a href='<?=base_url()?>order/listpage' ><div>订单列表 </div></a>
             </li>
             <li>
-                <a href='<?=base_url()?>trial_order/listpage_admin' ><div>试用品订单列表 </div></a>
+                <a href='<?=base_url()?>trial_order/listpage' ><div>试用装订单列表 </div></a>
+            </li>
+            <li>
+                <a href='<?=base_url()?>order/index_sub' ><div>下级代理订单查询 </div></a>
             </li>
         </ul>
     </div>
@@ -33,8 +36,6 @@
             </div>
         </div>
 
-
-        <form action="<?=base_url()?>order/details_admin/<?=$v->id?>" method="post">
 
             <fieldset>
                 <legend>订单详情 </legend>
@@ -180,16 +181,6 @@
                             <input type="text" name="" disabled="disabled" value="<?=substr($v->finish_time, 0, 19)?>" />
                         </td>
                     </tr>
-                    <tr>
-                        <th><span class="red">确认订单完成</span> </th>
-                        <td>
-                            <input type="radio" name="finish" value="finish_with_pay" /><span class="red">完成并插入付款纪录(用于线下付款订单)<br />
-                            <input type="radio" name="finish" value="finish_without_pay" /><span class="red">完成但不插入付款纪录(用于线上付款订单)<br />
-                            <!--<input type="radio" name="finish" value="unfinish_rollback" disabled="disabled">未完成并取消付款纪录(用于线下付款订单)<br />
-                            <input type="radio" name="finish" value="unfinish" disabled="disabled">未完成但不取消付款纪录(用于线上付款订单)<br />-->
-                            <input type="button" onclick="finishConfirm()" name="btnSubmit" value="提交 "  />			</div>
-                        </td>
-                    </tr>
                 </table>
 
             </fieldset>
@@ -214,7 +205,6 @@
             </div>
 
 
-        </form>
 
     </div>
     <!-- IE Column Clearing -->

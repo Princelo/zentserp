@@ -39,7 +39,7 @@
         </div>
 
 
-        <?=form_open_multipart('product/details_admin/'.$v->id);?>
+        <?=form_open_multipart('trial_product/details_admin/'.$v->id);?>
 
         <fieldset>
             <legend>产品详情 </legend>
@@ -91,27 +91,9 @@
                     </td>
                 </tr>
                 <tr>
-                    <th><label for="price_special"><?=getLevelName(1)?>价 <span>*</span></label></th>
+                    <th><label for="price">单价 <span>*</span></label></th>
                     <td>
-                        <input disabled  name="price_special" data-validate="required,decimal" value="<?=cny($v->price_special)?>"/>(单位: 元)
-                    </td>
-                </tr>
-                <tr>
-                    <th><label for="price_last_2"><?=getLevelName(2)?>价 <span>*</span></label></th>
-                    <td>
-                        <input disabled  name="price_last_2" data-validate="required,decimal" value="<?=cny($v->price_last_2)?>"/>(单位: 元)
-                    </td>
-                </tr>
-                <tr>
-                    <th><label for="price_last_3"><?=getLevelName(3)?>价 <span>*</span></label></th>
-                    <td>
-                        <input disabled  name="price_last_3" data-validate="required,decimal" value="<?=cny($v->price_last_3)?>"/>(单位: 元)
-                    </td>
-                </tr>
-                <tr>
-                    <th><label for="price_normal"><?=getLevelName(0)?>价 <span>*</span></label></th>
-                    <td>
-                        <input disabled  name="price_normal" data-validate="required,decimal" value="<?=cny($v->price_normal)?>"/>(单位: 元)
+                        <input disabled  name="price" data-validate="required,decimal" value="<?=cny($v->price)?>"/>(单位: 元)
                     </td>
                 </tr>
                 <tr>

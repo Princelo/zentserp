@@ -10,11 +10,9 @@
                 <li>
                     <a href='<?=base_url()?>product/listpage' ><div>产品列表 </div></a>
                 </li>
-                <? if($this->session->userdata('level') != 0) {?>
                 <li>
                     <a href='<?=base_url()?>trial_product/listpage' ><div>试用品列表 </div></a>
                 </li>
-                <?}?>
             </ul>
         </div>
     </div>
@@ -24,12 +22,12 @@
 
 
         <div class="info view_form">
-            <h2>产品列表 您当前等级为 <span class="red"><?=getLevelName($level)?></span>, 有效价格为 <span class="red"><?=getLevelName($level)?>价</span></h2>
+            <h2>产品列表</span></h2>
             <span class="red">
                 <?=$this->session->flashdata('flashdata', 'value');?>
             </span>
             <div>
-                <form action="<?=base_url()?>product/listpage" method="get">
+                <form action="<?=base_url()?>trial_product/listpage" method="get">
                     <table>
                         <tr>
                             <th>搜索</th>
@@ -69,10 +67,7 @@
                     <th>规格</th>
                     <th>产品功效</th>
                     <th>产品图片</th>
-                    <th><span <?=$level==1?"class=\"red\"":"";?>><?=getLevelName(1)?>价</span></th>
-                    <th><span <?=$level==2?"class=\"red\"":"";?>><?=getLevelName(2)?>价</span></th>
-                    <th><span <?=$level==3?"class=\"red\"":"";?>><?=getLevelName(3)?>价</span></th>
-                    <th><span <?=$level==0?"class=\"red\"":"";?>><?=getLevelName(0)?>价</span></th>
+                    <th>单价</th>
                     <th></th>
                     <th></th>
                 </tr>
@@ -94,12 +89,9 @@
                             </div>
                         </td>
                         <td><img src="<?=base_url().'uploads/'.thumb($v->img)?>" /></td>
-                        <td><?=cny($v->price_special)?></td>
-                        <td><?=cny($v->price_last_2)?></td>
-                        <td><?=cny($v->price_last_3)?></td>
-                        <td><?=cny($v->price_normal)?></td>
-                        <td><a href="<?=base_url()?>product/details/<?=$v->id;?>">查看详情</a></td>
-                        <td><a href="<?=base_url()?>order/add/<?=$v->id;?>">产品下订</a></td>
+                        <td><?=cny($v->price)?></td>
+                        <td><a href="<?=base_url()?>trial_product/details/<?=$v->id;?>">查看详情</a></td>
+                        <td><a href="<?=base_url()?>trial_order/add/<?=$v->id;?>">产品下订</a></td>
                     </tr>
                 <? } ?>
                 <? } ?>

@@ -8,28 +8,34 @@
 
             <ul id="left_menu">
                 <li>
-                    <a href='<?=base_url()?>product/listpage' ><div>产品列表 </div></a>
+                    <a href='<?=base_url()?>product/listpage_admin' ><div>产品列表(上架) </div></a>
                 </li>
-                <? if($this->session->userdata('level') != 0) {?>
+                <li><a href='<?=base_url();?>product/listpage_admin_invalid' ><div>产品列表(下架) </div></a></li>
                 <li>
-                    <a href='<?=base_url()?>trial_product/listpage' ><div>试用品列表 </div></a>
+                    <a href='<?=base_url()?>trial_product/listpage_admin' ><div>试用品(上架) </div></a>
                 </li>
-                <?}?>
+                <li><a href='<?=base_url();?>trial_product/listpage_admin_invalid' ><div>试用品(下架) </div></a></li>
+                <li><a href='<?=base_url();?>product/add' ><div>新增产品 </div></a></li>
+                <li><a href='<?=base_url();?>trial_product/add' ><div>新增试用品 </div></a></li>
             </ul>
         </div>
     </div>
-<!-- begin: #col3 static column -->
+    <!-- end: #col1 -->
+
+
+
+    <!-- begin: #col3 static column -->
 <div id="col3" role="main" class="one_column">
     <div id="col3_content" class="clearfix">
 
 
         <div class="info view_form">
-            <h2>产品列表 您当前等级为 <span class="red"><?=getLevelName($level)?></span>, 有效价格为 <span class="red"><?=getLevelName($level)?>价</span></h2>
+            <h2>产品列表</h2>
             <span class="red">
                 <?=$this->session->flashdata('flashdata', 'value');?>
             </span>
             <div>
-                <form action="<?=base_url()?>product/listpage" method="get">
+                <form action="<?=base_url()?>trial_product/listpage_admin" method="get">
                     <table>
                         <tr>
                             <th>搜索</th>
@@ -47,7 +53,7 @@
                                 产品名称、功效:<input type="text" name="search" value="<?=set_value('search')?>"  />
                             </th>
                             <th style="display: none;">
-                                价格区间(低) <input type="text" name="price_low" value="<?=set_value('price_low')?>" />
+                               价格区间(低) <input type="text" name="price_low" value="<?=set_value('price_low')?>" />
                             </th>
                             <th style="display: none;">
                                 价格区间(高) <input type="text" name="price_high" value="<?=set_value('price_high')?>" />
@@ -57,30 +63,29 @@
                             </th>
 
                         </tr>
-                    </table>
+                        </table>
                 </form>
             </div>
             <table width="100%">
                 <!--<col width="50%">
                 <col width="50%">-->
                 <tr>
+                    <th>ID</th>
                     <th>产品名称</th>
-                    <th>所属分类</th>
+                    <td>所属分类</td>
                     <th>规格</th>
                     <th>产品功效</th>
+                    <th>所含成分</th>
                     <th>产品图片</th>
-                    <th><span <?=$level==1?"class=\"red\"":"";?>><?=getLevelName(1)?>价</span></th>
-                    <th><span <?=$level==2?"class=\"red\"":"";?>><?=getLevelName(2)?>价</span></th>
-                    <th><span <?=$level==3?"class=\"red\"":"";?>><?=getLevelName(3)?>价</span></th>
-                    <th><span <?=$level==0?"class=\"red\"":"";?>><?=getLevelName(0)?>价</span></th>
-                    <th></th>
+                    <th>单价</th>
                     <th></th>
                 </tr>
                 <? $n = 0; ?>
-                <? if(!empty($products)) {?>
+                <? if(!empty($products)) { ?>
                 <? foreach($products as $k => $v){ ?>
                     <? $n ++; ?>
                     <tr class="<?=$n%2==0?"even":"odd";?>">
+                        <td><?=$v->id?></td>
                         <td><?=$v->title?></td>
                         <td><?=getCategoryName($v->category)?></td>
                         <td class="max-width">
@@ -90,16 +95,13 @@
                         </td>
                         <td class="max-width">
                             <div class="max-width">
-                            <?=$v->feature?>
+                                <?=$v->feature?>
                             </div>
                         </td>
+                        <td><?//=$v->ingredient;?></td>
                         <td><img src="<?=base_url().'uploads/'.thumb($v->img)?>" /></td>
-                        <td><?=cny($v->price_special)?></td>
-                        <td><?=cny($v->price_last_2)?></td>
-                        <td><?=cny($v->price_last_3)?></td>
-                        <td><?=cny($v->price_normal)?></td>
-                        <td><a href="<?=base_url()?>product/details/<?=$v->id;?>">查看详情</a></td>
-                        <td><a href="<?=base_url()?>order/add/<?=$v->id;?>">产品下订</a></td>
+                        <td><?=cny($v->price)?></td>
+                        <td><a href="<?=base_url()?>trial_product/details_admin/<?=$v->id;?>">编辑</a></td>
                     </tr>
                 <? } ?>
                 <? } ?>
@@ -107,12 +109,12 @@
             <div class="page"><?=$page;?></div>
             <script>
                 /*function myconfirm(id){
-                    if (confirm("are you sure?")){
-                        window.location.href = "<?=base_url()?>index.php/unvadmin/singerdelete/"+id;
-                    } else {
+                 if (confirm("are you sure?")){
+                 window.location.href = "<?=base_url()?>index.php/unvadmin/singerdelete/"+id;
+                 } else {
 
-                    }
-                }*/
+                 }
+                 }*/
             </script>
 
 

@@ -9,11 +9,15 @@
 
         <ul id="left_menu">
             <li>
-                <a href='<?=base_url()?>order/listpage_admin' ><div>订单列表 </div></a>
+                <a href='<?=base_url()?>product/listpage_admin' ><div>产品列表(上架) </div></a>
             </li>
+            <li><a href='<?=base_url();?>product/listpage_admin_invalid' ><div>产品列表(下架) </div></a></li>
             <li>
-                <a href='<?=base_url()?>trial_order/listpage_admin' ><div>试用品订单列表 </div></a>
+                <a href='<?=base_url()?>trial_product/listpage_admin' ><div>试用品(上架) </div></a>
             </li>
+            <li><a href='<?=base_url();?>trial_product/listpage_admin_invalid' ><div>试用品(下架) </div></a></li>
+            <li><a href='<?=base_url();?>product/add' ><div>新增产品 </div></a></li>
+            <li><a href='<?=base_url();?>trial_product/add' ><div>新增试用品 </div></a></li>
         </ul>
     </div>
 </div>
@@ -34,7 +38,7 @@
         </div>
 
 
-        <form action="<?=base_url()?>order/details_admin/<?=$v->id?>" method="post">
+        <form action="<?=base_url()?>trial_order/details_admin/<?=$v->id?>" method="post">
 
             <fieldset>
                 <legend>订单详情 </legend>
@@ -70,12 +74,6 @@
                         <th>产品单价</th>
                         <td>
                             <input type="text" name="" disabled="disabled" value="<?=cny($v->unit_price)?>" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>价格类別</th>
-                        <td>
-                            <input type="text" name="" disabled="disabled" value="<?=getLevelName($v->purchase_level)?>价" />
                         </td>
                     </tr>
                     <tr>

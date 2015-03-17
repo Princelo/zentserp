@@ -8,15 +8,10 @@
 
             <ul id="left_menu">
                 <li>
-                    <a href='<?=base_url()?>order/listpage' ><div>订单列表 </div></a>
+                    <a href='<?=base_url()?>order/listpage_admin' ><div>订单列表 </div></a>
                 </li>
-                <? if($this->session->userdata('level') != 0) {?>
                 <li>
-                    <a href='<?=base_url()?>trial_order/listpage' ><div>试用品订单列表 </div></a>
-                </li>
-                <?}?>
-                <li>
-                    <a href='<?=base_url()?>order/index_sub' ><div>下级代理订单查询 </div></a>
+                    <a href='<?=base_url()?>trial_order/listpage_admin' ><div>试用品订单列表 </div></a>
                 </li>
             </ul>
         </div>
@@ -35,7 +30,7 @@
                 <?=$this->session->flashdata('flashdata', 'value');?>
             </span>
             <div>
-                <form action="<?=base_url()?>order/listpage" method="get">
+                <form action="<?=base_url()?>trial_order/listpage_admin" method="get">
                     <table>
                         <tr>
                             <th>搜索</th>
@@ -45,6 +40,18 @@
                                     <option value="1">已完成</option>
                                     <option value="0">未完成</option>
                                 </select>
+                            </th>
+                            <th>
+                                <label>筛选日期</label>
+                            </th>
+                            <th>
+                                从
+                                <input class="datepicker" name="date_from"/>
+                                到
+                                <input class="datepicker" name="date_to"/>
+                            </th>
+                            <th>
+                                最近<input data-validate="number" name="hour"/>小时
                             </th>
                             <th>
                                 <input type="submit" value="提交"/>
@@ -59,6 +66,7 @@
                 <tr>
                     <th>订单号</th>
                     <th>产品名称(ID)</th>
+                    <th>用戶姓名(用戶名/ID)</th>
                     <th>订单数量</th>
                     <th>订单总价</th>
                     <th>是否已付款</th>
@@ -77,7 +85,8 @@
                     <? $n ++; ?>
                     <tr class="<?=$n%2==0?"even":"odd";?>">
                         <td><?=$v->id?></td>
-                        <td><a href="<?=base_url()?>product/details/<?=$v->pid?>"><?=$v->title;?>(<?=$v->pid?>)</a></td>
+                        <td><a href="<?=base_url()?>trial_product/details_admin/<?=$v->pid?>"><?=$v->title;?>(<?=$v->pid?>)</a></td>
+                        <td><a href="<?=base_url()?>user/details_admin/<?=$v->uid?>"><?=$v->name_ch."(".$v->username."/".$v->uid.")"?></a></td>
                         <td><?=$v->quantity;?></td>
                         <td><?="￥".bcmul(money($v->unit_price), $v->quantity, 2)?></td>
                         <td><span class="<?=$v->is_pay=='t'?"accept":"cross";?>"></span></td>
@@ -88,7 +97,7 @@
                         <td><?=$v->mobile?></td>
                         <td><?=$v->remark?></td>
                         <td><?=substr($v->stock_time, 0, 19);?></td>
-                        <td><a href="<?=base_url()?>order/details/<?=$v->id;?>">查看详情</a></td>
+                        <td><a href="<?=base_url()?>trial_order/details_admin/<?=$v->id;?>">查看详情</a></td>
                     </tr>
                 <? } ?>
                 <? } ?>
@@ -139,6 +148,12 @@
 </div>
 <!-- end: #col4 -->	</div>
 
+<script>
+    $( ".datepicker" ).datepicker({
+        'dateFormat': 'yy-m-d',
+        'changeYear' : true
+    });
+</script>
 <div id="footer">
     Copyright &copy; <?=date('Y');?> by UNVWEB<br/>
     All Rights Reserved.<br/>

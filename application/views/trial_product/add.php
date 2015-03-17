@@ -39,10 +39,10 @@
         </div>
 
 
-        <?=form_open_multipart('product/add');?>
+        <?=form_open_multipart('trial_product/add');?>
 
             <fieldset>
-                <legend>添加产品 </legend>
+                <legend>添加试用产品 </legend>
 
                 <table>
                     <col width="150">
@@ -89,27 +89,9 @@
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="price_special"><?=getLevelName(1)?>价 <span>*</span></label></th>
+                        <th><label for="price">单价 <span>*</span></label></th>
                         <td>
-                            <input name="price_special" data-validate="required,decimal" value="<?=set_value('price_special')?>"/>(单位: 元)
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><label for="price_last_2"><?=getLevelName(2)?>价 <span>*</span></label></th>
-                        <td>
-                            <input name="price_last_2" data-validate="required,decimal" value="<?=set_value('price_last_2')?>"/>(单位: 元)
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><label for="price_last_3"><?=getLevelName(3)?>价 <span>*</span></label></th>
-                        <td>
-                            <input name="price_last_3" data-validate="required,decimal" value="<?=set_value('price_last_3')?>"/>(单位: 元)
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><label for="price_normal"><?=getLevelName(0)?>价 <span>*</span></label></th>
-                        <td>
-                            <input name="price_normal" data-validate="required,decimal" value="<?=set_value('price_normal')?>"/>(单位: 元)
+                            <input name="price" data-validate="required,decimal" value="<?=set_value('price')?>"/>(单位: 元)
                         </td>
                     </tr>
                     <tr>
