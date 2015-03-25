@@ -8,8 +8,8 @@ class Trial_Order extends MY_Controller {
         parent::__construct();
         if($this->session->userdata('role') != 'admin' && $this->session->userdata('role') != 'user')
             redirect('login');
-        if($this->session->userdata('level') == 0)
-            exit('You are not a member');
+        if($this->session->userdata('level') == 0 && $this->session->userdata('role') != 'admin')
+            exit('You are not a member.');
         $this->load->model('MTrialProduct', 'MTrialProduct');
         $this->load->model('MTrialOrder', 'MTrialOrder');
         $this->load->model('MUser', 'MUser');
