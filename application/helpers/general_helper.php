@@ -307,6 +307,8 @@ function getArrProvinces(){
 }
 
 function getAvailableCities($intProvinceId){
+    if($intProvinceId == '0')
+        return array('0' => '任意');
     $cities = array();
     if($intProvinceId != null){
         $arrCity = getArrCity();
@@ -338,6 +340,8 @@ function getAllCities(){
 
 function getStrProvinceName($id)
 {
+    if($id == '0')
+        return '任意';
     $arrCity = getArrCity()->provinces;
     foreach($arrCity as $k => $v)
     {
@@ -349,6 +353,8 @@ function getStrProvinceName($id)
 
 function getStrCityName($id)
 {
+    if($id == '0')
+        return '任意';
     $arrCity = getArrCity();
     foreach($arrCity->provinces as $k => $v)
         foreach($arrCity->provinces[$k]->cities as $ik => $iv)
@@ -419,7 +425,38 @@ function getCategoryName($category)
     return $return;
 }
 
-/*if(! function_exists('is_voted')){
+if(! function_exists('is_voted')){
+    function get_client_ip() {
+        $ipaddress = '';
+        if (getenv('HTTP_CLIENT_IP'))
+            $ipaddress = getenv('HTTP_CLIENT_IP');
+        else if(getenv('HTTP_X_FORWARDED_FOR'))
+            $ipaddress = getenv('HTTP_X_FORWARDED_FOR');
+        else if(getenv('HTTP_X_FORWARDED'))
+            $ipaddress = getenv('HTTP_X_FORWARDED');
+        else if(getenv('HTTP_FORWARDED_FOR'))
+            $ipaddress = getenv('HTTP_FORWARDED_FOR');
+        else if(getenv('HTTP_FORWARDED'))
+            $ipaddress = getenv('HTTP_FORWARDED');
+        else if(getenv('REMOTE_ADDR'))
+            $ipaddress = getenv('REMOTE_ADDR');
+        else
+            $ipaddress = 'UNKNOWN';
+        return $ipaddress;
+    }
+}
+
+function alipay_config()
+{
+    $alipay_config = array();
+    $alipay_config['partner']		= '2088811593408355';
+    $alipay_config['seller_email']	= 'zents168@163.com';
+    $alipay_config['key']			= 'x4zrddujtoq8oya7jnge5nw1r7pk9k2w';
+    $alipay_config['sign_type']    = strtoupper('MD5');
+    $alipay_config['input_charset']= strtolower('utf-8');
+    $alipay_config['cacert']    = getcwd().'/application/third_party/alipay/cacert.pem';
+    $alipay_config['transport']    = 'http';
+    return $alipay_config;
 }
 
 /*

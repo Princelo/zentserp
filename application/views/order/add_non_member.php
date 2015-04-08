@@ -63,15 +63,33 @@
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="is_post">收货方式</label></th>
+                        <th><label for="pay_method">付款方式</label></th>
                         <td>
-                            <select name="is_post">
-                                <option value="0" <?//=$is_post==false?"selected=\"selected\"":"";?>>自取</option>
-                                <!--<option value="1" <?//=$is_post==true?"selected=\"selected\"":"";?>>快递</option>-->
+                            <select name="pay_method">
+                                <option value="alipay">线上付款</option>
+                                <option value="offline">线下付款</option>
                             </select>
                         </td>
                     </tr>
-                    <tr style="display: none;">
+                    <tr>
+                        <th><label for="is_post">收货方式</label></th>
+                        <td>
+                            <select name="is_post" id="is_post">
+                                <option value="0" <?//=$is_post==false?"selected=\"selected\"":"";?>>自取</option>
+                                <option value="1" <?//=$is_post==true?"selected=\"selected\"":"";?>>快递</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <script>
+                        $("#is_post").change(function(){
+                            if($(this).val() == "1"){
+                                $("#address").show();
+                            }else{
+                                $("#address").hide();
+                            }
+                        });
+                    </script>
+                    <tr style="display: none;" id="address">
                         <th><label>地址</label> <span>*</span></th>
                         <?
                         $provinces = getArrCity()->provinces;
@@ -117,20 +135,21 @@
                         <?foreach($cart as $k => $v){?>
                             <? $n ++; ?>
                             <?$total = bcadd($total, bcmul(money($v->amount), $v->count, 2), 2)?>
-                            <?$total_post_fee = bcadd($total_post_fee, $v->post_fee)?>
+                            <?$total_post_fee = bcadd($total_post_fee, money($v->post_fee))?>
                         <tr class="<?=$n%2==0?"even":"odd";?>">
                             <td><?=$v->title?></td>
                             <td><?=$v->count?></td>
                             <td><?=cny($v->amount)?></td>
-                            <td><?=bcmul(money($v->amount), $v->count, 2)?></td>
-                            <td><?=$v->post_fee?></td>
+                            <td>￥<?=bcmul(money($v->amount), $v->count, 2)?></td>
+                            <td><?=cny($v->post_fee)?></td>
                             <td><a href="<?=base_url()?>order/delete/<?=$v->order_id?>/<?=$product_id?>">移出购物车</a></td>
                         </tr>
                         <?}?>
 
                         <tr>
                             <th>购物车总价</th>
-                            <th>￥<?=$total?></th>
+                            <th>￥<?=bcadd($total, $total_post_fee, 2)?></th>
+                            <th>其中 产品总价：￥<?=$total?></th>
                             <th>运费：￥<?=$total_post_fee?></th>
                         </tr>
                     </table>

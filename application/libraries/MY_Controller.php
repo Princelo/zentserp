@@ -16,7 +16,6 @@ class MY_Controller extends CI_Controller {
         {
             $level = $this->MUser->intGetCurrentUserLevel($this->session->userdata('current_user_id'));
             $this->session->set_userdata('level', $level);
-
         }
     }
 }

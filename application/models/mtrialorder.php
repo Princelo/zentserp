@@ -72,7 +72,7 @@ class MTrialOrder extends CI_Model
 
     public function intAddReturnOrderId($main_data, $address_info)
     {
-        $post_fee = $this->intCalcPostFee();
+        $post_fee = $main_data['post_fee'];
         $current_user_id = $this->session->userdata('current_user_id');
         $insert_sql_address = "";
         $insert_sql_address .= "
@@ -92,7 +92,7 @@ class MTrialOrder extends CI_Model
         $insert_sql_order .= "
 
             insert into trial_orders
-                (user_id, product_id, count, level, parent_level, address_book_id, is_post, post_fee, is_first)
+                (user_id, product_id, count, level, parent_level, address_book_id, is_post, post_fee, is_first, pay_method)
             select {$current_user_id} user_id,
                     ? product_id,
                     ? count,
@@ -101,7 +101,8 @@ class MTrialOrder extends CI_Model
                     currval('address_books_id_seq') address_book_id,
                     ? is_post,
                     ? post_fee,
-                    false
+                    false,
+                    ?
                 from
                 (select c.level as level, p.level plevel
                     from users c, users p where c.id = {$current_user_id}
@@ -109,7 +110,7 @@ class MTrialOrder extends CI_Model
             ;
         ";
         $binds_order = array(
-            $main_data['product_id'], $main_data['count'], $main_data['is_post'], $post_fee,
+            $main_data['product_id'], $main_data['count'], $main_data['is_post'], $post_fee, $main_data['pay_method']
         );
 
         $insert_sql_amount = "";
@@ -150,9 +151,6 @@ class MTrialOrder extends CI_Model
         }
     }
 
-    public function intCalcPostFee(){
-        return 0;
-    }
 
     public function intGetOrdersCount($where)
     {
@@ -313,4 +311,90 @@ class MTrialOrder extends CI_Model
         $this->objDB->delete();
         return ($this->objDB->affected_rows() > 0 );
     }
+
+    public function is_paid( $order_id)
+    {
+        $current_user_id = $this->session->userdata('current_user_id');
+        if(!$this->checkIsOwn($current_user_id, $order_id))
+            exit('The order is not yours!');
+        $query_sql = "";
+        $query_sql .= "
+            select
+                count(1) as count
+            from
+                trial_orders
+                where
+                is_pay = true
+                and id = ?
+        ";
+        $binds = array($order_id);
+        $data = array();
+        $query = $this->objDB->query($query_sql, $binds);
+        if($query->num_rows() > 0){
+            if($query->result()[0]->count > 0 )
+                return true;
+            else
+                return false;
+        }else{
+            return false;
+        }
+    }
+
+    public function updateOrderTradeNo($trade_no, $order_id)
+    {
+        $data['trade_no'] = $trade_no;
+        $where = array(
+            'is_pay'    =>  'false',
+            'pay_method'    =>  'alipay',
+            'id'    =>  $order_id,
+        );
+        $update_sql = $this->objDB->update_string('trial_orders', $data, $where);
+        $query = $this->objDB->query($update_sql);
+
+        if($query === true)
+            return true;
+        else
+            return false;
+    }
+
+
+    public function getOrderPrice($id)
+    {
+        if($this->is_paid($id))
+            exit('This order has paid!');
+        $query_sql = "
+            select
+                p.price::decimal * o.count pay_amt_without_post_fee,
+                o.post_fee::decimal as post_fee,
+                p.price::decimal * o.count + o.post_fee::decimal as total
+            from
+                trial_orders o, trial_products p
+            where
+                o.id = ?
+            and o.is_pay = false
+            ;";
+        $binds = array($id);
+        $query = $this->objDB->query($query_sql, $binds);
+        $data = $query->result()[0];
+        $query->free_result();
+
+        return $data;
+    }
+
+    public function updatePaymentStatus($trade_no)
+    {
+        $data = array();
+        $data['is_pay'] = 'true';
+        $where = array(
+            'trade_no'  =>  $trade_no,
+        );
+        $update_sql = $this->objDB->update_string('trial_orders', $data, $where);
+        $query = $this->objDB->query($update_sql);
+
+        if($query === true)
+            return true;
+        else
+            return false;
+    }
+
 }

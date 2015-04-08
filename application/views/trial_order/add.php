@@ -66,15 +66,33 @@
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="is_post">收货方式</label></th>
+                        <th><label for="pay_method">付款方式</label></th>
                         <td>
-                            <select name="is_post">
-                                <option value="0" <?//=$is_post==false?"selected=\"selected\"":"";?>>自取</option>
-                                <!--<option value="1" <?//=$is_post==true?"selected=\"selected\"":"";?>>快递</option>-->
+                            <select name="pay_method">
+                                <option value="alipay">线上付款</option>
+                                <option value="offline">线下付款</option>
                             </select>
                         </td>
                     </tr>
-                    <tr style="display: none;">
+                    <tr>
+                        <th><label for="is_post">收货方式</label></th>
+                        <td>
+                            <select name="is_post" id="is_post">
+                                <option value="0" <?//=$is_post==false?"selected=\"selected\"":"";?>>自取</option>
+                                <option value="1" <?//=$is_post==true?"selected=\"selected\"":"";?>>快递</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <script>
+                        $("#is_post").change(function(){
+                            if($(this).val() == "1"){
+                                $("#address").show();
+                            }else{
+                                $("#address").hide();
+                            }
+                        });
+                    </script>
+                    <tr style="display: none;" id="address">
                         <th><label>地址</label> <span>*</span></th>
                         <?
                             $provinces = getArrCity()->provinces;

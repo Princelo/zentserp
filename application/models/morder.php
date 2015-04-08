@@ -74,7 +74,7 @@ class MOrder extends CI_Model
 
     public function intAddNonMemberReturnOrderId($main_data, $address_info)
     {
-        $post_fee = $this->intCalcPostFee();
+        $post_fee = $main_data['post_fee'];
         $current_user_id = $this->session->userdata('current_user_id');
         $insert_sql_address = "";
         $insert_sql_address .= "
@@ -93,7 +93,7 @@ class MOrder extends CI_Model
         $insert_sql_order = "";
         $insert_sql_order .= "
 
-            insert into orders (user_id, product_id, count, level, parent_level, address_book_id, is_post, post_fee, is_first, cart_id, is_valid)
+            insert into orders (user_id, product_id, count, level, parent_level, address_book_id, is_post, post_fee, is_first, cart_id, is_valid, pay_method)
             select {$current_user_id} user_id,
                     ? product_id,
                     ? count,
@@ -105,7 +105,8 @@ class MOrder extends CI_Model
                     --case when not exists (select id from orders where user_id = {$current_user_id}) then true else false end,
                     true,
                     (select id from cart where user_id = {$current_user_id}),
-                    false
+                    false,
+                    ?
                 from
                 (select c.level as level, p.level plevel
                     from users c, users p where c.id = {$current_user_id}
@@ -113,7 +114,7 @@ class MOrder extends CI_Model
             ;
         ";
         $binds_order = array(
-            $main_data['product_id'], $main_data['count'], $main_data['is_post'], $post_fee,
+            $main_data['product_id'], $main_data['count'], $main_data['is_post'], $post_fee, $main_data['pay_method']
         );
 
         $insert_sql_amount = "";
@@ -171,7 +172,7 @@ class MOrder extends CI_Model
     }
     public function intAddReturnOrderId($main_data, $address_info)
     {
-        $post_fee = $this->intCalcPostFee();
+        $post_fee = $main_data['post_fee'];
         $current_user_id = $this->session->userdata('current_user_id');
         $insert_sql_address = "";
         $insert_sql_address .= "
@@ -190,7 +191,7 @@ class MOrder extends CI_Model
         $insert_sql_order = "";
         $insert_sql_order .= "
 
-            insert into orders (user_id, product_id, count, level, parent_level, address_book_id, is_post, post_fee, is_first, cart_id)
+            insert into orders (user_id, product_id, count, level, parent_level, address_book_id, is_post, post_fee, is_first, cart_id, pay_method)
             select {$current_user_id} user_id,
                     ? product_id,
                     ? count,
@@ -201,7 +202,8 @@ class MOrder extends CI_Model
                     ? post_fee,
                     --case when not exists (select id from orders where user_id = {$current_user_id}) then true else false end,
                     false,
-                    (select id from cart where user_id = {$current_user_id})
+                    (select id from cart where user_id = {$current_user_id}),
+                    ?
                 from
                 (select c.level as level, p.level plevel
                     from users c, users p where c.id = {$current_user_id}
@@ -209,7 +211,7 @@ class MOrder extends CI_Model
             ;
         ";
         $binds_order = array(
-            $main_data['product_id'], $main_data['count'], $main_data['is_post'], $post_fee,
+            $main_data['product_id'], $main_data['count'], $main_data['is_post'], $post_fee, $main_data['pay_method']
         );
 
         $insert_sql_amount = "";
@@ -276,10 +278,6 @@ class MOrder extends CI_Model
             return true;
         else
             return false;
-    }
-
-    public function intCalcPostFee(){
-        return 0;
     }
 
     public function intGetOrdersCount($where)
@@ -767,5 +765,136 @@ class MOrder extends CI_Model
         $this->objDB->where("id", $order_id);
         $this->objDB->delete();
         return ($this->objDB->affected_rows() > 0 );
+    }
+
+    public function getNonMemberCartTotal()
+    {
+        $current_user_id = $this->session->userdata('current_user_id');
+        $query_sql = "
+            select
+                sum(a.amount::decimal * o.count) pay_amt_without_post_fee,
+                sum(o.post_fee::decimal) post_fee,
+                sum(a.amount::decimal * o.count) + sum(o.post_fee::decimal) as total
+            from
+                orders o, cart c, amounts a
+            where
+                a.order_id = o.id
+            and o.cart_id = c.id
+            and c.user_id = {$current_user_id}
+            and o.is_pay = false
+            and a.level = 0
+            and o.pay_method = 'alipay'
+            ;";
+
+        $query = $this->objDB->query($query_sql);
+        $data = $query->result()[0];
+        $query->free_result();
+
+        return $data;
+    }
+
+    public function is_paid( $order_id)
+    {
+        $current_user_id = $this->session->userdata('current_user_id');
+        if(!$this->checkIsOwn($current_user_id, $order_id))
+            exit('The order is not yours!');
+        $query_sql = "";
+        $query_sql .= "
+            select
+                count(1) as count
+            from
+                orders
+                where
+                is_pay = true
+                and id = ?
+        ";
+        $binds = array($order_id);
+        $data = array();
+        $query = $this->objDB->query($query_sql, $binds);
+        if($query->num_rows() > 0){
+            if($query->result()[0]->count > 0 )
+                return true;
+            else
+                return false;
+        }else{
+            return false;
+        }
+    }
+
+    public function getOrderPrice($id)
+    {
+        if($this->is_paid($id))
+            exit('This order has paid!');
+        $query_sql = "
+            select
+                a.amount::decimal * o.count pay_amt_without_post_fee,
+                o.post_fee::decimal as post_fee,
+                a.amount::decimal * o.count + o.post_fee::decimal as total
+            from
+                orders o, amounts a
+            where
+                a.order_id = ?
+            and a.order_id = o.id
+            and a.level = o.level
+            and o.is_pay = false
+            ;";
+        $binds = array($id);
+        $query = $this->objDB->query($query_sql, $binds);
+        $data = $query->result()[0];
+        $query->free_result();
+
+        return $data;
+    }
+
+    public function updateOrderTradeNo($trade_no, $order_id)
+    {
+        $data['trade_no'] = $trade_no;
+        $where = array(
+            'is_pay'    =>  'false',
+            'pay_method'    =>  'alipay',
+            'id'    =>  $order_id,
+        );
+        $update_sql = $this->objDB->update_string('orders', $data, $where);
+        $query = $this->objDB->query($update_sql);
+
+        if($query === true)
+            return true;
+        else
+            return false;
+    }
+
+    public function updateNonMemberCartTradeNo($trade_no)
+    {
+        $current_user_id = $this->session->userdata('current_user_id');
+        $data['trade_no'] = $trade_no;
+        $where = array(
+            'user_id'   =>  $current_user_id,
+            'is_pay'    =>  'false',
+            'pay_method'    =>  'alipay',
+        );
+        $update_sql = $this->objDB->update_string('orders', $data, $where);
+        $query = $this->objDB->query($update_sql);
+
+        if($query === true)
+            return true;
+        else
+            return false;
+
+    }
+
+    public function updatePaymentStatus($trade_no)
+    {
+        $data = array();
+        $data['is_pay'] = 'true';
+        $where = array(
+            'trade_no'  =>  $trade_no,
+        );
+        $update_sql = $this->objDB->update_string('orders', $data, $where);
+        $query = $this->objDB->query($update_sql);
+
+        if($query === true)
+            return true;
+        else
+            return false;
     }
 }

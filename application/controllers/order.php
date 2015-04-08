@@ -7,7 +7,7 @@ class Order extends MY_Controller {
     public function __construct(){
         parent::__construct();
         if($this->session->userdata('role') != 'admin' && $this->session->userdata('role') != 'user')
-            redirect('error404');
+            redirect('login');
         $this->load->model('MProduct', 'MProduct');
         $this->load->model('MOrder', 'MOrder');
         $this->load->model('MUser', 'MUser');
@@ -483,8 +483,13 @@ class Order extends MY_Controller {
                 'label'   => 'Purchase quantity',
                 'rules'   => 'trim|xss_clean|is_natural|greater_than[0]'
             ),
+            array(
+                'field'   => 'pay_method',
+                'label'   => 'Pay method',
+                'rules'   => 'trim|xss_clean|required'
+            ),
         );
-        if($this->input->post('is_post') === true)
+        if($this->input->post('is_post') == 1)
         {
             array_merge($config,
                 array(
@@ -510,21 +515,16 @@ class Order extends MY_Controller {
             );
         }
 
+
         $this->form_validation->set_rules($config);
         if(isset($_POST) && !empty($_POST))
         {
+            $this->__extra_verify();
             if ($this->form_validation->run() == FALSE)
             {
                 $this->load->view('templates/header_user', $data);
                 $this->load->view('order/add', $data);
             }else{
-                $main_data = array(
-                    //'product_id' => $this->input->post('product_id'),
-                    'product_id' => $product_id,
-                    'count' => $this->input->post('count'),
-                    'level' => $this->MUser->intGetCurrentUserLevel($this->session->userdata('current_user_id')),
-                    'is_post' => $this->input->post('is_post'),
-                );
                 $address_info = array(
                     'province_id' => $this->input->post('province_id'),
                     'city_id' => $this->input->post('city_id'),
@@ -533,11 +533,21 @@ class Order extends MY_Controller {
                     'mobile'  => $this->input->post('mobile'),
                     'remark'  => $this->input->post('remark'),
                 );
+                $main_data = array(
+                    //'product_id' => $this->input->post('product_id'),
+                    'product_id' => $product_id,
+                    'count' => $this->input->post('count'),
+                    'level' => $this->MUser->intGetCurrentUserLevel($this->session->userdata('current_user_id')),
+                    'pay_method' => $this->input->post('pay_method'),
+                    'is_post' => $this->input->post('is_post'),
+                    'post_fee' => 0,
+                );
+                $main_data['post_fee'] = $this->calcPostFee($main_data, $address_info);
                 $result_id = $this->MOrder->intAddReturnOrderId($main_data, $address_info);
                 if($result_id != 0){
                     $this->session->set_flashdata('flashdata', '订单添加成功');
-                    if($this->input->post('is_post') === true)
-                        redirect('order/pay/'.$result_id);
+                    if($this->input->post('pay_method') == 'alipay')
+                        redirect('order/pay_method/'.$result_id);
                     else
                         redirect('order/add/'.$product_id);
                 }
@@ -594,8 +604,13 @@ class Order extends MY_Controller {
                 'label'   => 'Purchase quantity',
                 'rules'   => 'trim|xss_clean|is_natural|greater_than[0]'
             ),
+            array(
+                'field'   => 'pay_method',
+                'label'   => 'Pay method',
+                'rules'   => 'trim|xss_clean|required'
+            ),
         );
-        if($this->input->post('is_post') === true)
+        if($this->input->post('is_post') == 1)
         {
             array_merge($config,
                 array(
@@ -624,19 +639,12 @@ class Order extends MY_Controller {
         $this->form_validation->set_rules($config);
         if(isset($_POST) && !empty($_POST))
         {
+            $this->__extra_verify();
             if ($this->form_validation->run() == FALSE)
             {
                 $this->load->view('templates/header_user', $data);
                 $this->load->view('order/add_non_member', $data);
             }else{
-                $main_data = array(
-                    //'product_id' => $this->input->post('product_id'),
-                    'product_id' => $product_id,
-                    'count' => $this->input->post('count'),
-                    'level' => $this->MUser->intGetCurrentUserLevel($this->session->userdata('current_user_id')),
-                    'is_post' => $this->input->post('is_post'),
-                    'is_valid' => false,
-                );
                 $address_info = array(
                     'province_id' => $this->input->post('province_id'),
                     'city_id' => $this->input->post('city_id'),
@@ -645,6 +653,17 @@ class Order extends MY_Controller {
                     'mobile'  => $this->input->post('mobile'),
                     'remark'  => $this->input->post('remark'),
                 );
+                $main_data = array(
+                    //'product_id' => $this->input->post('product_id'),
+                    'product_id' => $product_id,
+                    'count' => $this->input->post('count'),
+                    'level' => $this->MUser->intGetCurrentUserLevel($this->session->userdata('current_user_id')),
+                    'is_post' => $this->input->post('is_post'),
+                    'pay_method' => $this->input->post('pay_method'),
+                    'post_fee' => 0,
+                    'is_valid' => false,
+                );
+                $main_data['post_fee'] = $this->calcPostFee($main_data, $address_info);
                 $result_id = $this->MOrder->intAddNonMemberReturnOrderId($main_data, $address_info);
                 if($result_id != 0){
                     $this->session->set_flashdata('flashdata', '加入购物车成功');
@@ -713,11 +732,154 @@ class Order extends MY_Controller {
             exit('not enough');
         }
         $result = $this->MOrder->enableCart($this->session->userdata('current_user_id'));
-        if($result)
+        if($result) {
             $this->session->set_flashdata('flashdata', '结算成功');
-        else
+            $this->session->set_userdata('token', md5(date('YmdHis').rand(0, 32000)) );
+            redirect('order/pay_method_non_member');
+        } else {
             $this->session->set_flashdata('flashdata', '结算失败');
-        redirect('product/listpage/');
+            redirect('product/listpage/');
+        }
+    }
+
+    public function pay_method($order_id)
+    {
+        $this->session->set_userdata('token', md5(date('YmdHis').rand(0, 32000)) );
+        $data = array();
+        $data = $this->MOrder->getOrderPrice($order_id);
+        $data->token = $this->session->userdata('token');
+        $data->order_id = $order_id;
+        $this->load->view('templates/header_user', $data);
+        $this->load->view('order/pay_method', $data);
+    }
+
+    public function pay_method_non_member()
+    {
+        $this->session->set_userdata('token', md5(date('YmdHis').rand(0, 32000)) );
+        $data = array();
+        $data = $this->MOrder->getNonMemberCartTotal();
+        $data->token = $this->session->userdata('token');
+        $this->load->view('templates/header_user', $data);
+        $this->load->view('order/pay_method_non_member', $data);
+    }
+
+    public function pay($order_id)
+    {
+        if(!$this->__validate_token())
+            exit('your operation is expired!');
+        $this->MOrder->is_paid($order_id);
+        require_once("application/third_party/alipay/lib/alipay_submit.class.php");
+        $alipay_config = alipay_config();
+        $alipaySubmit = new AlipaySubmit($alipay_config);
+
+
+        $payment_type = "1";
+        $notify_url = base_url()."alipay_notify?alipay=sb";
+        //there's a bug that alipay api will filter out the first para of the url return.
+        //fixed it by insert a para in the url.
+
+        $return_url = base_url()."order/return_alipay?alipay=sb";
+
+        $out_trade_no = $this->session->userdata('user') . date('YmdHis') . random_string('numeric', 4);
+
+        $is_update_out_trade_no_success = $this->MOrder->updateOrderTradeNo($out_trade_no, $order_id);
+        if(!$is_update_out_trade_no_success)
+            exit('error!\nPlease try again later');
+
+        $subject = $this->session->userdata('user') . "_-_ERP_no.".$order_id;
+
+        $data = $this->MOrder->getOrderPrice($order_id);
+        $total_fee = $data->total;
+
+
+        //$anti_phishing_key = $alipaySubmit->query_timestamp();
+        $anti_phishing_key = "";
+
+        $exter_invoke_ip = get_client_ip();
+
+        $body = "";
+        $show_url = "";
+
+        $parameter = array(
+            "service" => "create_direct_pay_by_user",
+            "partner" => trim($alipay_config['partner']),
+            "seller_email" => trim($alipay_config['seller_email']),
+            "payment_type"	=> $payment_type,
+            "notify_url"	=> $notify_url,
+            "return_url"	=> $return_url,
+            "out_trade_no"	=> $out_trade_no,
+            "subject"	=> $subject,
+            "total_fee"	=> $total_fee,
+            "body"	=> $body,
+            "show_url"	=> $show_url,
+            "anti_phishing_key"	=> $anti_phishing_key,
+            "exter_invoke_ip"	=> $exter_invoke_ip,
+            "_input_charset"	=> trim(strtolower($alipay_config['input_charset']))
+        );
+
+        $html_text = $alipaySubmit->buildRequestForm($parameter,"get", "确认");
+        echo "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"></head>";
+        echo "<div style=\"display:none;\">".$html_text."</div></html>";
+
+    }
+
+    public function pay_non_member()
+    {
+        if(!$this->__validate_token())
+            exit('your operation is expired!');
+        require_once("application/third_party/alipay/lib/alipay_submit.class.php");
+        $alipay_config = alipay_config();
+        $alipaySubmit = new AlipaySubmit($alipay_config);
+
+
+        $payment_type = "1";
+        $notify_url = base_url()."alipay_notify?alipay=sb";
+        //there's a bug that alipay api will filter out the first para of the url return.
+        //fixed it by insert a para in the url.
+
+        $return_url = base_url()."order/return_alipay?alipay=sb";
+
+        $out_trade_no = $this->session->userdata('user') . date('YmdHis') . random_string('numeric', 4);
+
+        $is_update_out_trade_no_success = $this->MOder->updateNonMemberCartTradeNo($out_trade_no);
+        if(!$is_update_out_trade_no_success)
+            exit('error!\nPlease try again later');
+
+        $subject = $this->session->userdata('user') . "_-_ERP_no.CART";
+
+        $data = $this->MOrder->getNonMemberCartTotal();
+        $total_fee = $data->total;
+
+
+        //$anti_phishing_key = $alipaySubmit->query_timestamp();
+        $anti_phishing_key = "";
+
+        $exter_invoke_ip = get_client_ip();
+
+        $body = "";
+        $show_url = "";
+
+        $parameter = array(
+            "service" => "create_direct_pay_by_user",
+            "partner" => trim($alipay_config['partner']),
+            "seller_email" => trim($alipay_config['seller_email']),
+            "payment_type"	=> $payment_type,
+            "notify_url"	=> $notify_url,
+            "return_url"	=> $return_url,
+            "out_trade_no"	=> $out_trade_no,
+            "subject"	=> $subject,
+            "total_fee"	=> $total_fee,
+            "body"	=> $body,
+            "show_url"	=> $show_url,
+            "anti_phishing_key"	=> $anti_phishing_key,
+            "exter_invoke_ip"	=> $exter_invoke_ip,
+            "_input_charset"	=> trim(strtolower($alipay_config['input_charset']))
+        );
+
+        $html_text = $alipaySubmit->buildRequestForm($parameter,"get", "确认");
+        echo "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"></head>";
+        echo "<div style=\"display:none;\">".$html_text."</div></html>";
+
     }
 
     public function delete($order_id, $product_id){
@@ -735,6 +897,76 @@ class Order extends MY_Controller {
         else
             $this->session->set_flashdata('flashdata', '移除失败');
         redirect('order/add_non_member/'.$product_id);
+    }
+
+    private function calcPostFee($data, $address_info)
+    {
+        if($data['is_post'] == 1) {
+            $this->db->select('first_pay')
+                ->select('additional_pay')
+                ->select('first_weight')
+                ->select('additional_weight')
+                ->from('post_rules')
+                ->where(
+                    array(
+                        'province_id' => $address_info['province_id'],
+                        'city_id' => $address_info['city_id']
+                    )
+                );
+            $query = $this->db->get()->result();
+            if(empty($query)) {
+                $this->db->select('first_pay')
+                    ->select('additional_pay')
+                    ->select('first_weight')
+                    ->select('additional_weight')
+                    ->from('post_rules')
+                    ->where(
+                        array(
+                            'province_id' => $address_info['province_id'],
+                            'city_id' => 0,
+                        )
+                    );
+                $query = $this->db->get()->result();
+            }
+            if(empty($query)) {
+                $this->db->select('first_pay')
+                    ->select('additional_pay')
+                    ->select('first_weight')
+                    ->select('additional_weight')
+                    ->from('post_rules')
+                    ->where(
+                        array(
+                            'province_id' => 0,
+                            'city_id' => 0,
+                        )
+                    );
+                $query = $this->db->get()->result();
+            }
+
+            $query = $query[0];
+            $first_pay = money($query->first_pay);
+            $additional_pay = money($query->additional_pay);
+            $first_weight = $query->first_weight;
+            $additional_weight = $query->additional_weight;
+            $quantity = $data['count'];
+            $product_id = $data['product_id'];
+            $total_weight = $this->db->select('weight')
+                ->from('products')
+                ->where(array('id' => $product_id))
+                ->get()
+                ->result()[0]->weight;
+            $total_weight = $total_weight * $quantity;
+
+            if($total_weight < $first_weight) {
+                return $first_pay;
+            } else {
+                $additional_total_weight = $total_weight - $first_weight;
+                $additional_count = ceil( bcdiv($additional_total_weight, $additional_weight, 4) );
+                return bcadd( $first_pay, bcmul($additional_pay, $additional_count));
+            }
+        } else {
+            return 0;
+        }
     }
 
     private function __get_search_str($search = '', $uid = '', $is_finish = null, $date_from = null, $date_to = null, $hour = null)
@@ -778,5 +1010,80 @@ class Order extends MY_Controller {
     {
 
     }
+
+
+    public function return_alipay()
+    {
+        require_once("application/third_party/alipay/lib/alipay_notify.class.php");
+        $alipay_config = alipay_config();
+        $alipayNotify = new AlipayNotify($alipay_config);
+        $verify_result = $alipayNotify->verifyReturn();
+        if($verify_result) {//验证成功
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            //请在这里加上商户的业务逻辑程序代码
+
+            //——请根据您的业务逻辑来编写程序（以下代码仅作参考）——
+            //获取支付宝的通知返回参数，可参考技术文档中页面跳转同步通知参数列表
+
+            //商户订单号
+
+            $out_trade_no = $_GET['out_trade_no'];
+
+            //支付宝交易号
+
+            $trade_no = $_GET['trade_no'];
+
+            //交易状态
+            $trade_status = $_GET['trade_status'];
+
+
+            if($_GET['trade_status'] == 'TRADE_FINISHED' || $_GET['trade_status'] == 'TRADE_SUCCESS') {
+                //判断该笔订单是否在商户网站中已经做过处理
+                //如果没有做过处理，根据订单号（out_trade_no）在商户网站的订单系统中查到该笔订单的详细，并执行商户的业务程序
+                //如果有做过处理，不执行商户的业务程序
+                echo "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"></head>";
+                echo "验证成功<br />";
+                echo "<script>alert('支付成功！请等待管理员审核完成实物交易。');</script>";
+                echo "<script>this.window.close();</script>";
+                echo "</html>";
+            }
+            else {
+                echo "trade_status=".$_GET['trade_status'];
+            }
+
+            //——请根据您的业务逻辑来编写程序（以上代码仅作参考）——
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        }
+        else {
+            //验证失败
+            //如要调试，请看alipay_notify.php页面的verifyReturn函数
+            echo "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"></head>";
+            echo "验证失败";
+            echo "</html>";
+        }
+    }
+
+
+    private function  __validate_token($token = 'token'){
+        if(isset($_POST[$token]) && $_POST[$token] != $this->session->userdata($token)){
+            $this->session->set_userdata('token', md5(date('YmdHis').rand(0, 32000)) );
+            return false;
+        }else if(!isset($_POST[$token])){
+            $this->session->set_userdata('token', md5(date('YmdHis').rand(0, 32000)) );
+            return false;
+        }else if($_POST[$token] == $this->session->userdata($token)){
+            return true;
+        }
+    }
+
+    private function __extra_verify()
+    {
+        if($this->input->post('pay_method') != 'alipay'
+        && $this->input->post('pay_method') != 'offline')
+            exit('pay_method error!');
+    }
+
+
 }
 
