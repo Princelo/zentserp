@@ -3,10 +3,10 @@
     RewriteEngine On
 
     # Explicitly disable rewriting for front controllers
-    RewriteRule ^/zentserp/index.php - [L]
+    RewriteRule ^/index.php - [L]
 
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !^.*\.(gif|jpg|jpeg|png|swf|js|html|htm)$
     # Change below before deploying to production
-    RewriteRule ^(.*)$ /zentserp/index.php [QSA,L]
+    RewriteRule ^(.*)$ /index.php [QSA,L]
 </IfModule>
