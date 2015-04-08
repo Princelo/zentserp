@@ -841,7 +841,7 @@ class Order extends MY_Controller {
 
         $out_trade_no = $this->session->userdata('user') . date('YmdHis') . random_string('numeric', 4);
 
-        $is_update_out_trade_no_success = $this->MOder->updateNonMemberCartTradeNo($out_trade_no);
+        $is_update_out_trade_no_success = $this->MOrder->updateNonMemberCartTradeNo($out_trade_no);
         if(!$is_update_out_trade_no_success)
             exit('error!\nPlease try again later');
 
