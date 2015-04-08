@@ -503,7 +503,7 @@ class Trial_Order extends MY_Controller {
     {
         if(!$this->__validate_token())
             exit('your operation is expired!');
-        $this->MOrder->is_paid($order_id);
+        $this->MTrailOrder->is_paid($order_id);
         require_once("application/third_party/alipay/lib/alipay_submit.class.php");
         $alipay_config = alipay_config();
         $alipaySubmit = new AlipaySubmit($alipay_config);
@@ -689,6 +689,60 @@ class Trial_Order extends MY_Controller {
             }
         } else {
             return 0;
+        }
+    }
+
+    public function return_alipay()
+    {
+        require_once("application/third_party/alipay/lib/alipay_notify.class.php");
+        $alipay_config = alipay_config();
+        $alipayNotify = new AlipayNotify($alipay_config);
+        $verify_result = $alipayNotify->verifyReturn();
+        if($verify_result) {//验证成功
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            //请在这里加上商户的业务逻辑程序代码
+
+            //——请根据您的业务逻辑来编写程序（以下代码仅作参考）——
+            //获取支付宝的通知返回参数，可参考技术文档中页面跳转同步通知参数列表
+
+            //商户订单号
+
+            $out_trade_no = $_GET['out_trade_no'];
+
+            //支付宝交易号
+
+            $trade_no = $_GET['trade_no'];
+
+            //交易状态
+            $trade_status = $_GET['trade_status'];
+
+
+            if($_GET['trade_status'] == 'TRADE_FINISHED' || $_GET['trade_status'] == 'TRADE_SUCCESS') {
+                //判断该笔订单是否在商户网站中已经做过处理
+                //如果没有做过处理，根据订单号（out_trade_no）在商户网站的订单系统中查到该笔订单的详细，并执行商户的业务程序
+                //如果有做过处理，不执行商户的业务程序
+                echo "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"></head>";
+                echo "验证成功<br />";
+                echo "<script>alert('支付成功！请等待管理员审核完成实物交易。');</script>";
+                echo "<script>window.location=".base_url()."order/listpage;</script>";
+                echo "</html>";
+            }
+            else {
+                echo "trade_status=".$_GET['trade_status'];
+            }
+
+            //——请根据您的业务逻辑来编写程序（以上代码仅作参考）——
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        }
+        else {
+            //验证失败
+            //如要调试，请看alipay_notify.php页面的verifyReturn函数
+            echo "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"></head>";
+            echo "<script>alert('你的支付信息将同步到系统！请等待管理员审核完成实物交易。');</script>";
+            echo "<script>window.location=".base_url()."order/listpage;</script>";
+            echo "验证失败";
+            echo "</html>";
         }
     }
 }
