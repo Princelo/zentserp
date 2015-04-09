@@ -142,7 +142,7 @@
                     <tr>
                         <th>付款方式</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="<?=$v->is_pay_online=='t'?'线上付款':'线下付款';?>" />
+                            <input type="text" name="" disabled="disabled" value="<?=$v->pay_method=='alipay'?'线上付款':'线下付款';?>" />
                         </td>
                     </tr>
                     <tr>

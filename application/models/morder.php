@@ -332,6 +332,7 @@ class MOrder extends CI_Model
                    o.finish_time    finish_time,
                    o.create_time    stock_time,
                    o.is_pay_online  is_pay_online,
+                   o.pay_method     pay_method,
                    o.pay_amt_without_post_fee   pay_amt_without_post_fee,
                    o.is_first       is_first
             from
