@@ -40,7 +40,8 @@ class MOrder extends CI_Model
                    b.mobile         mobile,
                    b.remark         remark,
                    o.finish_time    finish_time,
-                   o.create_time    stock_time
+                   o.create_time    stock_time,
+                   o.pay_method     pay_method
             from
                 orders o, products p, users u, address_books b, amounts a
             where

@@ -341,21 +341,21 @@ class Order extends MY_Controller {
                     $this->session->set_flashdata('flashdata', '操作有误: 订单已完成');
                     redirect('order/details_admin/'.$order_id);
                 }
-                if($data['v']->is_pay_online == 't')
-                {
-                    $this->session->set_flashdata('flashdata', '该订单属于线上付款类，不能插入新付款纪录');
-                    redirect('order/details_admin/'.$order_id);
-                }
-                if($data['v']->is_pay == 't')
-                {
-                    $this->session->set_flashdata('flashdata', '该订单已支付金额，不能插入新付款纪录');
-                    redirect('order/details_admin/'.$order_id);
-                }
-                if(money($data['v']->pay_amt) > 0)
-                {
-                    $this->session->set_flashdata('flashdata', '该订单已支付金额，不能插入新付款纪录');
-                    redirect('order/details_admin/'.$order_id);
-                }
+                //if($data['v']->is_pay_online == 't')
+                //{
+                    //$this->session->set_flashdata('flashdata', '该订单属于线上付款类，不能插入新付款纪录');
+                    //redirect('order/details_admin/'.$order_id);
+                //}
+                //if($data['v']->is_pay == 't')
+                //{
+                //    $this->session->set_flashdata('flashdata', '该订单已支付金额，不能插入新付款纪录');
+                //    redirect('order/details_admin/'.$order_id);
+                //}
+                //if(money($data['v']->pay_amt) > 0)
+                //{
+                //    $this->session->set_flashdata('flashdata', '该订单已支付金额，不能插入新付款纪录');
+                //    redirect('order/details_admin/'.$order_id);
+                //}
                 $result = $this->MOrder->finish_with_pay($order_id,
                                                          bcmul(money($data['v']->unit_price), $data['v']->quantity, 4 ),
                                                          $data['v']->uid,
@@ -744,6 +744,10 @@ class Order extends MY_Controller {
 
     public function pay_method($order_id)
     {
+        if($this->session->userdata('role') == 'admin')
+            exit('You are the admin.');
+        if($this->session->userdata('level') == 0 )
+            exit('You are not a member');
         $this->session->set_userdata('token', md5(date('YmdHis').rand(0, 32000)) );
         $data = array();
         $data = $this->MOrder->getOrderPrice($order_id);
@@ -755,6 +759,10 @@ class Order extends MY_Controller {
 
     public function pay_method_non_member()
     {
+        if($this->session->userdata('role') == 'admin')
+            exit('You are the admin.');
+        if($this->session->userdata('level') != 0)
+            exit('You are a member');
         $this->session->set_userdata('token', md5(date('YmdHis').rand(0, 32000)) );
         $data = array();
         $data = $this->MOrder->getNonMemberCartTotal();
@@ -765,6 +773,10 @@ class Order extends MY_Controller {
 
     public function pay($order_id)
     {
+        if($this->session->userdata('role') == 'admin')
+            exit('You are the admin.');
+        if($this->session->userdata('level') == 0 )
+            exit('You are not a member');
         if(!$this->__validate_token())
             exit('your operation is expired!');
         $this->MOrder->is_paid($order_id);
@@ -825,6 +837,10 @@ class Order extends MY_Controller {
 
     public function pay_non_member()
     {
+        if($this->session->userdata('role') == 'admin')
+            exit('You are the admin.');
+        if($this->session->userdata('level') != 0 )
+            exit('You are a member');
         if(!$this->__validate_token())
             exit('your operation is expired!');
         require_once("application/third_party/alipay/lib/alipay_submit.class.php");

@@ -181,8 +181,9 @@
                     <tr>
                         <th><span class="red">确认订单完成</span> </th>
                         <td>
-                            <input type="radio" name="finish" value="finish_with_pay" /><span class="red">完成并插入付款纪录(用于线下付款订单)<br />
-                            <input type="radio" name="finish" value="finish_without_pay" /><span class="red">完成但不插入付款纪录(用于线上付款订单)<br />
+                            <!--<input type="radio" name="finish" value="finish_with_pay" /><span class="red">完成并插入付款纪录(用于线下付款订单)<br />-->
+                            <input type="radio" name="finish" value="finish_with_pay" /><span class="red">完成<br />
+                            <!--<input type="radio" name="finish" value="finish_without_pay" /><span class="red">完成但不插入付款纪录(用于线上付款订单)<br />-->
                             <!--<input type="radio" name="finish" value="unfinish_rollback" disabled="disabled">未完成并取消付款纪录(用于线下付款订单)<br />
                             <input type="radio" name="finish" value="unfinish" disabled="disabled">未完成但不取消付款纪录(用于线上付款订单)<br />-->
                             <input type="button" onclick="finishConfirm()" name="btnSubmit" value="提交 "  />			</div>
