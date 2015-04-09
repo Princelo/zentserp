@@ -265,7 +265,7 @@ class Trial_Order extends MY_Controller {
                     $this->session->set_flashdata('flashdata', '操作有误: 订单已完成');
                     redirect('trial_order/details_admin/'.$order_id);
                 }
-                if($data['v']->is_pay_online == 't')
+                /*if($data['v']->is_pay_online == 't')
                 {
                     $this->session->set_flashdata('flashdata', '该订单属于线上付款类，不能插入新付款纪录');
                     redirect('trial_order/details_admin/'.$order_id);
@@ -279,7 +279,7 @@ class Trial_Order extends MY_Controller {
                 {
                     $this->session->set_flashdata('flashdata', '该订单已支付金额，不能插入新付款纪录');
                     redirect('trial_order/details_admin/'.$order_id);
-                }
+                }*/
                 $result = $this->MTrialOrder->finish_with_pay($order_id,
                                                          bcmul(money($data['v']->unit_price), $data['v']->quantity, 4 ),
                                                          $data['v']->uid,
@@ -490,6 +490,10 @@ class Trial_Order extends MY_Controller {
     }
     public function pay_method($order_id)
     {
+        if($this->session->userdata('role') == 'admin')
+            exit('You are the admin.');
+        if($this->session->userdata('level') == 0 )
+            exit('You are not a member');
         $this->session->set_userdata('token', md5(date('YmdHis').rand(0, 32000)) );
         $data = array();
         $data = $this->MTrialOrder->getOrderPrice($order_id);
@@ -501,6 +505,10 @@ class Trial_Order extends MY_Controller {
 
     public function pay($order_id)
     {
+        if($this->session->userdata('role') == 'admin')
+            exit('You are the admin.');
+        if($this->session->userdata('level') == 0 )
+            exit('You are not a member');
         if(!$this->__validate_token())
             exit('your operation is expired!');
         $this->MTrailOrder->is_paid($order_id);

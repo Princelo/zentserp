@@ -68,6 +68,7 @@
                     <th>订单备注</th>
                     <th>订单提交时间</th>
                     <th></th>
+                    <th></th>
                 </tr>
                 <? $n = 0; ?>
                 <? if(!empty($orders)) {?>
@@ -87,6 +88,11 @@
                         <td><?=$v->remark?></td>
                         <td><?=substr($v->stock_time, 0, 19);?></td>
                         <td><a href="<?=base_url()?>trial_order/details/<?=$v->id;?>">查看详情</a></td>
+                        <td>
+                            <? if($v->is_pay == 'f' && $v->pay_method == 'alipay') {?>
+                                <a href="<?=base_url()?>order/pay_method/<?=$v->id?>">付款</a>
+                            <? } ?>
+                        </td>
                     </tr>
                 <? } ?>
                 <? } ?>
