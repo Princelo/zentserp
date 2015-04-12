@@ -27,9 +27,10 @@
 
             <div class="info view_form">
                 <h2>报表查询系统</h2>
-            <span class="red">
-                <?=$this->session->flashdata('flashdata', 'value');?>
-            </span>
+                <script>
+                    if("<?=$this->session->flashdata('flashdata', 'value');?>"!="")
+                        alert("<?=$this->session->flashdata('flashdata', 'value');?>");
+                </script>
                 <form action="<?=base_url()?>order/listpage_sub" method="get">
                     <fieldset>
                         <legend>下级代理订单查询 </legend>

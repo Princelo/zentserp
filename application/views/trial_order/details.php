@@ -28,9 +28,10 @@
 
 
         <div class="toolbar type-button">
-            <span class="red">
-                <?=$this->session->flashdata('flashdata', 'value');?>
-            </span>
+            <script>
+                if("<?=$this->session->flashdata('flashdata', 'value');?>"!="")
+                    alert("<?=$this->session->flashdata('flashdata', 'value');?>");
+            </script>
             <div class="c50l">
                 <h3>订单详情 订单号(<?=$v->id;?>) </h3>
             </div>
