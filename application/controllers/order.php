@@ -1060,7 +1060,7 @@ class Order extends MY_Controller {
                 echo "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"></head>";
                 echo "验证成功<br />";
                 echo "<script>alert('支付成功！请等待管理员审核完成实物交易。');</script>";
-                echo "<script>window.location=".base_url()."order/listpage;</script>";
+                echo "<script>window.location=\"".base_url()."order/listpage\";</script>";
                 echo "</html>";
             }
             else {
@@ -1076,7 +1076,7 @@ class Order extends MY_Controller {
             //如要调试，请看alipay_notify.php页面的verifyReturn函数
             echo "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"></head>";
             echo "<script>alert('你的支付信息将同步到系统！请等待管理员审核完成实物交易。');</script>";
-            echo "<script>window.location=".base_url()."order/listpage;</script>";
+            echo "<script>window.location=\"".base_url()."order/listpage\";</script>";
             echo "验证失败";
             echo "</html>";
         }
