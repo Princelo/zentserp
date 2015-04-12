@@ -31,9 +31,10 @@
 
         <div class="info view_form">
             <h2>产品列表</h2>
-            <span class="red">
-                <?=$this->session->flashdata('flashdata', 'value');?>
-            </span>
+            <script>
+                if("<?=$this->session->flashdata('flashdata', 'value');?>"!="")
+                    alert("<?=$this->session->flashdata('flashdata', 'value');?>");
+            </script>
             <div>
                 <form action="<?=base_url()?>trial_product/listpage_admin" method="get">
                     <table>

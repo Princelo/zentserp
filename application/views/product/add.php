@@ -30,9 +30,10 @@
 
         <div class="toolbar type-button">
             <h4><?php echo validation_errors(); ?></h4>
-            <span class="red">
-                <?=$this->session->flashdata('flashdata', 'value');?>
-            </span>
+            <script>
+                if("<?=$this->session->flashdata('flashdata', 'value');?>"!="")
+                    alert("<?=$this->session->flashdata('flashdata', 'value');?>");
+            </script>
             <div class="c50l">
                 <h3><?=($error!="")?"<span style=\"color:red\">".$error."</span>":"添加产品";?> </h3>
             </div>

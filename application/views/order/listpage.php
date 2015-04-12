@@ -31,9 +31,10 @@
 
         <div class="info view_form">
             <h2>订单列表</h2>
-            <span class="red">
-                <?=$this->session->flashdata('flashdata', 'value');?>
-            </span>
+            <script>
+                if("<?=$this->session->flashdata('flashdata', 'value');?>"!="")
+                    alert("<?=$this->session->flashdata('flashdata', 'value');?>");
+            </script>
             <div>
                 <? if($this->session->userdata('level') == 0){?>
                     <a href="<?=base_url()?>order/pay_method_non_member">现在付款(未完成支付线上订单)</a>

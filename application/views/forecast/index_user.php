@@ -8,9 +8,10 @@
             <div class="info view_form">
                 <h2>臻芝ERP管理系统 </h2>
                 <h4><?php echo validation_errors(); ?>
-                <span class="red">
-                    <?=$this->session->flashdata('flashdata', 'value');?>
-                </span>
+                    <script>
+                        if("<?=$this->session->flashdata('flashdata', 'value');?>"!="")
+                            alert("<?=$this->session->flashdata('flashdata', 'value');?>");
+                    </script>
                 </h4>
                 <?php //phpinfo(); ?>
                 <h4>公告:</h4>
