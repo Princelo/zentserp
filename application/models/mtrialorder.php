@@ -40,7 +40,9 @@ class MTrialOrder extends CI_Model
                    b.mobile         mobile,
                    b.remark         remark,
                    o.finish_time    finish_time,
-                   o.create_time    stock_time
+                   o.create_time    stock_time,
+                   o.pay_method     pay_method,
+                   o.post_info      post_info
             from
                 trial_orders o, trial_products p, users u, address_books b, trial_amounts a
             where
@@ -205,7 +207,8 @@ class MTrialOrder extends CI_Model
                    o.is_pay_online  is_pay_online,
                    o.pay_method     pay_method,
                    o.pay_amt_without_post_fee   pay_amt_without_post_fee,
-                   o.is_first       is_first
+                   o.is_first       is_first,
+                   o.post_info      post_info
             from
                 trial_orders o, trial_products p, users u, address_books b, trial_amounts a
             where

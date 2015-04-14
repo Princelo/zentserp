@@ -77,6 +77,7 @@
                     <th>订单联系人</th>
                     <th>联系人电话</th>
                     <th>订单备注</th>
+                    <th>快递单号</th>
                     <th>订单提交时间</th>
                     <th></th>
                 </tr>
@@ -97,6 +98,7 @@
                         <td><?=$v->linkman?></td>
                         <td><?=$v->mobile?></td>
                         <td><?=$v->remark?></td>
+                        <td><?=$v->post_info?></td>
                         <td><?=substr($v->stock_time, 0, 19);?></td>
                         <td><a href="<?=base_url()?>trial_order/details_admin/<?=$v->id;?>">查看详情</a></td>
                     </tr>
