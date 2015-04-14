@@ -332,6 +332,10 @@ class Order extends MY_Controller {
             exit('You are not the admin.');
         $data = array();
         $data['v'] = $this->MOrder->objGetOrderInfo($order_id);
+        if($this->input->post('post_info') != '')
+        {
+            $this->db->query("update orders set post_info = '{$this->input->post('post_info')}' where id = {$order_id}");
+        }
         if($this->input->post('finish', true) != '')
         {
             if($this->input->post('finish') == 'finish_with_pay')

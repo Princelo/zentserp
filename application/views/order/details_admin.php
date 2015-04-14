@@ -182,6 +182,12 @@
                         </td>
                     </tr>
                     <tr>
+                        <th>快递单号</th>
+                        <td>
+                            <input type="text" name="post_info" value="<?=$v->post_info?>" />
+                        </td>
+                    </tr>
+                    <tr>
                         <th><span class="red">确认订单完成</span> </th>
                         <td>
                             <!--<input type="radio" name="finish" value="finish_with_pay" /><span class="red">完成并插入付款纪录(用于线下付款订单)<br />-->
