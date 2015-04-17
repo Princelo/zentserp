@@ -763,6 +763,22 @@ class MOrder extends CI_Model
         }
     }
 
+    public function checkIsOwnTrial($user_id, $order_id)
+    {
+        $query_sql = "select count(1) from trial_orders where id = ? and user_id = ?;";
+        $binds = array($order_id, $user_id);
+        $data = array();
+        $query = $this->objDB->query($query_sql, $binds);
+        if($query->num_rows() > 0){
+            if($query->result()[0]->count > 0 )
+                return true;
+            else
+                return false;
+        }else{
+            return false;
+        }
+    }
+
     public function delete($order_id)
     {
         $this->objDB->from("orders");
@@ -825,6 +841,34 @@ class MOrder extends CI_Model
         }
     }
 
+    public function is_paid_trial( $order_id)
+    {
+        $current_user_id = $this->session->userdata('current_user_id');
+        if(!$this->checkIsOwnTrial($current_user_id, $order_id))
+            exit('The order is not yours!');
+        $query_sql = "";
+        $query_sql .= "
+            select
+                count(1) as count
+            from
+                trial_orders
+                where
+                is_pay = true
+                and id = ?
+        ";
+        $binds = array($order_id);
+        $data = array();
+        $query = $this->objDB->query($query_sql, $binds);
+        if($query->num_rows() > 0){
+            if($query->result()[0]->count > 0 )
+                return true;
+            else
+                return false;
+        }else{
+            return false;
+        }
+    }
+
     public function getOrderPrice($id)
     {
         if($this->is_paid($id))
@@ -836,6 +880,31 @@ class MOrder extends CI_Model
                 a.amount::decimal * o.count + o.post_fee::decimal as total
             from
                 orders o, amounts a
+            where
+                a.order_id = ?
+            and a.order_id = o.id
+            and a.level = o.level
+            and o.is_pay = false
+            ;";
+        $binds = array($id);
+        $query = $this->objDB->query($query_sql, $binds);
+        $data = $query->result()[0];
+        $query->free_result();
+
+        return $data;
+    }
+
+    public function getOrderPriceTrial($id)
+    {
+        if($this->is_paid_trial($id))
+            exit('This order has paid!');
+        $query_sql = "
+            select
+                a.amount::decimal * o.count pay_amt_without_post_fee,
+                o.post_fee::decimal as post_fee,
+                a.amount::decimal * o.count + o.post_fee::decimal as total
+            from
+                trial_orders o, amounts a
             where
                 a.order_id = ?
             and a.order_id = o.id

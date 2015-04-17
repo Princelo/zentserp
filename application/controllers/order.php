@@ -761,6 +761,21 @@ class Order extends MY_Controller {
         $this->load->view('order/pay_method', $data);
     }
 
+    public function pay_method_trial($order_id)
+    {
+        if($this->session->userdata('role') == 'admin')
+            exit('You are the admin.');
+        if($this->session->userdata('level') == 0 )
+            exit('You are not a member');
+        $this->session->set_userdata('token', md5(date('YmdHis').rand(0, 32000)) );
+        $data = array();
+        $data = $this->MOrder->getOrderPriceTrial($order_id);
+        $data->token = $this->session->userdata('token');
+        $data->order_id = $order_id;
+        $this->load->view('templates/header_user', $data);
+        $this->load->view('trial_order/pay_method', $data);
+    }
+
     public function pay_method_non_member()
     {
         if($this->session->userdata('role') == 'admin')

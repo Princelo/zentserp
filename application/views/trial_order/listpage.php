@@ -93,7 +93,7 @@
                         <td><a href="<?=base_url()?>trial_order/details/<?=$v->id;?>">查看详情</a></td>
                         <td>
                             <? if($v->is_pay == 'f' && $v->pay_method == 'alipay') {?>
-                                <a href="<?=base_url()?>order/pay_method/<?=$v->id?>">付款</a>
+                                <a href="<?=base_url()?>trial_order/pay_method/<?=$v->id?>">付款</a>
                             <? } ?>
                         </td>
                     </tr>
