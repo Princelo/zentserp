@@ -323,7 +323,7 @@ class Order extends MY_Controller {
             exit('You are the admin.');
         $data = array();
         $data['v'] = $this->MOrder->objGetOrderInfo($order_id);
-        $this->load->view('templates/header', $data);
+        $this->load->view('templates/header_user', $data);
         $this->load->view('order/details', $data);
     }
     public function details_admin($order_id)

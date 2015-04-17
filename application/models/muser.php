@@ -384,8 +384,10 @@ class MUser extends CI_Model
     {
         $query_sql = "";
         $query_sql .= "
-            select count(so.id)
+            select count(p.id)
                 from users as p, users as u
+                where
+                1 = 1
                 and u.pid = p.id
                 and p.id = ?
                 and u.id = ?
