@@ -246,7 +246,7 @@ class Trial_Order extends MY_Controller {
             exit('You are the admin.');
         $data = array();
         $data['v'] = $this->MTrialOrder->objGetOrderInfo($order_id);
-        $this->load->view('templates/header', $data);
+        $this->load->view('templates/header_user', $data);
         $this->load->view('trial_order/details', $data);
     }
 
