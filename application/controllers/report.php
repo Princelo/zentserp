@@ -482,7 +482,7 @@ class Report extends MY_Controller {
             //$this->load->view('report/listpage', $data);
         }else{
             $this->session->set_flashdata('flashdata', '参数错误');
-            redirect('report/index');
+            redirect('report/index_admin');
         }
     }
 

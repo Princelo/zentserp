@@ -16,49 +16,64 @@ class MOrder extends CI_Model
     {
         $query_sql = "";
         $query_sql .= "
-            select p.title          title,
-                   p.id             pid,
+           select
+                   --p.title          title,
+                   --p.id             pid,
+                   sum(op.quantity) quantity,
+                   count(op.id)  diff_quantity,
+                   --string_agg(op.product_id::character(255), ',')     products,
                    o.id             id,
-                   u.username       username,
+                   u.name           username,
                    u.id             uid,
-                   u.name           name_ch,
-                   o.count          quantity,
-                   --o.post_fee       post_fee,
-                   a.amount         unit_price,
-                   --o.level          purchase_level,
+                   u.pid            parent_user_id,
+                   u.is_root        is_root,
+                   o.post_fee       post_fee,
+                   sum(a.amount*a.quantity)         amount,
+                   --sum(ta.amount)   trial_amount,
+                   o.level          purchase_level,
                    --o.parent_level   purchase_parent_level,
                    o.is_pay         is_pay,
                    o.is_correct     is_correct,
-                   --o.pay_time       pay_time,
-                   --o.pay_amt        pay_amt,
+                   o.pay_time       pay_time,
+                   o.pay_amt        pay_amt,
                    o.is_cancelled   is_cancelled,
                    o.is_post        is_post,
-                   --b.province_id    province_id,
-                   --b.city_id        city_id,
-                   --b.address_info   address_info,
+                   b.province_id    province_id,
+                   b.city_id        city_id,
+                   b.address_info   address_info,
                    b.contact        linkman,
                    b.mobile         mobile,
                    b.remark         remark,
                    o.finish_time    finish_time,
                    o.create_time    stock_time,
+                   o.is_pay_online  is_pay_online,
                    o.pay_method     pay_method,
+                   o.pay_amt_without_post_fee   pay_amt_without_post_fee,
+                   o.is_first       is_first,
                    o.post_info      post_info
             from
-                orders o, products p, users u, address_books b, amounts a
+                orders o
+                join order_product op
+                on op.order_id = o.id
+                and o.is_deleted = false
+                and
+                o.id = 108
+                join users u
+                on o.user_id = u.id
+                join address_books b
+                on b.id = o.address_book_id
+                join product_amount a
+                on a.order_id = o.id
+                and ((a.is_trial = true and a.level = 0 )
+                    or (a.is_trial = false and a.level = o.level))
+                    and a.product_id = op.product_id
+
             where
-                o.user_id = u.id
-                and
-                o.product_id = p.id
-                and
-                o.address_book_id = b.id
-                and
-                a.order_id = o.id
-                and
-                a.level = o.level
-                and
-                o.is_deleted = false
-                and o.is_valid = true
+                1 = 1
                 {$where}
+
+
+            group by o.id, u.name, u.id, a.amount, b.province_id, b.city_id, b.address_info, b.contact, b.mobile, b.remark
             {$order}
             {$limit}
         ";
@@ -71,6 +86,55 @@ class MOrder extends CI_Model
         }
         $query->free_result();
 
+        return $data;
+    }
+
+    public function addToCart($user_id, $product_id, $quantity, $is_trial)
+    {
+        $insert_sql = "
+            insert into cart_product(user_id, product_id, quantity, is_trial)
+            values(?, ?, ?, ?)
+            ;
+        ";
+        $binds = array(
+            $user_id, $product_id, $quantity, $is_trial
+        );
+        $result = $this->objDB->query($insert_sql, $binds);
+        if($result === true)
+            return true;
+        else
+            return false;
+    }
+
+    public function getCartInfo($user_id, $level)
+    {
+        $query_sql = "
+            select
+                c.product_id pid,
+                COALESCE(p.title, tp.title) title,
+                c.quantity quantity,
+                COALESCE(pr.price, tp.trial_price) as unit_price
+            from
+                cart_product c
+                left join products p
+                on p.is_trial = false
+                and p.id = c.product_id
+                left join price pr
+                on pr.level = {$level}
+                and pr.product_id = c.product_id
+                left join products tp
+                on tp.is_trial = true
+                and tp.id = c.product_id
+            where
+                c.user_id = {$user_id}
+        ";
+        $data = array();
+        $query = $this->objDB->query($query_sql);
+        if($query->num_rows() > 0){
+            foreach ($query->result() as $key => $val) {
+                $data[] = $val;
+            }
+        }
         return $data;
     }
 
@@ -193,18 +257,14 @@ class MOrder extends CI_Model
         $insert_sql_order = "";
         $insert_sql_order .= "
 
-            insert into orders (user_id, product_id, count, level, parent_level, address_book_id, is_post, post_fee, is_first, cart_id, pay_method)
+            insert into orders (user_id, level, parent_level, address_book_id, is_post, post_fee, is_first, pay_method)
             select {$current_user_id} user_id,
-                    ? product_id,
-                    ? count,
                     u.level as level,
                     u.plevel parent_level,
                     currval('address_books_id_seq') address_book_id,
                     ? is_post,
                     ? post_fee,
-                    --case when not exists (select id from orders where user_id = {$current_user_id}) then true else false end,
                     false,
-                    (select id from cart where user_id = {$current_user_id}),
                     ?
                 from
                 (select c.level as level, p.level plevel
@@ -213,43 +273,145 @@ class MOrder extends CI_Model
             ;
         ";
         $binds_order = array(
-            $main_data['product_id'], $main_data['count'], $main_data['is_post'], $post_fee, $main_data['pay_method']
+            $main_data['is_post'], $post_fee, $main_data['pay_method']
         );
+
+        $insert_sql_order_product = "
+            insert into order_product(order_id, product_id, quantity, is_trial) values";
+        foreach($main_data['products'] as $k => $v)
+        {
+            if(!is_numeric($k))
+                exit;
+            if(!is_numeric($v))
+                exit;
+            $insert_sql_order_product .= "(currval('orders_id_seq'), ".$k . ", " . $v . ",(select is_trial from products where id = {$k}) ),";
+        }
+        $insert_sql_order_product = substr($insert_sql_order_product, 0, -1);
+        $insert_sql_order_product .= ";";
+
+        $product_id_implode_by_comma = "";
+
+        foreach($main_data['products'] as $k => $v)
+        {
+            $product_id_implode_by_comma .= $k . ",";
+        }
+        $product_id_implode_by_comma = substr($product_id_implode_by_comma, 0, -1);
+
+        $temp_amounts_str = "";
+        $temp_amounts_str_2 = "";
+        $temp_amounts_str_3 = "";
+        $temp_amounts_str_4_1 = "";
+        $temp_amounts_str_4_2 = "";
+        $temp_amounts_str_4_3 = "";
+        $temp_amounts_str_4_0 = "";
+
+
+        foreach($main_data['products'] as $k => $v)
+        {
+            $temp_amounts_str .= "pr{$k}.price::decimal * {$v} +";
+            $temp_amounts_str_2 .= "price pr{$k},";
+            $temp_amounts_str_3 .= "pr{$k}.product_id = {$k} and ";
+            $temp_amounts_str_4_1 .= "pr{$k}.level = 1 and ";
+            $temp_amounts_str_4_2 .= "pr{$k}.level = 2 and ";
+            $temp_amounts_str_4_3 .= "pr{$k}.level = 3 and ";
+            $temp_amounts_str_4_0 .= "pr{$k}.level = 1 and ";
+        }
+        $temp_amounts_str = substr($temp_amounts_str, 0, -1);
+        $temp_amounts_str_2 = substr($temp_amounts_str_2, 0, -1);
+        $temp_amounts_str_3 = substr($temp_amounts_str_3, 0, -4);
+        $temp_amounts_str_4_1 = substr($temp_amounts_str_4_1, 0, -4);
+        $temp_amounts_str_4_2 = substr($temp_amounts_str_4_2, 0, -4);
+        $temp_amounts_str_4_3 = substr($temp_amounts_str_4_3, 0, -4);
+        $temp_amounts_str_4_0 = substr($temp_amounts_str_4_0, 0, -4);
 
         $insert_sql_amount = "";
         $insert_sql_amount .= "
             insert into amounts (amount, order_id, level)
             values
             (
-                (select pr.price from products p, price pr where pr.product_id = p.id and level = 1 and p.id = ?),
+                (select {$temp_amounts_str} as amount from products p, {$temp_amounts_str_2} where {$temp_amounts_str_3} and {$temp_amounts_str_4_1} and p.id in ($product_id_implode_by_comma) group by amount),
                 currval('orders_id_seq'),
                 1
             ),
             (
-                (select pr.price from products p, price pr where pr.product_id = p.id and level = 2 and p.id = ?),
+                (select {$temp_amounts_str} as amount from products p, {$temp_amounts_str_2} where {$temp_amounts_str_3} and {$temp_amounts_str_4_2} and p.id in ($product_id_implode_by_comma) group by amount),
                 currval('orders_id_seq'),
                 2
             ),
             (
-                (select pr.price from products p, price pr where pr.product_id = p.id and level = 3 and p.id = ?),
+                (select {$temp_amounts_str} as amount from products p, {$temp_amounts_str_2} where {$temp_amounts_str_3} and {$temp_amounts_str_4_3} and p.id in ($product_id_implode_by_comma) group by amount),
                 currval('orders_id_seq'),
                 3
             ),
             (
-                (select pr.price from products p, price pr where pr.product_id = p.id and level = 0 and p.id = ?),
+                (select {$temp_amounts_str} as amount from products p, {$temp_amounts_str_2} where {$temp_amounts_str_3} and {$temp_amounts_str_4_0} and p.id in ($product_id_implode_by_comma) group by amount),
                 currval('orders_id_seq'),
                 0
             )
             ;
         ";
-        $binds_amount = array($main_data['product_id'], $main_data['product_id'], $main_data['product_id'], $main_data['product_id']);
+        $insert_sql_product_amount = "";
+        $binds_product_amount = array();
+        foreach($main_data['products'] as $product_id => $quantity)
+        {
+            $insert_sql_product_amount .= "
+            insert into product_amount (amount, order_id, product_id, level, is_trial, quantity)
+            values
+            (
+                (select (case when p.is_trial = true then p.trial_price else pr.price end) from products p left join price pr on pr.product_id = p.id and pr.level = 1 where p.id = ?),
+                currval('orders_id_seq'),
+                ?,
+                1,
+                (select is_trial from products where id = {$product_id}),
+                {$quantity}
+            ),
+            (
+                (select (case when p.is_trial = true then p.trial_price else pr.price end) from products p left join price pr on pr.product_id = p.id and pr.level = 2 where p.id = ?),
+                currval('orders_id_seq'),
+                ?,
+                2,
+                (select is_trial from products where id = {$product_id}),
+                {$quantity}
+            ),
+            (
+                (select (case when p.is_trial = true then p.trial_price else pr.price end) from products p left join price pr on pr.product_id = p.id and pr.level = 3 where p.id = ?),
+                currval('orders_id_seq'),
+                ?,
+                3,
+                (select is_trial from products where id = {$product_id}),
+                {$quantity}
+            ),
+            (
+                (select (case when p.is_trial = true then p.trial_price else pr.price end) from products p left join price pr on pr.product_id = p.id and pr.level = 0 where p.id = ?),
+                currval('orders_id_seq'),
+                ?,
+                0,
+                (select is_trial from products where id = {$product_id}),
+                {$quantity}
+            )
+            ;
+        ";
+            array_push($binds_product_amount, $product_id);
+            array_push($binds_product_amount, $product_id);
+            array_push($binds_product_amount, $product_id);
+            array_push($binds_product_amount, $product_id);
+            array_push($binds_product_amount, $product_id);
+            array_push($binds_product_amount, $product_id);
+            array_push($binds_product_amount, $product_id);
+            array_push($binds_product_amount, $product_id);
+        }
 
+
+        $clean_cart_sql = "delete from cart_product where user_id = {$current_user_id} and product_id in ({$product_id_implode_by_comma});";
 
         $this->objDB->trans_start();
 
         $this->objDB->query($insert_sql_address, $binds_address);
         $this->objDB->query($insert_sql_order, $binds_order);
-        $this->objDB->query($insert_sql_amount, $binds_amount);
+        $this->objDB->query($insert_sql_order_product);
+        $this->objDB->query($insert_sql_amount);
+        $this->objDB->query($insert_sql_product_amount, $binds_product_amount);
+        $this->objDB->query($clean_cart_sql);
         $inserted_order_id_result = $this->objDB->query(
             "select currval('orders_id_seq') id;"
         );
@@ -286,8 +448,10 @@ class MOrder extends CI_Model
     {
         $query_sql = "";
         $query_sql .= "
-            select count(1) from orders o, products p
-            where o.product_id = p.id  {$where}
+            select count(1) from orders o--, products p
+            where --o.product_id = p.id
+            1 = 1
+              {$where}
         ;";
         $query = $this->objDB->query($query_sql);
 
@@ -306,18 +470,22 @@ class MOrder extends CI_Model
         $order_id = $this->objDB->escape($order_id);
         $query_sql = "";
         $query_sql .= "
-            select p.title          title,
-                   p.id             pid,
+           select
+           sum(iq.amount) amount,sum(quantity) quantity,count(opid) diff_quantity,id,username,id,parent_user_id,is_root,post_fee,
+                          is_pay, is_correct, pay_time, pay_amt, is_cancelled, is_post, province_id, city_id,
+                          address_info,linkman,mobile,remark,finish_time,stock_time,is_pay_online,pay_method,
+                          pay_amt_without_post_fee,post_info,purchase_level
+            from (select
+                   op.id            opid,
+                   op.quantity      quantity,
                    o.id             id,
                    u.name           username,
                    u.id             uid,
+                   o.level          purchase_level,
                    u.pid            parent_user_id,
                    u.is_root        is_root,
-                   o.count          quantity,
                    o.post_fee       post_fee,
-                   a.amount         unit_price,
-                   o.level          purchase_level,
-                   --o.parent_level   purchase_parent_level,
+                   sum(a.amount*a.quantity)         amount,
                    o.is_pay         is_pay,
                    o.is_correct     is_correct,
                    o.pay_time       pay_time,
@@ -338,21 +506,31 @@ class MOrder extends CI_Model
                    o.is_first       is_first,
                    o.post_info      post_info
             from
-                orders o, products p, users u, address_books b, amounts a
-            where
-                o.user_id = u.id
-                and
-                o.product_id = p.id
-                and
-                o.address_book_id = b.id
-                and
-                a.order_id = o.id
-                and
-                a.level = o.level
-                and
-                o.is_deleted = false
+                orders o
+                join order_product op
+                on op.order_id = o.id
+                and o.is_deleted = false
                 and
                 o.id = {$order_id}
+                join users u
+                on o.user_id = u.id
+                join address_books b
+                on b.id = o.address_book_id
+                join product_amount a
+                on a.order_id = o.id
+                and ((a.is_trial = true and a.level = 0 )
+                    or (a.is_trial = false and a.level = o.level))
+                    and a.product_id = op.product_id
+
+            where
+                1 = 1
+
+
+            group by o.id, u.name, u.id, a.amount, b.province_id, b.city_id, b.address_info, b.contact, b.mobile, b.remark,op.id) as iq
+            where 1 = 1
+            group by id,username,parent_user_id,is_root,post_fee,is_pay,is_correct,is_pay_online,post_info
+            ,is_first, pay_method,stock_time,finish_time,remark,mobile,linkman,pay_time,pay_amt,pay_amt_without_post_fee,
+            is_cancelled,is_post,province_id,city_id,address_info,purchase_level
         ";
         $data = array();
         $query = $this->objDB->query($query_sql);
@@ -369,7 +547,49 @@ class MOrder extends CI_Model
             return null;
     }
 
-    function finish_with_pay($order_id, $pay_amt, $user_id, $parent_user_id, $is_root, $pay_amt_without_post_fee, $is_first)
+    function getOrderProducts($order_id)
+    {
+        $query_sql = "
+            select
+                p.id id,
+                p.title title,
+                op.quantity quantity,
+                pa.amount   amount,
+                p.is_trial  is_trial
+            from
+                products p
+                join order_product op
+                on op.product_id = p.id
+                join orders o
+                on o.id = op.order_id
+                join product_amount pa
+                on ((pa.level = o.level and pa.is_trial = false) or (pa.level = 0 and pa.is_trial = true) )
+                left join products tp
+                on tp.is_trial = true
+                and tp.id = op.product_id
+            where
+                op.order_id = ?
+                and
+                (pa.product_id = p.id
+                or
+                pa.product_id = tp.id
+                )
+                and pa.order_id = o.id
+            group by pa.amount, p.id, op.quantity
+        ";
+        $binds = array($order_id);
+        $query = $this->objDB->query($query_sql, $binds);
+        if($query->num_rows() > 0){
+            foreach ($query->result() as $key => $val) {
+                $data[] = $val;
+            }
+        }
+        $query->free_result();
+
+        return $data;
+    }
+
+    function finish_with_pay($order_id, $pay_amt, $user_id, $parent_user_id, $is_root, $pay_amt_without_post_fee, $post_fee, $pay_amt_not_trial, $is_first)
     {
         $now = now();
         $order_id = $this->objDB->escape($order_id);
@@ -388,8 +608,8 @@ class MOrder extends CI_Model
                 users
                 set basic_level = case
                 when
-                    first_purchase::decimal + {$pay_amt_without_post_fee} >= 1980
-                    and first_purchase::decimal + {$pay_amt_without_post_fee} < 3980
+                    first_purchase::decimal + {$pay_amt_not_trial} >= 1980
+                    and first_purchase::decimal + {$pay_amt_not_trial} < 3980
                     and basic_level = 0
                     and not exists
                         ( select id from orders
@@ -398,8 +618,8 @@ class MOrder extends CI_Model
                     --and assign_level = 3
                     then 3
                 when
-                    first_purchase::decimal + {$pay_amt_without_post_fee} >= 3980
-                    and first_purchase::decimal + {$pay_amt_without_post_fee} < 19800
+                    first_purchase::decimal + {$pay_amt_not_trial} >= 3980
+                    and first_purchase::decimal + {$pay_amt_not_trial} < 19800
                     and (basic_level = 0 or basic_level = 3)
                     and not exists
                         ( select id from orders
@@ -408,7 +628,7 @@ class MOrder extends CI_Model
                     --and assign_level = 2
                     then 2
                 when
-                    first_purchase::decimal + {$pay_amt_without_post_fee} >= 19800
+                    first_purchase::decimal + {$pay_amt_not_trial} >= 19800
                     and not exists
                         ( select id from orders
                             where
@@ -419,7 +639,7 @@ class MOrder extends CI_Model
                 end
             where id = {$user_id};
             update users set level = basic_level, assign_level = basic_level where id = {$user_id};
-            update users set first_purchase = first_purchase::decimal + {$pay_amt_without_post_fee} where id = {$user_id};
+            update users set first_purchase = first_purchase::decimal + {$pay_amt_not_trial} where id = {$user_id};
         ";
         $update_sql = "
             update orders
@@ -436,12 +656,12 @@ class MOrder extends CI_Model
             update
                 users
                     set turnover =
-                        turnover::decimal + {$pay_amt_without_post_fee}
+                        turnover::decimal + {$pay_amt_not_trial}
                         -
                         ( select
                             case when ua.amount::decimal > pa.amount::decimal
                                            and ua.level <> 0 and p.is_admin = false
-                            then (ua.amount::decimal - pa.amount::decimal)*o.count
+                            then (ua.amount::decimal - pa.amount::decimal)
                             else 0 end
                             + case when ua.level = 0 and u.level <> 0 and u.initiation = false and p.is_admin = false
                                   and not exists
@@ -526,12 +746,12 @@ class MOrder extends CI_Model
             update
                 users
                     set turnover =
-                        turnover::decimal + {$pay_amt_without_post_fee}
+                        turnover::decimal + {$pay_amt_not_trial}
                         -
                         ( select
                             case when ua.amount::decimal > pa.amount::decimal
                                            and ua.level <> 0 and p.is_admin = false
-                            then (ua.amount::decimal - pa.amount::decimal)*o.count
+                            then (ua.amount::decimal - pa.amount::decimal)
                             else 0 end
                             + case when ua.level = 0 and u.level <> 0 and u.initiation = false and p.is_admin = false
                                   and not exists
@@ -583,7 +803,7 @@ class MOrder extends CI_Model
                 select
                     case when ua.amount::decimal > pa.amount::decimal
                              and ua.level <> 0
-                    then (ua.amount::decimal - pa.amount::decimal)*o.count
+                    then (ua.amount::decimal - pa.amount::decimal)
                     else 0 end
                     + case when ua.level = 0 and u.level <> 0 and u.initiation = false
                                   and not exists
@@ -643,7 +863,7 @@ class MOrder extends CI_Model
             --({$parent_user_id}, {$order_id}, {$user_id},
             --    (
             --    select case when ua.amount::decimal > pa.amount::decimal
-            --            then (ua.amount::decimal - pa.amount::decimal)*o.count
+            --            then (ua.amount::decimal - pa.amount::decimal)
             --            else 0 end
             --    from orders o, amounts ua, amounts pa
             --    where
@@ -763,22 +983,6 @@ class MOrder extends CI_Model
         }
     }
 
-    public function checkIsOwnTrial($user_id, $order_id)
-    {
-        $query_sql = "select count(1) from trial_orders where id = ? and user_id = ?;";
-        $binds = array($order_id, $user_id);
-        $data = array();
-        $query = $this->objDB->query($query_sql, $binds);
-        if($query->num_rows() > 0){
-            if($query->result()[0]->count > 0 )
-                return true;
-            else
-                return false;
-        }else{
-            return false;
-        }
-    }
-
     public function delete($order_id)
     {
         $this->objDB->from("orders");
@@ -792,9 +996,9 @@ class MOrder extends CI_Model
         $current_user_id = $this->session->userdata('current_user_id');
         $query_sql = "
             select
-                sum(a.amount::decimal * o.count) pay_amt_without_post_fee,
+                sum(a.amount::decimal) + sum(ta.amount::decimal * ta.quantity) pay_amt_without_post_fee,
                 sum(o.post_fee::decimal) post_fee,
-                sum(a.amount::decimal * o.count) + sum(o.post_fee::decimal) as total
+                sum(a.amount::decimal) + sum(ta.amount::decimal * ta.quantity) + sum(o.post_fee::decimal) as total
             from
                 orders o, cart c, amounts a
             where
@@ -841,75 +1045,33 @@ class MOrder extends CI_Model
         }
     }
 
-    public function is_paid_trial( $order_id)
-    {
-        $current_user_id = $this->session->userdata('current_user_id');
-        if(!$this->checkIsOwnTrial($current_user_id, $order_id))
-            exit('The order is not yours!');
-        $query_sql = "";
-        $query_sql .= "
-            select
-                count(1) as count
-            from
-                trial_orders
-                where
-                is_pay = true
-                and id = ?
-        ";
-        $binds = array($order_id);
-        $data = array();
-        $query = $this->objDB->query($query_sql, $binds);
-        if($query->num_rows() > 0){
-            if($query->result()[0]->count > 0 )
-                return true;
-            else
-                return false;
-        }else{
-            return false;
-        }
-    }
-
     public function getOrderPrice($id)
     {
         if($this->is_paid($id))
             exit('This order has paid!');
         $query_sql = "
-            select
-                a.amount::decimal * o.count pay_amt_without_post_fee,
-                o.post_fee::decimal as post_fee,
-                a.amount::decimal * o.count + o.post_fee::decimal as total
-            from
-                orders o, amounts a
-            where
-                a.order_id = ?
-            and a.order_id = o.id
-            and a.level = o.level
-            and o.is_pay = false
-            ;";
-        $binds = array($id);
-        $query = $this->objDB->query($query_sql, $binds);
-        $data = $query->result()[0];
-        $query->free_result();
-
-        return $data;
-    }
-
-    public function getOrderPriceTrial($id)
-    {
-        if($this->is_paid_trial($id))
-            exit('This order has paid!');
-        $query_sql = "
-            select
-                a.amount::decimal * o.count pay_amt_without_post_fee,
-                o.post_fee::decimal as post_fee,
-                a.amount::decimal * o.count + o.post_fee::decimal as total
-            from
-                trial_orders o, amounts a
-            where
-                a.order_id = ?
-            and a.order_id = o.id
-            and a.level = o.level
-            and o.is_pay = false
+            select sum(pay_amt_without_post_fee) as pay_amt_without_post_fee,
+                   post_fee,
+                   sum(pay_amt_without_post_fee) + post_fee as total
+                   from(
+                        select
+                            sum(pa.amount::decimal * pa.quantity) pay_amt_without_post_fee,
+                            o.post_fee::decimal as post_fee
+                        from
+                            orders o, product_amount pa
+                        where
+                            pa.order_id = ?
+                        and pa.order_id = o.id
+                        and (
+                            (pa.level = o.level and pa.is_trial = false)
+                            or
+                            (pa.level = 0 and pa.is_trial = true)
+                            )
+                        and o.is_pay = false
+                        group by o.post_fee, pa.amount
+                        ) as iq
+                where 1 = 1
+                group by post_fee
             ;";
         $binds = array($id);
         $query = $this->objDB->query($query_sql, $binds);

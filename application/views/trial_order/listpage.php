@@ -11,10 +11,10 @@
                     <a href='<?=base_url()?>order/listpage' ><div>订单列表 </div></a>
                 </li>
                 <li>
-                    <a href='<?=base_url()?>trial_order/listpage' ><div>试用品订单列表 </div></a>
+                    <a href='<?=base_url()?>order/index_sub' ><div>下级代理订单查询 </div></a>
                 </li>
                 <li>
-                    <a href='<?=base_url()?>order/index_sub' ><div>下级代理订单查询 </div></a>
+                    <a href="<?=base_url()?>order/cart" ><div>我的购物车</div></a>
                 </li>
             </ul>
         </div>
@@ -57,8 +57,8 @@
                 <col width="50%">-->
                 <tr>
                     <th>订单号</th>
-                    <th>产品名称(ID)</th>
-                    <th>订单数量</th>
+                    <th>产品总量</th>
+                    <th>产品种类数目</th>
                     <th>订单总价</th>
                     <th>是否已付款</th>
                     <th>是否完成</th>
@@ -74,30 +74,30 @@
                 </tr>
                 <? $n = 0; ?>
                 <? if(!empty($orders)) {?>
-                <? foreach($orders as $k => $v){ ?>
-                    <? $n ++; ?>
-                    <tr class="<?=$n%2==0?"even":"odd";?>">
-                        <td><?=$v->id?></td>
-                        <td><a href="<?=base_url()?>trial_product/details/<?=$v->pid?>"><?=$v->title;?>(<?=$v->pid?>)</a></td>
-                        <td><?=$v->quantity;?></td>
-                        <td><?="￥".bcmul(money($v->unit_price), $v->quantity, 2)?></td>
-                        <td><span class="<?=$v->is_pay=='t'?"accept":"cross";?>"></span></td>
-                        <td><span class="<?=$v->is_pay=='t'&&$v->is_correct=='t'?"accept":"cross";?>"></span></td>
-                        <td><?=$v->finish_time?></td>
-                        <td><?=$v->is_post=='t'?"邮寄":"自取"?></td>
-                        <td><?=$v->linkman?></td>
-                        <td><?=$v->mobile?></td>
-                        <td><?=$v->remark?></td>
-                        <td><?=$v->post_info?></td>
-                        <td><?=substr($v->stock_time, 0, 19);?></td>
-                        <td><a href="<?=base_url()?>trial_order/details/<?=$v->id;?>">查看详情</a></td>
-                        <td>
-                            <? if($v->is_pay == 'f' && $v->pay_method == 'alipay') {?>
-                                <a href="<?=base_url()?>trial_order/pay_method/<?=$v->id?>">付款</a>
-                            <? } ?>
-                        </td>
-                    </tr>
-                <? } ?>
+                    <? foreach($orders as $k => $v){ ?>
+                        <? $n ++; ?>
+                        <tr class="<?=$n%2==0?"even":"odd";?>">
+                            <td><?=$v->id?></td>
+                            <td><?=$v->quantity;?></td>
+                            <td><?=$v->diff_quantity;?></td>
+                            <td><?="￥".bcmul(money($v->unit_price), $v->quantity, 2)?></td>
+                            <td><span class="<?=$v->is_pay=='t'?"accept":"cross";?>"></span></td>
+                            <td><span class="<?=$v->is_pay=='t'&&$v->is_correct=='t'?"accept":"cross";?>"></span></td>
+                            <td><?=$v->finish_time?></td>
+                            <td><?=$v->is_post=='t'?"邮寄":"自取"?></td>
+                            <td><?=$v->linkman?></td>
+                            <td><?=$v->mobile?></td>
+                            <td><?=$v->remark?></td>
+                            <td><?=$v->post_info?></td>
+                            <td><?=substr($v->stock_time, 0, 19);?></td>
+                            <td><a href="<?=base_url()?>order/details/<?=$v->id;?>">查看详情</a></td>
+                            <td>
+                                <? if($v->is_pay == 'f' && $v->pay_method == 'alipay' && $this->session->userdata('level') != 0) {?>
+                                    <a href="<?=base_url()?>order/pay_method/<?=$v->id?>">付款</a>
+                                <? } ?>
+                            </td>
+                        </tr>
+                    <? } ?>
                 <? } ?>
             </table>
             <div class="page"><?=$page;?></div>

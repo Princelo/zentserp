@@ -12,38 +12,38 @@
                 </li>
                 <li><a href='<?=base_url();?>product/listpage_admin_invalid' ><div>产品列表(下架) </div></a></li>
                 <li>
-                    <a href='<?=base_url()?>product/listpage_admin?is_trial=true' ><div>试用品(上架) </div></a>
+                    <a href='<?=base_url()?>trial_product/listpage_admin' ><div>试用品(上架) </div></a>
                 </li>
-                <li><a href='<?=base_url();?>product/listpage_admin_invalid?is_trial=true' ><div>试用品(下架) </div></a></li>
+                <li><a href='<?=base_url();?>trial_product/listpage_admin_invalid' ><div>试用品(下架) </div></a></li>
                 <li><a href='<?=base_url();?>product/add' ><div>新增产品 </div></a></li>
-                <li><a href='<?=base_url();?>product/trial_add' ><div>新增试用品 </div></a></li>
+                <li><a href='<?=base_url();?>trial_product/add' ><div>新增试用品 </div></a></li>
             </ul>
         </div>
     </div>
     <!-- end: #col1 -->
 
-<!-- begin: #col3 static column -->
-<div id="col3" role="main" class="one_column">
-    <div id="col3_content" class="clearfix">
+    <!-- begin: #col3 static column -->
+    <div id="col3" role="main" class="one_column">
+        <div id="col3_content" class="clearfix">
 
 
 
-        <div class="toolbar type-button">
-            <h4><?php echo validation_errors(); ?></h4>
-            <script>
-                if("<?=$this->session->flashdata('flashdata', 'value');?>"!="")
-                    alert("<?=$this->session->flashdata('flashdata', 'value');?>");
-            </script>
-            <div class="c50l">
-                <h3><?=($error!="")?"<span style=\"color:red\">".$error."</span>":"添加产品";?> </h3>
+            <div class="toolbar type-button">
+                <h4><?php echo validation_errors(); ?></h4>
+                <script>
+                    if("<?=$this->session->flashdata('flashdata', 'value');?>"!="")
+                        alert("<?=$this->session->flashdata('flashdata', 'value');?>");
+                </script>
+                <div class="c50l">
+                    <h3><?=($error!="")?"<span style=\"color:red\">".$error."</span>":"添加产品";?> </h3>
+                </div>
             </div>
-        </div>
 
 
-        <?=form_open_multipart('product/trial_add');?>
+            <?=form_open_multipart('product/add');?>
 
             <fieldset>
-                <legend>添加试用产品 </legend>
+                <legend>添加产品 </legend>
 
                 <table>
                     <col width="150">
@@ -90,9 +90,27 @@
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="price">单价 <span>*</span></label></th>
+                        <th><label for="price_special"><?=getLevelName(1)?>价 <span>*</span></label></th>
                         <td>
-                            <input name="price" data-validate="required,decimal" value="<?=set_value('price')?>"/>(单位: 元)
+                            <input name="price_special" data-validate="required,decimal" value="<?=set_value('price_special')?>"/>(单位: 元)
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="price_last_2"><?=getLevelName(2)?>价 <span>*</span></label></th>
+                        <td>
+                            <input name="price_last_2" data-validate="required,decimal" value="<?=set_value('price_last_2')?>"/>(单位: 元)
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="price_last_3"><?=getLevelName(3)?>价 <span>*</span></label></th>
+                        <td>
+                            <input name="price_last_3" data-validate="required,decimal" value="<?=set_value('price_last_3')?>"/>(单位: 元)
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="price_normal"><?=getLevelName(0)?>价 <span>*</span></label></th>
+                        <td>
+                            <input name="price_normal" data-validate="required,decimal" value="<?=set_value('price_normal')?>"/>(单位: 元)
                         </td>
                     </tr>
                     <tr>
@@ -119,25 +137,25 @@
             </div>
 
 
-        <?=form_close();?>
+            <?=form_close();?>
 
-    </div>
-    <!-- IE Column Clearing -->
-    <div id="ie_clearing">&nbsp;</div>
-    <!--
-            <script>
-                $(document).ready(function(){
-                    Calendar.setup({
-                        weekNumbers   : true,
-                        fdow		: 0,
-                        inputField : 'end_time',
-                        trigger    : 'end_time-trigger',
-                        onSelect   : function() { this.hide() }
+        </div>
+        <!-- IE Column Clearing -->
+        <div id="ie_clearing">&nbsp;</div>
+        <!--
+                <script>
+                    $(document).ready(function(){
+                        Calendar.setup({
+                            weekNumbers   : true,
+                            fdow		: 0,
+                            inputField : 'end_time',
+                            trigger    : 'end_time-trigger',
+                            onSelect   : function() { this.hide() }
+                        });
+
                     });
 
-                });
+                </script>
 
-            </script>
-
-        : IE Column Clearing -->
-</div>
+            : IE Column Clearing -->
+    </div>

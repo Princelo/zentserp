@@ -74,6 +74,7 @@
                     <th><span <?=$level==2?"class=\"red\"":"";?>><?=getLevelName(2)?>价</span></th>
                     <th><span <?=$level==3?"class=\"red\"":"";?>><?=getLevelName(3)?>价</span></th>
                     <th><span <?=$level==0?"class=\"red\"":"";?>><?=getLevelName(0)?>价</span></th>
+                    <th>入货数量</th>
                     <th></th>
                     <th></th>
                 </tr>
@@ -99,21 +100,42 @@
                         <td><?=cny($v->price_last_2)?></td>
                         <td><?=cny($v->price_last_3)?></td>
                         <td><?=cny($v->price_normal)?></td>
+                        <td>
+                            <div class="buy-quantity">
+                                <input value="1" name="product<?=$v->id?>" id="quantity-<?=$v->id?>"/>
+                                <a href="javascript:void(0)" class="increase" onclick="increase(<?=$v->id?>)">+</a>
+                                <a href="javascript:void(0)" class="decrease" onclick="decrease(<?=$v->id?>)">-</a>
+                            </div>
+                        </td>
                         <td><a href="<?=base_url()?>product/details/<?=$v->id;?>">查看详情</a></td>
-                        <td><a href="<?=base_url()?>order/add/<?=$v->id;?>">产品下订</a></td>
+                        <!--<td><a href="<?=base_url()?>order/add/<?=$v->id;?>">产品下订</a></td>-->
+                        <td><a href="javascript:void(0);" onclick="addtocart(<?=$v->id?>)">加入购物车</a></td>
                     </tr>
                 <? } ?>
                 <? } ?>
             </table>
             <div class="page"><?=$page;?></div>
             <script>
-                /*function myconfirm(id){
-                    if (confirm("are you sure?")){
-                        window.location.href = "<?=base_url()?>index.php/unvadmin/singerdelete/"+id;
-                    } else {
-
+                var addtocart = function(id){
+                    if(parseInt($("input[name=\"product"+id+"\"]").val()) <= 0)
+                    {
+                        alert('入货数量必须大于零');
+                        return false;
                     }
-                }*/
+                    $.post("<?=base_url()?>order/addtocart", { "product_id": id + "", "is_trial": "false", "quantity": $("input[name=\"product"+id+"\"]").val()  },
+                        function(data){
+                            alert(data.info);
+                        }, "json");
+                }
+                var increase = function(id)
+                {
+                    $("#quantity-"+id).val(parseInt($("#quantity-" + id).val()) + 1);
+                }
+                var decrease = function(id)
+                {
+                    if($("#quantity-" + id).val() > 1)
+                        $("#quantity-"+id).val(parseInt($("#quantity-" + id).val()) - 1);
+                }
             </script>
 
 

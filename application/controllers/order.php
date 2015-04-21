@@ -335,6 +335,8 @@ class Order extends MY_Controller {
         if($this->input->post('post_info') != '')
         {
             $this->db->query("update orders set post_info = '{$this->input->post('post_info')}' where id = {$order_id}");
+            if($this->input->post('finsh') == '')
+                redirect('order/details_admin/'.$order_id);
         }
         if($this->input->post('finish', true) != '')
         {
@@ -361,11 +363,13 @@ class Order extends MY_Controller {
                 //    redirect('order/details_admin/'.$order_id);
                 //}
                 $result = $this->MOrder->finish_with_pay($order_id,
-                                                         bcmul(money($data['v']->unit_price), $data['v']->quantity, 4 ),
+                                                         bcadd(bcadd(money($data['v']->amount), $data['v']->trial_amount, 4 ), money($data['v']->post_fee),4),
                                                          $data['v']->uid,
                                                          $data['v']->parent_user_id,
                                                          $data['v']->is_root,
-                                                         bcadd(bcmul(money($data['v']->unit_price), $data['v']->quantity, 4 ), money($data['v']->post_fee), 4),
+                                                         bcadd(money($data['v']->amount), $data['v']->trial_amount, 4 ),
+                                                         $data['v']->post_fee,
+                                                         money($data['v']->amount),
                                                          $data['v']->is_first);
                 if($result === true)
                 {
@@ -448,7 +452,144 @@ class Order extends MY_Controller {
         $this->load->view('order/details_admin', $data);
     }
 
-    public function add($product_id)
+    public function order_product($order_id)
+    {
+        if($this->session->userdata('role') != 'admin')
+        {
+            if(!$this->MOrder->checkIsOwn($this->session->userdata('current_user_id'), $order_id))
+            {
+                exit('The order is not yours');
+            }
+        }
+        $data = array();
+        $data['products'] = $this->MOrder->getOrderProducts($order_id);
+        if($this->session->userdata('role') != 'admin')
+        {
+            $this->load->view('templates/header_user');
+            $this->load->view('order/order_product', $data);
+        }
+        else
+        {
+            $this->load->view('templates/header');
+            $this->load->view('order/order_product_admin', $data);
+        }
+    }
+
+    public function add()
+    {
+        if($this->session->userdata('role') == 'admin')
+            exit('You are the admin.');
+        //if($this->session->userdata('level') == 0)
+        //    redirect('order/add_non_member/');
+        $data = array();
+        $data['error'] = '';
+        $products = $this->getProducts($this->input->post('cart_info'));
+        $config = array(
+            /*array(
+                'field'   => 'product_id',
+                'label'   => 'Product Id',
+                'rules'   => 'required|integer|xss_clean'
+            ),*/
+            array(
+                'field'   => 'is_post',
+                'label'   => 'Stock Type',
+                'rules'   => 'boolean|xss_clean'
+            ),
+            array(
+                'field'   => 'contact',
+                'label'   => 'Linkman',
+                'rules'   => 'trim|xss_clean|required'
+            ),
+            array(
+                'field'   => 'mobile',
+                'label'   => 'Mobile no',
+                'rules'   => 'trim|xss_clean|required'
+            ),
+            array(
+                'field'   => 'remark',
+                'label'   => 'Remark',
+                'rules'   => 'trim|xss_clean'
+            ),
+            array(
+                'field'   => 'pay_method',
+                'label'   => 'Pay method',
+                'rules'   => 'trim|xss_clean|required'
+            ),
+        );
+        if($this->input->post('is_post') == 1)
+        {
+            array_merge($config,
+                array(
+                    'field'   => 'province_id',
+                    'label'   => 'Province',
+                    //'rules'   => 'trim|required|xss_clean|is_unique[products.title]'
+                    'rules'   => 'trim|xss_clean|integer'
+                )
+            );
+            array_merge($config,
+                array(
+                    'field'   => 'city',
+                    'label'   => 'City',
+                    'rules'   => 'trim|xss_clean|integer'
+                )
+            );
+            array_merge($config,
+                array(
+                    'field'   => 'address_info',
+                    'label'   => 'Address Info',
+                    'rules'   => 'trim|xss_clean'
+                )
+            );
+        }
+
+
+        $this->form_validation->set_rules($config);
+        if(isset($_POST) && !empty($_POST))
+        {
+            $this->__extra_verify();
+            if ($this->form_validation->run() == FALSE)
+            {
+                redirect('order/cart');
+            }else{
+                $address_info = array(
+                    'province_id' => $this->input->post('province_id'),
+                    'city_id' => $this->input->post('city_id'),
+                    'address_info' => $this->input->post('address_info'),
+                    'contact' => $this->input->post('contact'),
+                    'mobile'  => $this->input->post('mobile'),
+                    'remark'  => $this->input->post('remark'),
+                );
+                $main_data = array(
+                    'level' => $this->MUser->intGetCurrentUserLevel($this->session->userdata('current_user_id')),
+                    'pay_method' => $this->input->post('pay_method'),
+                    'is_post' => $this->input->post('is_post'),
+                    'post_fee' => 0,
+                    'products' => $products,
+                );
+                $main_data['post_fee'] = $this->calcPostFee($main_data, $address_info);
+                $result_id = $this->MOrder->intAddReturnOrderId($main_data, $address_info);
+                if($result_id != 0){
+                    $this->session->set_flashdata('flashdata', '订单添加成功');
+                    if($this->input->post('pay_method') == 'alipay')
+                        redirect('order/pay_method/'.$result_id);
+                    else
+                        redirect('order/listpage/');
+                }
+                else{
+                    $this->session->set_flashdata('flashdata', '订单添加失败');
+                    redirect('order/cart');
+                }
+            }
+        }/*else{
+            $data['product_name'] = $this->MProduct->strGetProductTitle($product_id);
+            $data['product_id'] = $product_id;
+            $this->load->view('templates/header_user', $data);
+            $this->load->view('order/add', $data);
+        }*/
+
+    }
+
+    private function addbak($product_id)
     {
         if($this->session->userdata('role') == 'admin')
             exit('You are the admin.');
@@ -710,6 +851,79 @@ class Order extends MY_Controller {
 
     }
 
+    public function addtocart()
+    {
+        if($this->session->userdata('role') == 'admin')
+            exit('You are the admin.');
+        $config = array(
+            array(
+                'field'   => 'product_id',
+                'label'   => 'Product Id',
+                'rules'   => 'required|is_natural|xss_clean|required'
+            ),
+            array(
+                'field'   => 'is_trial',
+                'label'   => 'Is Trial',
+                'rules'   => 'required|xss_clean|required'
+            ),
+            array(
+                'field'   => 'quantity',
+                'label'   => 'Quantity',
+                'rules'   => 'required|is_natural|xss_clean|required|greater_than[0]'
+            ),
+        );
+
+        $this->form_validation->set_rules($config);
+        if ($this->form_validation->run() == FALSE)
+        {
+            echo "{'info':'未知錯誤'}";
+            return false;
+        }
+        $check = $this->db->select('id')
+            ->from('cart_product')
+            ->where(
+                array(
+                    'product_id' => $this->input->post('product_id'),
+                    'user_id' => $this->session->userdata('current_user_id'),
+                    'is_trial' => $this->input->post('is_trial'),
+                    'is_finished' => 'false',
+                )
+            );
+        $check = $this->db->get()->result();
+        if(!empty($check)){
+            $return_data = array();
+            $return_data['info'] = '错误:您的购物车存在此产品';
+            exit(json_encode($return_data));
+        }
+        $result = $this->MOrder->addToCart($this->session->userdata('current_user_id'),
+            $this->input->post('product_id'),
+            $this->input->post('quantity'),
+            $this->input->post('is_trial')
+        );
+        $return_data = array();
+        if($result)
+            $return_data['info'] = "成功添加至购物车！";
+        else
+            $return_data['info'] = "未知錯誤！";
+        echo json_encode($return_data);
+        return false;
+    }
+
+    public function remove_from_cart($product_id)
+    {
+        $result = $this->db->from('cart_product')->where(array('product_id'=> $product_id))->delete();
+        if($result === true)
+        {
+            $this->session->set_flashdata('flashdata', '刪除成功');
+            redirect('order/cart');
+        }else
+        {
+            $this->session->set_flashdata('flashdata', '刪除失败');
+            redirect('order/cart');
+        }
+
+    }
+
     public function enableCart()
     {
         if($this->session->userdata('role') == 'admin')
@@ -742,16 +956,75 @@ class Order extends MY_Controller {
             redirect('order/pay_method_non_member');
         } else {
             $this->session->set_flashdata('flashdata', '结算失败');
-            redirect('product/listpage/');
+            redirect('product/listpage');
         }
+    }
+
+    public function cart()
+    {
+        if($this->session->userdata('role') == 'admin')
+            exit('You are the admin.');
+        $user_id = $this->session->userdata('current_user_id');
+        $level = $this->session->userdata('level');
+        $data = array();
+        $data['products'] = $this->MOrder->getCartInfo($user_id, $level);
+        $data['level'] = $this->session->userdata('level');
+
+
+        $this->load->view('templates/header_user', $data);
+        $this->load->view('order/cart', $data);
+    }
+
+    public function add_by_cart()
+    {
+        if(!isset($_POST) && !isset($_REQUEST))
+        {
+            redirect('order/cart');
+        }
+        $config = array(
+            array(
+                'field'   => 'items',
+                'label'   => 'items',
+                'rules'   => 'required|xss_clean'
+            ),
+        );
+
+        $this->form_validation->set_rules($config);
+        if ($this->form_validation->run() == FALSE)
+        {
+            exit('未知錯誤');
+        }
+        $products = $this->getProducts($this->input->post('items'));
+        $data = array();
+        $data['products_quantity'] = $products;
+        $user_id = $this->session->userdata('current_user_id');
+        $level = $this->session->userdata('level');
+        $data['products'] = $this->MOrder->getCartInfo($user_id, $level);
+        $data['str'] = $this->input->post('items');
+        $this->load->view('templates/header_user', $data);
+        $this->load->view('order/add_by_cart', $data);
+
+    }
+
+    private function getProducts($str)
+    {
+        $str = explode("|", $str);
+        $arr = array();
+        foreach($str as $k => $v)
+        {
+            $value = substr($v, strpos($v, ",") + 1);
+            $kvalue = substr($v, 0, strpos($v, ","));
+            $arr[$kvalue] = $value;
+        }
+        return $arr;
     }
 
     public function pay_method($order_id)
     {
         if($this->session->userdata('role') == 'admin')
             exit('You are the admin.');
-        if($this->session->userdata('level') == 0 )
-            exit('You are not a member');
+        /*if($this->session->userdata('level') == 0 )
+            exit('You are not a member');*/
         $this->session->set_userdata('token', md5(date('YmdHis').rand(0, 32000)) );
         $data = array();
         $data = $this->MOrder->getOrderPrice($order_id);
@@ -983,14 +1256,15 @@ class Order extends MY_Controller {
             $additional_pay = money($query->additional_pay);
             $first_weight = $query->first_weight;
             $additional_weight = $query->additional_weight;
-            $quantity = $data['count'];
-            $product_id = $data['product_id'];
-            $total_weight = $this->db->select('weight')
-                ->from('products')
-                ->where(array('id' => $product_id))
-                ->get()
-                ->result()[0]->weight;
-            $total_weight = $total_weight * $quantity;
+            //$quantity = $data['count'];
+            //$product_id = $data['product_id'];
+            $total_weight = 0;
+            foreach($data['products'] as $k => $v)
+                $total_weight += $this->db->select('weight')
+                    ->from('products')
+                    ->where(array('id' => $k))
+                    ->get()
+                    ->result()[0]->weight * $v;
 
             if($total_weight < $first_weight) {
                 return $first_pay;

@@ -23,6 +23,7 @@ class MProduct extends CI_Model
                 p.feature feature,
                 p.usage_method usage_method,
                 p.img img,
+                p.trial_price price,
                 pr1.price price_special,
                 pr2.price price_last_2,
                 pr3.price price_last_3,
@@ -30,16 +31,16 @@ class MProduct extends CI_Model
                 p.category category
             from
                 products p
-                join price pr1
+                left join price pr1
                 on p.id = pr1.product_id
                 and pr1.level = 1
-                join price pr2
+                left join price pr2
                 on p.id = pr2.product_id
                 and pr2.level = 2
-                join price pr3
+                left join price pr3
                 on p.id = pr3.product_id
                 and pr3.level = 3
-                join price pr0
+                left join price pr0
                 on p.id = pr0.product_id
                 and pr0.level = 0
             where
@@ -77,20 +78,21 @@ class MProduct extends CI_Model
                 pr2.price price_last_2,
                 pr3.price price_last_3,
                 pr0.price price_normal,
+                p.trial_price price,
                 p.category category,
                 p.weight weight
             from
                 products p
-                join price pr1
+                left join price pr1
                 on p.id = pr1.product_id
                 and pr1.level = 1
-                join price pr2
+                left join price pr2
                 on p.id = pr2.product_id
                 and pr2.level = 2
-                join price pr3
+                left join price pr3
                 on p.id = pr3.product_id
                 and pr3.level = 3
-                join price pr0
+                left join price pr0
                 on p.id = pr0.product_id
                 and pr0.level = 0
             where
@@ -190,15 +192,45 @@ class MProduct extends CI_Model
         }
     }
 
+
+    public function trial_add($main_data)
+    {
+        $insert_sql_product = "";
+        $insert_sql_product .= "
+            insert into products
+            (title, properties, feature, usage_method, ingredient, img, is_valid, weight, category, is_trial, trial_price)
+            values (?,?,?,?,?,?,?,?,?, true, ?);
+        ";
+        $binds_product = array(
+            $main_data['title'], $main_data['properties'], $main_data['feature'], $main_data['usage_method'],
+            $main_data['ingredient'], $main_data['img'], $main_data['is_valid'], $main_data['weight'], $main_data['category'],
+            $main_data['price'],
+        );
+
+        $this->objDB->trans_start();
+
+        $this->objDB->query($insert_sql_product, $binds_product);
+
+        $this->objDB->trans_complete();
+
+        $result = $this->objDB->trans_status();
+
+        if($result === true){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
     public function intGetProductsCount($where)
     {
         $query_sql = "";
         $query_sql .= "
             select count(1) from products p
-            join price pr1 on pr1.level = 1 and pr1.product_id = p.id
-            join price pr2 on pr2.level = 2 and pr2.product_id = p.id
-            join price pr3 on pr3.level = 3 and pr3.product_id = p.id
-            join price pr0 on pr0.level = 0 and pr0.product_id = p.id
+            left join price pr1 on pr1.level = 1 and pr1.product_id = p.id
+            left join price pr2 on pr2.level = 2 and pr2.product_id = p.id
+            left join price pr3 on pr3.level = 3 and pr3.product_id = p.id
+            left join price pr0 on pr0.level = 0 and pr0.product_id = p.id
             where 1 = 1 {$where}
         ;";
         $query = $this->objDB->query($query_sql);

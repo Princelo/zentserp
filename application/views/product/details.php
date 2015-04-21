@@ -111,6 +111,17 @@
                         <th>产品下订</th>
                         <td><a href="<?=base_url()?>order/add/<?=$v->id?>">立即下订</a></td>
                     </tr>
+                    <tr>
+                        <th>加入购物车</th>
+                        <td>
+                            <div class="buy-quantity">
+                                <input value="1" name="product<?=$v->id?>" id="quantity-<?=$v->id?>"/>
+                                <a href="javascript:void(0)" class="increase" onclick="increase(<?=$v->id?>)">+</a>
+                                <a href="javascript:void(0)" class="decrease" onclick="decrease(<?=$v->id?>)">-</a>
+                            </div>
+                            <a href="javascript:void(0);" onclick="addtocart(<?=$v->id?>)">加入购物车</a>
+                        </td>
+                    </tr>
                 </table>
 
             </fieldset>
@@ -139,3 +150,25 @@
 
             : IE Column Clearing -->
     </div>
+    <script>
+        var addtocart = function(id){
+            if(parseInt($("input[name=\"product"+id+"\"]").val()) <= 0)
+            {
+                alert('入货数量必须大于零');
+                return false;
+            }
+            $.post("<?=base_url()?>order/addtocart", { "product_id": id + "", "is_trial": "true", "quantity": $("input[name=\"product"+id+"\"]").val()  },
+                function(data){
+                    alert(data.info);
+                }, "json");
+        }
+        var increase = function(id)
+        {
+            $("#quantity-"+id).val(parseInt($("#quantity-" + id).val()) + 1);
+        }
+        var decrease = function(id)
+        {
+            if($("#quantity-" + id).val() > 1)
+                $("#quantity-"+id).val(parseInt($("#quantity-" + id).val()) - 1);
+        }
+    </script>

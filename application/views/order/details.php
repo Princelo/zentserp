@@ -11,13 +11,11 @@
             <li>
                 <a href='<?=base_url()?>order/listpage' ><div>订单列表 </div></a>
             </li>
-            <? if($this->session->userdata('level') != 0) {?>
-            <li>
-                <a href='<?=base_url()?>trial_order/listpage' ><div>试用品订单列表 </div></a>
-            </li>
-            <?}?>
             <li>
                 <a href='<?=base_url()?>order/index_sub' ><div>下级代理订单查询 </div></a>
+            </li>
+            <li>
+                <a href="<?=base_url()?>order/cart"><div>我的购物车</div></a>
             </li>
         </ul>
     </div>
@@ -40,148 +38,140 @@
         </div>
 
 
-            <fieldset>
+            <fieldset class="my my-large">
                 <legend>订单详情 </legend>
 
-                <table>
+                <table class="float_left margin-left">
                     <col width="150">
 
-                    <tr>
+                    <tr class="odd">
                         <th><label for="order_id">ID </label></th>
                         <td>
-                            <input type="text" name="" value="<?=$v->id;?>" disabled="disabled"  />
+                            <span class="info"><?=$v->id?></span>
                         </td>
                     </tr>
-                    <tr>
-                        <th><label for="">产品名称(ID) </label></th>
+                    <tr class="even">
+                        <th>产品总量</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="<?=$v->title;?>(<?=$v->pid?>)" />
+                            <span class="info"><?=$v->quantity?></span>
                         </td>
                     </tr>
-                    <tr>
-                        <th><label for="type">代理姓名(ID) </label></th>
+                    <tr class="odd">
+                        <th>产品种类数目</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="<?=$v->username;?>(<?=$v->uid?>)" />
+                            <span class="info"><?=$v->diff_quantity?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><a href="<?=base_url()?>order/order_product/<?=$v->id?>">详情</a>
                         </td>
                     </tr>
-                    <tr>
-                        <th>订单数目</th>
-                        <td>
-                            <input type="text" name="" disabled="disabled" value="<?=$v->quantity?>" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>产品单价</th>
-                        <td>
-                            <input type="text" name="" disabled="disabled" value="<?=cny($v->unit_price)?>" />
-                        </td>
-                    </tr>
-                    <tr>
+                    <tr class="even">
                         <th>价格类別</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="<?=getLevelName($v->purchase_level)?>价" />
+                            <span class="info"><?=$v->purchase_level?></span>
                         </td>
                     </tr>
-                    <tr>
-                        <th>订单产品总价</th>
+                    <tr class="odd">
+                        <th>订单产品总价(不含运费)</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="￥<?=bcmul(money($v->unit_price), $v->quantity, 4)?>" />
+                            <span class="info"><?=cny($v->amount)?></span>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="even">
                         <th>运费</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="<?=cny($v->post_fee)?>" />
+                            <span class="info"><?=cny($v->post_fee)?></span>
                         </td>
                     </tr>
-                    <tr>
+                </table>
+                <table class="float_left margin-left">
+                    <tr class="odd">
                         <th>取货方式</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="<?=$v->is_post=='t'?"邮寄":"自取"?>" />
+                            <span class="info"><?=$v->is_post=='t'?"邮寄":"自取"?></span>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="even">
                         <th>收货地址</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value=" <?=getStrProvinceName($v->province_id)?>&nbsp;<?=getStrCityName($v->city_id)?>&nbsp;<?=$v->address_info?> " />
+                            <span class="info important<?=$v->is_post=='f'?" hidden":''?>"> <?=getStrProvinceName($v->province_id)?>&nbsp;<?=getStrCityName($v->city_id)?>&nbsp;<?=$v->address_info?> </span>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="odd">
                         <th>联系人</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="<?=$v->linkman?>" />
+                            <span class="info important"><?=$v->linkman?></span>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="even">
                         <th>联系电话</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="<?=$v->mobile?>" />
+                            <span class="info important"><?=$v->mobile?></span>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="odd">
                         <th>订单备注</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="<?=$v->remark?>" />
+                            <span class="info important"><?=$v->remark?></span>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="even">
                         <th>订单总价</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="￥<?=bcadd(bcmul(money($v->unit_price), $v->quantity, 4), money($v->post_fee), 4)?>" />
+                            <span class="info important">￥<?=bcadd( money($v->amount), money($v->post_fee), 2)?></span>
                         </td>
                     </tr>
-                    <tr>
+                </table>
+                <table class="float_left margin-left">
+                    <tr class="odd">
                         <th>是否已付款</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="<?=$v->is_pay=='t'?"√":"×"?>" />
+                            <span class="<?=$v->is_pay=='t'&&$v->is_correct=='t'?"accept":"cross";?>"></span>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="even">
                         <th>付款金额</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="<?=cny($v->pay_amt)?>" />
+                            <span class="info important"><?=cny($v->pay_amt)?></span>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="odd">
                         <th>付款方式</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="<?=$v->pay_method=='alipay'?'线上付款':'线下付款';?>" />
+                            <span class="info"><?=$v->pay_method=='alipay'?'线上付款':'线下付款';?></span>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="even">
                         <th>付款时间</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="<?=substr($v->pay_time, 0, 19)?>" />
+                            <span class="info"><?=substr($v->pay_time, 0, 19)?></span>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="odd">
                         <th>付款数目是否正确</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="<?=$v->is_correct=='t'?"√":"×"?>" />
+                            <span class="<?=$v->is_pay=='t'&&$v->is_correct=='t'?"accept":"cross";?>"></span>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="even">
                         <th>订单取消情況</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="<?=$v->is_cancelled=='t'?"已取消":"正常"?>" />
+                            <span class="info"><?=$v->is_cancelled=='t'?"已取消":"正常"?></span>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="odd">
                         <th>订单提交时间</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="<?=substr($v->stock_time, 0, 19)?>" />
+                            <span class="info"><?=substr($v->stock_time, 0, 19)?></span>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="even">
                         <th>是否完成订单</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="<?=$v->is_correct=='t'&&$v->is_pay=='t'?"√":"×"?>" />
+                            <span class="<?=$v->is_pay=='t'&&$v->is_correct=='t'?"accept":"cross";?>"></span>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="odd">
                         <th>完成订单时间</th>
                         <td>
-                            <input type="text" name="" disabled="disabled" value="<?=substr($v->finish_time, 0, 19)?>" />
+                            <span class="info"><?=substr($v->finish_time, 0, 19)?></span>
                         </td>
                     </tr>
                 </table>

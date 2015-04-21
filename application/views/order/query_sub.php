@@ -10,12 +10,10 @@
                 <li>
                     <a href='<?=base_url()?>order/listpage' ><div>订单列表 </div></a>
                 </li>
-                <? if($this->session->userdata('level') != 0) {?>
-                <li>
-                    <a href='<?=base_url()?>trial_order/listpage' ><div>试用品订单列表 </div></a>
-                </li>
-                <?}?>
                 <li><a href='<?=base_url();?>order/index_sub' ><div>下级代理订单查询 </div></a></li>
+                <li>
+                    <a href='<?=base_url()?>order/cart' ><div>我的购物车 </div></a>
+                </li>
             </ul>
         </div>
     </div>

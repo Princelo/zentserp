@@ -8,26 +8,21 @@
 
             <ul id="left_menu">
                 <li>
-                    <a href='<?=base_url()?>order/listpage' ><div>订单列表 </div></a>
+                    <a href='<?=base_url()?>product/listpage' ><div>产品列表 </div></a>
                 </li>
-                <li><a href='<?=base_url();?>order/index_sub' ><div>下级代理订单查询 </div></a></li>
-                <li>
-                    <a href="<?=base_url()?>order/cart"><div>我的购物车</div></a>
+                <li><a href="<?=base_url()?>order/index_sub" class="" style="background: none;"><div>下级代理订单查询 </div></a>
+                </li>
+                <li><a href="<?=base_url()?>order/cart" class="" ><div>我的购物车 </div></a>
                 </li>
             </ul>
         </div>
     </div>
-    <!-- end: #col1 -->
-
-
-
     <!-- begin: #col3 static column -->
     <div id="col3" role="main" class="one_column">
         <div id="col3_content" class="clearfix">
 
 
             <div class="info view_form">
-                <h2>代理列表</h2>
                 <script>
                     if("<?=$this->session->flashdata('flashdata', 'value');?>"!="")
                         alert("<?=$this->session->flashdata('flashdata', 'value');?>");
@@ -36,50 +31,30 @@
                     <!--<col width="50%">
                     <col width="50%">-->
                     <tr>
-                        <th>代理ID</th>
-                        <th>用戶名</th>
-                        <th>姓名</th>
-                        <th>代理级別</th>
-                        <th>身份证</th>
-                        <th>电话</th>
-                        <th>微信</th>
-                        <th>QQ</th>
-                        <th>业绩支出</th>
-                        <th>他的收益</th>
-                        <th>是否生效</th>
-                        <th></th>
+                        <th>产品编号</th>
+                        <th>产品名称</th>
+                        <th>是否为试用品</th>
+                        <th>购买价格</th>
+                        <th>入货数量</th>
                     </tr>
                     <? $n = 0; ?>
-                    <? if(!empty($users)) {?>
-                        <? foreach($users as $k => $v){ ?>
+                    <? if(!empty($products)) {?>
+                        <? foreach($products as $k => $v){ ?>
                             <? $n ++; ?>
                             <tr class="<?=$n%2==0?"even":"odd";?>">
                                 <td><?=$v->id?></td>
-                                <td><?=$v->username;?></td>
-                                <td><?=$v->name;?></td>
-                                <td><?=getLevelName($v->level)?></td>
-                                <td><?=$v->citizen_id;?></td>
-                                <td><?=$v->mobile_no?></td>
-                                <td><?=$v->wechat_id?></td>
-                                <td><?=$v->qq_no?></td>
-                                <td><?=cny($v->turnover)?></td>
-                                <td><?=cny($v->profit)?></td>
-                                <td><?=$v->is_valid=='t'?'是':'否'?></td>
-                                <td><a href="<?=base_url()?>order/query_sub/<?=$v->id?>">查询他的订单</a></td>
+                                <td><a href="<?=base_url();?>product/details/<?=$v->id?>"><?=$v->title?></a></td>
+                                <td>
+                                    <?=$v->is_trial == 't'?'是':'否'?>
+                                </td>
+                                <td>
+                                    <?=$v->amount?>
+                                </td>
+                                <td><?=$v->quantity?></td>
                             </tr>
                         <? } ?>
                     <? } ?>
                 </table>
-                <div class="page"><?=$page;?></div>
-                <script>
-                    /*function myconfirm(id){
-                     if (confirm("are you sure?")){
-                     window.location.href = "<?=base_url()?>index.php/unvadmin/singerdelete/"+id;
-                     } else {
-
-                     }
-                     }*/
-                </script>
 
 
             </div>

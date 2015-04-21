@@ -268,6 +268,7 @@ class User extends MY_Controller {
             {
                 $this->load->view('templates/header', $data);
                 $this->load->view('user/add_root_user', $data);
+                exit;
             }else{
                 $main_data = array(
                     'username' => $this->input->post('username'),
@@ -361,6 +362,7 @@ class User extends MY_Controller {
             {
                 $this->load->view('templates/header', $data);
                 $this->load->view('user/add', $data);
+                exit;
             }else{
                 $main_data = array(
                     'username' => $this->input->post('username'),
