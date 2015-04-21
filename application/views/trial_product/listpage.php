@@ -11,7 +11,7 @@
                     <a href='<?=base_url()?>product/listpage' ><div>产品列表 </div></a>
                 </li>
                 <li>
-                    <a href='<?=base_url()?>trial_product/listpage' ><div>试用品列表 </div></a>
+                    <a href='<?=base_url()?>product/listpage?is_trial=true' ><div>试用品列表 </div></a>
                 </li>
             </ul>
         </div>
@@ -28,7 +28,7 @@
                     alert("<?=$this->session->flashdata('flashdata', 'value');?>");
             </script>
             <div>
-                <form action="<?=base_url()?>trial_product/listpage" method="get">
+                <form action="<?=base_url()?>product/listpage?is_trial=true" method="get">
                     <table>
                         <tr>
                             <th>搜索</th>
@@ -69,6 +69,7 @@
                     <th>产品功效</th>
                     <th>产品图片</th>
                     <th>单价</th>
+                    <th>入货数量</th>
                     <th></th>
                     <th></th>
                 </tr>
@@ -91,21 +92,42 @@
                         </td>
                         <td><img src="<?=base_url().'uploads/'.thumb($v->img)?>" /></td>
                         <td><?=cny($v->price)?></td>
-                        <td><a href="<?=base_url()?>trial_product/details/<?=$v->id;?>">查看详情</a></td>
-                        <td><a href="<?=base_url()?>trial_order/add/<?=$v->id;?>">产品下订</a></td>
+                        <td>
+                            <div class="buy-quantity">
+                                <input value="1" name="product<?=$v->id?>" id="quantity-<?=$v->id?>"/>
+                                <a href="javascript:void(0)" class="increase" onclick="increase(<?=$v->id?>)">+</a>
+                                <a href="javascript:void(0)" class="decrease" onclick="decrease(<?=$v->id?>)">-</a>
+                            </div>
+                        </td>
+                        <td><a href="<?=base_url()?>product/details/<?=$v->id;?>?is_trial=true">查看详情</a></td>
+                        <!--<td><a href="<?=base_url()?>order/add/<?=$v->id;?>">产品下订</a></td>-->
+                        <td><a href="javascript:void(0);" onclick="addtocart(<?=$v->id?>)">加入购物车</a></td>
                     </tr>
                 <? } ?>
                 <? } ?>
             </table>
             <div class="page"><?=$page;?></div>
             <script>
-                /*function myconfirm(id){
-                    if (confirm("are you sure?")){
-                        window.location.href = "<?=base_url()?>index.php/unvadmin/singerdelete/"+id;
-                    } else {
-
+                var addtocart = function(id){
+                    if(parseInt($("input[name=\"product"+id+"\"]").val()) <= 0)
+                    {
+                        alert('入货数量必须大于零');
+                        return false;
                     }
-                }*/
+                    $.post("<?=base_url()?>order/addtocart", { "product_id": id + "", "is_trial": "true", "quantity": $("input[name=\"product"+id+"\"]").val()  },
+                        function(data){
+                            alert(data.info);
+                        }, "json");
+                }
+                var increase = function(id)
+                {
+                    $("#quantity-"+id).val(parseInt($("#quantity-" + id).val()) + 1);
+                }
+                var decrease = function(id)
+                {
+                    if($("#quantity-" + id).val() > 1)
+                        $("#quantity-"+id).val(parseInt($("#quantity-" + id).val()) - 1);
+                }
             </script>
 
 

@@ -159,3 +159,51 @@ p.success_box{color:green;padding:10px;text-align:center}
 .accept{background:url('images/accept.png'); width:16px; height:16px; display: block;}
 .cross{background:url('images/cross.png'); width:16px; height:16px; display: block;}
 .max-width{max-width: 200px;}
+
+
+
+.buy-quantity{
+    position:relative;
+}
+.buy-quantity input{width:50px; height:23px;}
+.increase{
+    font: 11px/12px sans-serif, serif, Arial;
+    color: #AAA;
+    background-color: #FFF;
+    text-align: center;
+    display: block;
+    width: 16px;
+    height: 12px;
+    border: solid 1px #CCC;
+    position: absolute;
+    z-index: 1;
+    left: 58px;
+    top:0px;
+}
+.decrease{
+    font: 11px/12px sans-serif, serif, Arial;
+    color: #AAA;
+    background-color: #FFF;
+    text-align: center;
+    display: block;
+    width: 16px;
+    height: 12px;
+    border: solid 1px #CCC;
+    position: absolute;
+    z-index: 1;
+    left: 58px;
+    bottom:0;
+}
+.my th{
+    padding-right: 5px;
+    text-align: right;
+    font: 12px 'Lucida Grande','Lucida Sans Unicode',Arial,Verdana,sans-serif;
+    color: #536474;
+    background: #f6f6f6;
+    height: 30px;
+}
+.my-large{ font-size: 16px; }
+.my-large th{font-size: 16px; padding:5px;}
+.my-large .important {font-weight: bold;}
+.margin-left{margin-left: 50px;}
+.hidden{display:none;}
