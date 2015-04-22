@@ -977,7 +977,7 @@ class Order extends MY_Controller {
 
     public function add_by_cart()
     {
-        if(!isset($_POST) && !isset($_REQUEST))
+        if(!isset($_POST) || empty($_POST))
         {
             redirect('order/cart');
         }
@@ -992,7 +992,7 @@ class Order extends MY_Controller {
         $this->form_validation->set_rules($config);
         if ($this->form_validation->run() == FALSE)
         {
-            exit('未知錯誤');
+            redirect('order/cart');
         }
         $products = $this->getProducts($this->input->post('items'));
         $data = array();
