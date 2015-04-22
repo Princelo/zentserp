@@ -92,7 +92,7 @@
                         <td><?=substr($v->stock_time, 0, 19);?></td>
                         <td><a href="<?=base_url()?>order/details/<?=$v->id;?>">查看详情</a></td>
                         <td>
-                            <? if($v->is_pay == 'f' && $v->pay_method == 'alipay' && $this->session->userdata('level') != 0) {?>
+                            <? if($v->is_pay == 'f' && $v->pay_method == 'alipay') {?>
                             <a href="<?=base_url()?>order/pay_method/<?=$v->id?>">付款</a>
                             <? } ?>
                         </td>
