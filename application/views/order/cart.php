@@ -180,8 +180,6 @@
             return value_arr.join("|");
         }
         var updateTotal = function(){
-            $("#select-items").val(removeSelectedItems($(this).attr('pid'), $("#select-items").val()));
-            $("#select-items").val(addSelectedItems($(this).attr('pid'), $("#select-items").val()));
             value_arr = $('#select-items').val().split("|");
             value_arr_without_quantity = [];
             for(var i = value_arr.length - 1; i >= 0; i --)
@@ -243,6 +241,7 @@
             );
         });
         $(".quantity").each(function(){
+            $(this).val($(this).val());
             $(this).change(function(){
                 $("#select-items").val(removeSelectedItems($(this).attr('pid'), $("#select-items").val()));
                 $("#select-items").val(addSelectedItems($(this).attr('pid'), $("#select-items").val()));
@@ -296,5 +295,8 @@
                 }
             }
         }
+        $(".increase").each(function(){$(this).click()});
+        $(".decrease").each(function(){$(this).click()});
+        updateTotal();
         check();
     </script>
