@@ -62,8 +62,6 @@ class MOrder extends CI_Model
                 join order_product op
                 on op.order_id = o.id
                 and o.is_deleted = false
-                and
-                o.id = 108
                 join users u
                 on o.user_id = u.id
                 join address_books b
