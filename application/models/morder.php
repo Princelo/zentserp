@@ -274,7 +274,7 @@ class MOrder extends CI_Model
                     currval('address_books_id_seq') address_book_id,
                     ? is_post,
                     ? post_fee,
-                    false,
+                    (case when u.level = 0 then true else false end),
                     ?
                 from
                 (select c.level as level, p.level plevel
@@ -484,7 +484,7 @@ class MOrder extends CI_Model
            sum(iq.amount) amount,sum(quantity) quantity,count(opid) diff_quantity,id,username,id,parent_user_id,is_root,post_fee,
                           is_pay, is_correct, pay_time, pay_amt, is_cancelled, is_post, province_id, city_id,
                           address_info,linkman,mobile,remark,finish_time,stock_time,is_pay_online,pay_method,
-                          pay_amt_without_post_fee,post_info,purchase_level,uid, username name_ch
+                          pay_amt_without_post_fee,post_info,purchase_level,uid, username name_ch, is_first
             from (select
                    op.id            opid,
                    op.quantity      quantity,

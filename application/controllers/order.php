@@ -363,11 +363,11 @@ class Order extends MY_Controller {
                 //    redirect('order/details_admin/'.$order_id);
                 //}
                 $result = $this->MOrder->finish_with_pay($order_id,
-                                                         bcadd(bcadd(money($data['v']->amount), $data['v']->trial_amount, 4 ), money($data['v']->post_fee),4),
+                                                         bcadd(money($data['v']->amount), money($data['v']->post_fee),4),
                                                          $data['v']->uid,
                                                          $data['v']->parent_user_id,
                                                          $data['v']->is_root,
-                                                         bcadd(money($data['v']->amount), $data['v']->trial_amount, 4 ),
+                                                         money($data['v']->amount),
                                                          $data['v']->post_fee,
                                                          money($data['v']->amount),
                                                          $data['v']->is_first);
@@ -481,6 +481,9 @@ class Order extends MY_Controller {
             exit('You are the admin.');
         //if($this->session->userdata('level') == 0)
         //    redirect('order/add_non_member/');
+        if($this->input->post('token') != $this->session->userdata('token')){
+            redirect('order/listpage');
+        }
         $data = array();
         $data['error'] = '';
         $products = $this->getProducts($this->input->post('cart_info'));
@@ -981,6 +984,7 @@ class Order extends MY_Controller {
         {
             redirect('order/cart');
         }
+        $this->session->set_userdata('token', md5(date('YmdHis').rand(0, 32000)) );
         $config = array(
             array(
                 'field'   => 'items',
@@ -1005,6 +1009,7 @@ class Order extends MY_Controller {
             redirect('order/listpage');
         }
         $data['str'] = $this->input->post('items');
+        $data['token'] = $this->session->userdata('token');
         $this->load->view('templates/header_user', $data);
         $this->load->view('order/add_by_cart', $data);
 
