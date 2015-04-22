@@ -1000,6 +1000,10 @@ class Order extends MY_Controller {
         $user_id = $this->session->userdata('current_user_id');
         $level = $this->session->userdata('level');
         $data['products'] = $this->MOrder->getCartInfo($user_id, $level);
+        if(empty($data['products']))
+        {
+            redirect('order/listpage');
+        }
         $data['str'] = $this->input->post('items');
         $this->load->view('templates/header_user', $data);
         $this->load->view('order/add_by_cart', $data);
