@@ -1076,8 +1076,6 @@ class Order extends MY_Controller {
     {
         if($this->session->userdata('role') == 'admin')
             exit('You are the admin.');
-        if($this->session->userdata('level') == 0 )
-            exit('You are not a member');
         if(!$this->__validate_token())
             exit('your operation is expired!');
         $this->MOrder->is_paid($order_id);
