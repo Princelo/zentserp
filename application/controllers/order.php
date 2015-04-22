@@ -1076,8 +1076,6 @@ class Order extends MY_Controller {
     {
         if($this->session->userdata('role') == 'admin')
             exit('You are the admin.');
-        if($this->session->userdata('level') == 0 )
-            exit('You are not a member');
         if(!$this->__validate_token())
             exit('your operation is expired!');
         $this->MOrder->is_paid($order_id);
@@ -1102,69 +1100,6 @@ class Order extends MY_Controller {
         $subject = $this->session->userdata('user') . "_-_ERP_no.".$order_id;
 
         $data = $this->MOrder->getOrderPrice($order_id);
-        $total_fee = $data->total;
-
-
-        //$anti_phishing_key = $alipaySubmit->query_timestamp();
-        $anti_phishing_key = "";
-
-        $exter_invoke_ip = get_client_ip();
-
-        $body = "";
-        $show_url = "";
-
-        $parameter = array(
-            "service" => "create_direct_pay_by_user",
-            "partner" => trim($alipay_config['partner']),
-            "seller_email" => trim($alipay_config['seller_email']),
-            "payment_type"	=> $payment_type,
-            "notify_url"	=> $notify_url,
-            "return_url"	=> $return_url,
-            "out_trade_no"	=> $out_trade_no,
-            "subject"	=> $subject,
-            "total_fee"	=> $total_fee,
-            "body"	=> $body,
-            "show_url"	=> $show_url,
-            "anti_phishing_key"	=> $anti_phishing_key,
-            "exter_invoke_ip"	=> $exter_invoke_ip,
-            "_input_charset"	=> trim(strtolower($alipay_config['input_charset']))
-        );
-
-        $html_text = $alipaySubmit->buildRequestForm($parameter,"get", "确认");
-        echo "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"></head>";
-        echo "<div style=\"display:none;\">".$html_text."</div></html>";
-
-    }
-
-    public function pay_non_member()
-    {
-        if($this->session->userdata('role') == 'admin')
-            exit('You are the admin.');
-        if($this->session->userdata('level') != 0 )
-            exit('You are a member');
-        if(!$this->__validate_token())
-            exit('your operation is expired!');
-        require_once("application/third_party/alipay/lib/alipay_submit.class.php");
-        $alipay_config = alipay_config();
-        $alipaySubmit = new AlipaySubmit($alipay_config);
-
-
-        $payment_type = "1";
-        $notify_url = base_url()."alipay_notify?alipay=sb";
-        //there's a bug that alipay api will filter out the first para of the url return.
-        //fixed it by insert a para in the url.
-
-        $return_url = base_url()."order/return_alipay?alipay=sb";
-
-        $out_trade_no = $this->session->userdata('user') . date('YmdHis') . random_string('numeric', 4);
-
-        $is_update_out_trade_no_success = $this->MOrder->updateNonMemberCartTradeNo($out_trade_no);
-        if(!$is_update_out_trade_no_success)
-            exit('error!\nPlease try again later');
-
-        $subject = $this->session->userdata('user') . "_-_ERP_no.CART";
-
-        $data = $this->MOrder->getNonMemberCartTotal();
         $total_fee = $data->total;
 
 

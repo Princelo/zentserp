@@ -112,38 +112,6 @@ class MProduct extends CI_Model
         return $data;
     }
 
-    public function objGetCart($user_id)
-    {
-        $query_sql = "
-            select p.title,
-                   o.id order_id,
-                   o.count,
-                   a.amount,
-                   o.post_fee,
-                   u.assign_level as level
-            from
-                cart c, orders o, products p, amounts a, users u
-                where c.user_id = {$user_id}
-                and o.cart_id = c.id
-                and o.product_id = p.id
-                and a.order_id = o.id
-                and a.level = u.level
-                and u.id = c.user_id
-                and o.is_valid = false
-                ;
-        ";
-
-        $data = array();
-        $query = $this->objDB->query($query_sql);
-        if($query->num_rows() > 0){
-            foreach ($query->result() as $key => $val) {
-                $data[] = $val;
-            }
-        }
-        $query->free_result();
-
-        return $data;
-    }
 
     public function add($main_data, $price_list)
     {
