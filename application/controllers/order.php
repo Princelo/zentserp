@@ -479,8 +479,6 @@ class Order extends MY_Controller {
     {
         if($this->session->userdata('role') == 'admin')
             exit('You are the admin.');
-        //if($this->session->userdata('level') == 0)
-        //    redirect('order/add_non_member/');
         if($this->input->post('token') != $this->session->userdata('token')){
             redirect('order/listpage');
         }
@@ -488,11 +486,6 @@ class Order extends MY_Controller {
         $data['error'] = '';
         $products = $this->getProducts($this->input->post('cart_info'));
         $config = array(
-            /*array(
-                'field'   => 'product_id',
-                'label'   => 'Product Id',
-                'rules'   => 'required|integer|xss_clean'
-            ),*/
             array(
                 'field'   => 'is_post',
                 'label'   => 'Stock Type',
@@ -525,7 +518,6 @@ class Order extends MY_Controller {
                 array(
                     'field'   => 'province_id',
                     'label'   => 'Province',
-                    //'rules'   => 'trim|required|xss_clean|is_unique[products.title]'
                     'rules'   => 'trim|xss_clean|integer'
                 )
             );
@@ -583,276 +575,12 @@ class Order extends MY_Controller {
                     redirect('order/cart');
                 }
             }
-        }/*else{
-            $data['product_name'] = $this->MProduct->strGetProductTitle($product_id);
-            $data['product_id'] = $product_id;
-            $this->load->view('templates/header_user', $data);
-            $this->load->view('order/add', $data);
-        }*/
-
-    }
-
-    private function addbak($product_id)
-    {
-        if($this->session->userdata('role') == 'admin')
-            exit('You are the admin.');
-        if($this->session->userdata('level') == 0)
-            redirect('order/add_non_member/'.$product_id);
-        $data = array();
-        $data['error'] = '';
-        $config = array(
-            /*array(
-                'field'   => 'product_id',
-                'label'   => 'Product Id',
-                'rules'   => 'required|integer|xss_clean'
-            ),*/
-            array(
-                'field'   => 'is_post',
-                'label'   => 'Stock Type',
-                'rules'   => 'boolean|xss_clean'
-            ),
-            array(
-                'field'   => 'contact',
-                'label'   => 'Linkman',
-                'rules'   => 'trim|xss_clean|required'
-            ),
-            array(
-                'field'   => 'mobile',
-                'label'   => 'Mobile no',
-                'rules'   => 'trim|xss_clean|required'
-            ),
-            array(
-                'field'   => 'remark',
-                'label'   => 'Remark',
-                'rules'   => 'trim|xss_clean'
-            ),
-            array(
-                'field'   => 'count',
-                'label'   => 'Purchase quantity',
-                'rules'   => 'trim|xss_clean|is_natural|greater_than[0]'
-            ),
-            array(
-                'field'   => 'pay_method',
-                'label'   => 'Pay method',
-                'rules'   => 'trim|xss_clean|required'
-            ),
-        );
-        if($this->input->post('is_post') == 1)
-        {
-            array_merge($config,
-                array(
-                    'field'   => 'province_id',
-                    'label'   => 'Province',
-                    //'rules'   => 'trim|required|xss_clean|is_unique[products.title]'
-                    'rules'   => 'trim|xss_clean|integer'
-                )
-            );
-            array_merge($config,
-                array(
-                    'field'   => 'city',
-                    'label'   => 'City',
-                    'rules'   => 'trim|xss_clean|integer'
-                )
-            );
-            array_merge($config,
-                array(
-                    'field'   => 'address_info',
-                    'label'   => 'Address Info',
-                    'rules'   => 'trim|xss_clean'
-                )
-            );
-        }
-
-
-        $this->form_validation->set_rules($config);
-        if(isset($_POST) && !empty($_POST))
-        {
-            $this->__extra_verify();
-            if ($this->form_validation->run() == FALSE)
-            {
-                $this->load->view('templates/header_user', $data);
-                $this->load->view('order/add', $data);
-            }else{
-                $address_info = array(
-                    'province_id' => $this->input->post('province_id'),
-                    'city_id' => $this->input->post('city_id'),
-                    'address_info' => $this->input->post('address_info'),
-                    'contact' => $this->input->post('contact'),
-                    'mobile'  => $this->input->post('mobile'),
-                    'remark'  => $this->input->post('remark'),
-                );
-                $main_data = array(
-                    //'product_id' => $this->input->post('product_id'),
-                    'product_id' => $product_id,
-                    'count' => $this->input->post('count'),
-                    'level' => $this->MUser->intGetCurrentUserLevel($this->session->userdata('current_user_id')),
-                    'pay_method' => $this->input->post('pay_method'),
-                    'is_post' => $this->input->post('is_post'),
-                    'post_fee' => 0,
-                );
-                $main_data['post_fee'] = $this->calcPostFee($main_data, $address_info);
-                $result_id = $this->MOrder->intAddReturnOrderId($main_data, $address_info);
-                if($result_id != 0){
-                    $this->session->set_flashdata('flashdata', '订单添加成功');
-                    if($this->input->post('pay_method') == 'alipay')
-                        redirect('order/pay_method/'.$result_id);
-                    else
-                        redirect('order/add/'.$product_id);
-                }
-                else{
-                    $this->session->set_flashdata('flashdata', '订单添加失败');
-                    redirect('order/add'.$product_id);
-                }
-            }
         }else{
-            $data['product_name'] = $this->MProduct->strGetProductTitle($product_id);
-            $data['product_id'] = $product_id;
-            $this->load->view('templates/header_user', $data);
-            $this->load->view('order/add', $data);
+            redirect('order/listpage');
         }
-
     }
 
-    public function add_non_member($product_id)
-    {
-        if($this->session->userdata('role') == 'admin')
-            exit('You are the admin.');
-        if($this->session->userdata('level') != 0)
-            exit('You are a member');
-        $data = array();
-        $data['error'] = '';
-        $config = array(
-            /*array(
-                'field'   => 'product_id',
-                'label'   => 'Product Id',
-                'rules'   => 'required|integer|xss_clean'
-            ),*/
-            array(
-                'field'   => 'is_post',
-                'label'   => 'Stock Type',
-                'rules'   => 'boolean|xss_clean'
-            ),
-            array(
-                'field'   => 'contact',
-                'label'   => 'Linkman',
-                'rules'   => 'trim|xss_clean|required'
-            ),
-            array(
-                'field'   => 'mobile',
-                'label'   => 'Mobile no',
-                'rules'   => 'trim|xss_clean|required'
-            ),
-            array(
-                'field'   => 'remark',
-                'label'   => 'Remark',
-                'rules'   => 'trim|xss_clean'
-            ),
-            array(
-                'field'   => 'count',
-                'label'   => 'Purchase quantity',
-                'rules'   => 'trim|xss_clean|is_natural|greater_than[0]'
-            ),
-            array(
-                'field'   => 'pay_method',
-                'label'   => 'Pay method',
-                'rules'   => 'trim|xss_clean|required'
-            ),
-        );
-        if($this->input->post('is_post') == 1)
-        {
-            array_merge($config,
-                array(
-                    'field'   => 'province_id',
-                    'label'   => 'Province',
-                    //'rules'   => 'trim|required|xss_clean|is_unique[products.title]'
-                    'rules'   => 'trim|xss_clean|integer'
-                )
-            );
-            array_merge($config,
-                array(
-                    'field'   => 'city',
-                    'label'   => 'City',
-                    'rules'   => 'trim|xss_clean|integer'
-                )
-            );
-            array_merge($config,
-                array(
-                    'field'   => 'address_info',
-                    'label'   => 'Address Info',
-                    'rules'   => 'trim|xss_clean'
-                )
-            );
-        }
 
-        $this->form_validation->set_rules($config);
-        if(isset($_POST) && !empty($_POST))
-        {
-            $this->__extra_verify();
-            if ($this->form_validation->run() == FALSE)
-            {
-                $this->load->view('templates/header_user', $data);
-                $this->load->view('order/add_non_member', $data);
-            }else{
-                $address_info = array(
-                    'province_id' => $this->input->post('province_id'),
-                    'city_id' => $this->input->post('city_id'),
-                    'address_info' => $this->input->post('address_info'),
-                    'contact' => $this->input->post('contact'),
-                    'mobile'  => $this->input->post('mobile'),
-                    'remark'  => $this->input->post('remark'),
-                );
-                $main_data = array(
-                    //'product_id' => $this->input->post('product_id'),
-                    'product_id' => $product_id,
-                    'count' => $this->input->post('count'),
-                    'level' => $this->MUser->intGetCurrentUserLevel($this->session->userdata('current_user_id')),
-                    'is_post' => $this->input->post('is_post'),
-                    'pay_method' => $this->input->post('pay_method'),
-                    'post_fee' => 0,
-                    'is_valid' => false,
-                );
-                $main_data['post_fee'] = $this->calcPostFee($main_data, $address_info);
-                $result_id = $this->MOrder->intAddNonMemberReturnOrderId($main_data, $address_info);
-                if($result_id != 0){
-                    $this->session->set_flashdata('flashdata', '加入购物车成功');
-                    //if($this->input->post('is_post') === true)
-                        //redirect('order/pay/'.$result_id);
-                    //else
-                        redirect('order/add_non_member/'.$product_id);
-                }
-                else{
-                    $this->session->set_flashdata('flashdata', '加入购物车失败');
-                    redirect('order/add_non_member/'.$product_id);
-                }
-            }
-        }else{
-            $data['product_name'] = $this->MProduct->strGetProductTitle($product_id);
-            $data['product_info'] = $this->MProduct->objGetProductInfo($product_id);
-            $data['cart'] = $this->MProduct->objGetCart($this->session->userdata('current_user_id'));
-            /*if(isset($data['cart'][0])){
-                if($data['cart'][0]->level == 1)
-                    $data['target'] = 19800;
-                if($data['cart'][0]->level == 2)
-                    $data['target'] = 3980;
-                if($data['cart'][0]->level == 3)
-                    $data['target'] = 1980;
-            }else{
-                $assign_level = $this->MUser->objGetUserInfo($this->session->userdata('current_user_id'));
-                $assign_level = $assign_level->assign_level;
-                if($assign_level == 1)
-                    $data['target'] = 19800;
-                if($assign_level == 2)
-                    $data['target'] = 3980;
-                if($assign_level == 3)
-                    $data['target'] = 1980;
-            }*/
-            $data['target'] = 1980;
-            $data['product_id'] = $product_id;
-            $this->load->view('templates/header_user', $data);
-            $this->load->view('order/add_non_member', $data);
-        }
-
-    }
 
     public function addtocart()
     {
@@ -914,7 +642,10 @@ class Order extends MY_Controller {
 
     public function remove_from_cart($product_id)
     {
-        $result = $this->db->from('cart_product')->where(array('product_id'=> $product_id))->delete();
+        if($this->session->userdata('role') == 'admin')
+            exit('You are the admin.');
+        $user_id = $this->session->userdata('currenct_user_id');
+        $result = $this->db->from('cart_product')->where(array('product_id'=> $product_id, 'user_id' => $user_id))->delete();
         if($result === true)
         {
             $this->session->set_flashdata('flashdata', '刪除成功');
@@ -925,42 +656,6 @@ class Order extends MY_Controller {
             redirect('order/cart');
         }
 
-    }
-
-    public function enableCart()
-    {
-        if($this->session->userdata('role') == 'admin')
-            exit('You are the admin.');
-        if($this->session->userdata('level') != 0)
-            exit('You are a member');
-        $data = $this->MProduct->objGetCart($this->session->userdata('current_user_id'));
-        /*if($data[0]->level == 1)
-            $target = 19800;
-        if($data[0]->level == 2)
-            $target = 3980;
-        if($data[0]->level == 3)
-            $target = 1980;
-        */
-        $target = 1980;
-        $total = 0;
-        foreach($data as $k => $v)
-        {
-            $total = bcadd($total, bcmul(money($v->amount), $v->count, 2), 2);
-        }
-
-        if($total < $target)
-        {
-            exit('not enough');
-        }
-        $result = $this->MOrder->enableCart($this->session->userdata('current_user_id'));
-        if($result) {
-            $this->session->set_flashdata('flashdata', '结算成功');
-            $this->session->set_userdata('token', md5(date('YmdHis').rand(0, 32000)) );
-            redirect('order/pay_method_non_member');
-        } else {
-            $this->session->set_flashdata('flashdata', '结算失败');
-            redirect('product/listpage');
-        }
     }
 
     public function cart()
@@ -980,6 +675,8 @@ class Order extends MY_Controller {
 
     public function add_by_cart()
     {
+        if($this->session->userdata('role') == 'admin')
+            exit('You are the admin.');
         if(!isset($_POST) || empty($_POST))
         {
             redirect('order/cart');
@@ -1032,8 +729,6 @@ class Order extends MY_Controller {
     {
         if($this->session->userdata('role') == 'admin')
             exit('You are the admin.');
-        /*if($this->session->userdata('level') == 0 )
-            exit('You are not a member');*/
         $this->session->set_userdata('token', md5(date('YmdHis').rand(0, 32000)) );
         $data = array();
         $data = $this->MOrder->getOrderPrice($order_id);
@@ -1043,34 +738,6 @@ class Order extends MY_Controller {
         $this->load->view('order/pay_method', $data);
     }
 
-    public function pay_method_trial($order_id)
-    {
-        if($this->session->userdata('role') == 'admin')
-            exit('You are the admin.');
-        if($this->session->userdata('level') == 0 )
-            exit('You are not a member');
-        $this->session->set_userdata('token', md5(date('YmdHis').rand(0, 32000)) );
-        $data = array();
-        $data = $this->MOrder->getOrderPriceTrial($order_id);
-        $data->token = $this->session->userdata('token');
-        $data->order_id = $order_id;
-        $this->load->view('templates/header_user', $data);
-        $this->load->view('trial_order/pay_method', $data);
-    }
-
-    public function pay_method_non_member()
-    {
-        if($this->session->userdata('role') == 'admin')
-            exit('You are the admin.');
-        if($this->session->userdata('level') != 0)
-            exit('You are a member');
-        $this->session->set_userdata('token', md5(date('YmdHis').rand(0, 32000)) );
-        $data = array();
-        $data = $this->MOrder->getNonMemberCartTotal();
-        $data->token = $this->session->userdata('token');
-        $this->load->view('templates/header_user', $data);
-        $this->load->view('order/pay_method_non_member', $data);
-    }
 
     public function pay($order_id)
     {
