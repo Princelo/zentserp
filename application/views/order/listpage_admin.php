@@ -87,7 +87,7 @@
                         <td><a href="<?=base_url()?>user/details_admin/<?=$v->uid?>"><?=$v->name_ch."(".$v->username."/".$v->uid.")"?></a></td>
                         <td><?=$v->quantity;?></td>
                         <td><?=$v->diff_quantity?></td>
-                        <td><?="￥".bcadd(money($v->amount), $v->trial_amount, 2)?></td>
+                        <td><?=cny($v->amount)?></td>
                         <td><span class="<?=$v->is_pay=='t'?"accept":"cross";?>"></span></td>
                         <td><span class="<?=$v->is_pay=='t'&&$v->is_correct=='t'?"accept":"cross";?>"></span></td>
                         <td><?=$v->finish_time?></td>
