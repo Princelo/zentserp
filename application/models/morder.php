@@ -16,9 +16,15 @@ class MOrder extends CI_Model
     {
         $query_sql = "";
         $query_sql .= "
-           select
+ select
+           sum(iq.amount) amount,sum(quantity) quantity,count(opid) diff_quantity,id,username,parent_user_id,is_root,post_fee,
+                          is_pay, is_correct, pay_time, pay_amt, is_cancelled, is_post, province_id, city_id,
+                          address_info,linkman,mobile,remark,finish_time,stock_time,is_pay_online,pay_method,
+                          pay_amt_without_post_fee,post_info,purchase_level
+           from (select
                    --p.title          title,
                    --p.id             pid,
+                   op.id	opid,
                    sum(op.quantity) quantity,
                    count(op.id)  diff_quantity,
                    --string_agg(op.product_id::character(255), ',')     products,
@@ -73,9 +79,15 @@ class MOrder extends CI_Model
                 {$where}
 
 
-            group by o.id, u.name, u.id, a.amount, b.province_id, b.city_id, b.address_info, b.contact, b.mobile, b.remark
+            group by o.id, u.name, u.id, a.amount, b.province_id, b.city_id, b.address_info, b.contact, b.mobile, b.remark, op.id
             {$order}
             {$limit}
+            ) as iq
+            where 1 = 1
+            group by id,username,parent_user_id,is_root,post_fee,
+                          is_pay, is_correct, pay_time, pay_amt, is_cancelled, is_post, province_id, city_id,
+                          address_info,linkman,mobile,remark,finish_time,stock_time,is_pay_online,pay_method,
+                          pay_amt_without_post_fee,post_info,purchase_level
         ";
         $data = array();
         $query = $this->objDB->query($query_sql);
