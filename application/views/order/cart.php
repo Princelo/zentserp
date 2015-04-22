@@ -208,7 +208,6 @@
                 }
             }
         }
-        updateTotal();
         $("#selectAll").change(function(){
             if(this.checked)
             {
