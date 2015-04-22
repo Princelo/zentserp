@@ -215,12 +215,14 @@
                     this.checked = true;
                     if($(this).attr('pid') != undefined)
                         $("#select-items").val(addSelectedItems($(this).attr('pid'), $("#select-items").val()));
+                    check();
                 });
             }else{
                 $('input[type="checkbox"]').each(function(){
                     this.checked = false;
                     if($(this).attr('pid') != undefined)
                         $("#select-items").val(removeSelectedItems($(this).attr('pid'), $("#select-items").val()));
+                    check();
                 });
             }
             updateTotal();
@@ -231,9 +233,11 @@
                     if(this.checked){
                         $("#select-items").val(addSelectedItems($(this).attr('pid'), $("#select-items").val()));
                         updateTotal();
+                        check();
                     }else{
                         $("#select-items").val(removeSelectedItems($(this).attr('pid'), $("#select-items").val()));
                         updateTotal();
+                        check();
                     }
                 }
             );
@@ -245,6 +249,7 @@
                 pid = $(this).attr('pid');
                 $("#total-"+pid).html( (parseFloat($('#price-'+pid).val()) * parseInt($(this).val())).toFixed(2) );
                 updateTotal();
+                check();
             });
         });
         function finishConfirm()
@@ -263,6 +268,7 @@
             if($("#product-"+id).is(':checked'))
                 $("#select-items").val(addSelectedItemsForCalc(id, $("#select-items").val()));
             updateTotal();
+            check();
         }
         var decrease = function(id)
         {
@@ -274,5 +280,21 @@
                     $("#select-items").val(addSelectedItemsForCalc(id, $("#select-items").val()));
             }
             updateTotal();
+            check();
         }
+        var check = function()
+        {
+            if(<?=$level?> == 0)
+            {
+                console.log(parseFloat($('#global-total').html()));
+                if(parseFloat($('#global-total').html()) < 1980){
+                    $('#tips').show();
+                    $('#btnS').hide();
+                }else{
+                    $('#tips').hide();
+                    $('#btnS').show();
+                }
+            }
+        }
+        check();
     </script>
