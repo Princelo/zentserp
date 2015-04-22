@@ -76,7 +76,6 @@ class MUser extends CI_Model
 
         $this->objDB->query($insert_sql_root_id);
         $this->objDB->query($insert_sql_user, $binds);
-        $this->objDB->query("insert into cart(user_id) values(currval('users_id_seq'));");
 
         $this->objDB->trans_complete();
 
@@ -113,14 +112,15 @@ class MUser extends CI_Model
             $$ LANGUAGE plpgsql;
         ";
         $update_left_right_sql = "";
+        $temp = substr(md5(date('YmdHis').rand(0, 32000)), 0, 8);
         $update_left_right_sql .= "
             --with variables as (select rgt, root_id from users where id = {$current_user_id})
-            select rgt, root_id into temp table variables from users where id = {$current_user_id};
-            update users set lft = case when lft >= (select rgt from variables) then lft + 2
+            select rgt, root_id into temp table variables{$temp} from users where id = {$current_user_id};
+            update users set lft = case when lft >= (select rgt from variables{$temp}) then lft + 2
                                       else lft end,
                               rgt = rgt + 2
-                   where rgt >= (select rgt from variables)
-                         and root_id = (select root_id from variables);
+                   where rgt >= (select rgt from variables{$temp})
+                         and root_id = (select root_id from variables{$temp});
             --call update_left_right({$current_user_id});
         ";
         $insert_sql_user = "";
@@ -129,8 +129,8 @@ class MUser extends CI_Model
             insert into users
             (username, password, name, citizen_id, mobile_no, wechat_id, qq_no, root_id, pid, lft, rgt)
             values
-            (?, ?, ?, ?, ?, ?, ?, (select root_id from variables), {$current_user_id},
-            (select rgt from variables), (select rgt + 1 from variables));
+            (?, ?, ?, ?, ?, ?, ?, (select root_id from variables{$temp}), {$current_user_id},
+            (select rgt from variables{$temp}), (select rgt + 1 from variables{$temp}));
         ";
         $binds = array(
             $main_data['username'], $main_data['password'], $main_data['name'],
@@ -144,7 +144,6 @@ class MUser extends CI_Model
         $this->objDB->query("set constraints all deferred;");
         $this->objDB->query($update_left_right_sql);
         $this->objDB->query($insert_sql_user, $binds);
-        $this->objDB->query("insert into cart(user_id) values(currval('users_id_seq'));");
 
         $this->objDB->trans_complete();
 
