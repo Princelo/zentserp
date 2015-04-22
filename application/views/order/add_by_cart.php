@@ -33,6 +33,7 @@
 
 
             <?=form_open_multipart('order/add');?>
+            <input name="token" value="<?=$token?>" type="hidden"/>
 
             <fieldset>
                 <legend>添加订单 </legend>
