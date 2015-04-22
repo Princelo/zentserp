@@ -20,7 +20,7 @@ class MOrder extends CI_Model
            sum(iq.amount) amount,sum(quantity) quantity,count(opid) diff_quantity,id,username,parent_user_id,is_root,post_fee,
                           is_pay, is_correct, pay_time, pay_amt, is_cancelled, is_post, province_id, city_id,
                           address_info,linkman,mobile,remark,finish_time,stock_time,is_pay_online,pay_method,
-                          pay_amt_without_post_fee,post_info,purchase_level
+                          pay_amt_without_post_fee,post_info,purchase_level,uid,username name_ch
            from (select
                    --p.title          title,
                    --p.id             pid,
@@ -85,7 +85,7 @@ class MOrder extends CI_Model
             group by id,username,parent_user_id,is_root,post_fee,
                           is_pay, is_correct, pay_time, pay_amt, is_cancelled, is_post, province_id, city_id,
                           address_info,linkman,mobile,remark,finish_time,stock_time,is_pay_online,pay_method,
-                          pay_amt_without_post_fee,post_info,purchase_level
+                          pay_amt_without_post_fee,post_info,purchase_level,uid,iq.username
         ";
         $data = array();
         $query = $this->objDB->query($query_sql);
