@@ -11,7 +11,7 @@
                     <a href='<?=base_url()?>product/listpage' ><div>产品列表 </div></a>
                 </li>
                 <li>
-                    <a href='<?=base_url()?>product/listpage?is_trial' ><div>试用品列表 </div></a>
+                    <a href='<?=base_url()?>product/listpage?is_trial=true' ><div>试用品列表 </div></a>
                 </li>
             </ul>
         </div>

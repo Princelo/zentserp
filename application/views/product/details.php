@@ -12,7 +12,7 @@
                 </li>
                 <? if($this->session->userdata('level') != 0) {?>
                 <li>
-                    <a href='<?=base_url()?>trial_product/listpage' ><div>试用品列表 </div></a>
+                    <a href='<?=base_url()?>product/listpage?is_trial=true' ><div>试用品列表 </div></a>
                 </li>
                 <?}?>
             </ul>
