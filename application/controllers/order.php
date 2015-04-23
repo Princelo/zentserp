@@ -644,7 +644,7 @@ class Order extends MY_Controller {
     {
         if($this->session->userdata('role') == 'admin')
             exit('You are the admin.');
-        $user_id = $this->session->userdata('currenct_user_id');
+        $user_id = $this->session->userdata('current_user_id');
         $result = $this->db->from('cart_product')->where(array('product_id'=> $product_id, 'user_id' => $user_id))->delete();
         if($result === true)
         {
