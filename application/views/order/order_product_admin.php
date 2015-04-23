@@ -39,7 +39,7 @@
                             <? $n ++; ?>
                             <tr class="<?=$n%2==0?"even":"odd";?>">
                                 <td><?=$v->id?></td>
-                                <td><a href="<?=base_url();?>product/details/<?=$v->id?>"><?=$v->title?></a></td>
+                                <td><a href="<?=base_url();?>product/details_admin/<?=$v->id?>"><?=$v->title?></a></td>
                                 <td>
                                     <?=$v->is_trial == 't'?'是':'否'?>
                                 </td>
