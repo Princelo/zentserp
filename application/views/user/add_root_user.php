@@ -44,15 +44,22 @@
 
                     <tr>
                         <th><label for="username">代理账号 <span>*</span></label></th>
-                        <td><input type="text" name="username" data-validate="required,size(5,20)"
+                        <td><input type="text" name="username" data-validate="required,size(5,16)"
                                    maxlength="20" value="<?=set_value('username')?>"/>
                         </td>
                     </tr>
                     <tr>
                         <th><label for="password">代理密码 <span>*</span></label></th>
                         <td>
-                            <input type="password" name="password" data-validate="required,size(8,30)"
+                            <input type="password" name="password" data-validate="required,mypassword"
                                    maxlength="30" value="<?=set_value('password')?>"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="password">代理密码确认 <span>*</span></label></th>
+                        <td>
+                            <input type="password" name="password2" data-validate="required,myconfirm"
+                                   maxlength="30" value="<?//=set_value('password')?>"/>
                         </td>
                     </tr>
                     <tr>
@@ -87,14 +94,14 @@
                     <tr>
                         <th><label for="citizen_id">身份证号码 <span>*</span></label></th>
                         <td>
-                            <input type="text" name="citizen_id" data-validate="required,citizen_id"
+                            <input type="text" name="citizen_id" data-validate="required,chinese_idcard"
                                    maxlength="18" value="<?=set_value('citizen_id')?>"/>
                         </td>
                     </tr>
                     <tr>
                         <th><label for="mobile_no">移动电话 <span>*</span></label></th>
                         <td>
-                            <input type="text" name="mobile_no" data-validate="required,size(11,11)"
+                            <input type="text" name="mobile_no" data-validate="required,phone"
                                    maxlength="11" size="11" value="<?=set_value('mobile_no')?>"/>
                         </td>
                     </tr>
@@ -108,7 +115,7 @@
                     <tr>
                         <th><label for="qq_no">QQ号 <span>*</span></label></th>
                         <td>
-                            <input type="text" name="qq_no" data-validate="required,numeric,qq"
+                            <input type="text" name="qq_no" data-validate="required,number,qq,size(5,11)"
                                    maxlength="11" value="<?=set_value('qq_no')?>"/>
                         </td>
                     </tr>

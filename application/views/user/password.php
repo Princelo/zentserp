@@ -26,15 +26,22 @@
                         <col width="150">
 
                         <tr>
+                            <th><label for="type">原密码</label></th>
+                            <td>
+                                <input name="password-original" value="" type="password" data-validate="required" />
+                            </td>
+                        </tr>
+
+                        <tr>
                             <th><label for="type">新密码</label></th>
                             <td>
-                                <input name="password" value="" type="password" data-validate="required"/>
+                                <input name="password" value="" type="password" data-validate="required,mypassword,max(30)"/>
                             </td>
                         </tr>
                         <tr>
                             <th><label for="type">再次确认</label></th>
                             <td>
-                                <input name="password2" value="" type="password" data-validate="required"/>
+                                <input name="password2" value="" type="password" data-validate="required,myconfirm,max(30)"/>
                             </td>
                         </tr>
                     </table>

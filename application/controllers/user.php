@@ -282,6 +282,11 @@ class User extends MY_Controller {
                     'qq_no' => $this->input->post('qq_no'),
                     'is_valid' => $this->input->post('is_valid'),
                 );
+                if(  $_POST['password'] != $_POST['password2'])
+                {
+                    $this->session->set_flashdata('flashdata', '兩次輸入密碼不一致');
+                    redirect('user/addRootUser');
+                }
                 $result = $this->MUser->addRootUser($main_data);
                 if($result){
                     $this->session->set_flashdata('flashdata', '代理账号添加成功');
@@ -375,6 +380,11 @@ class User extends MY_Controller {
                     //'assign_level' => $this->input->post('level'),
                     //'is_valid' => $this->input->post('is_valid'),
                 );
+                if(  $_POST['password'] != $_POST['password2'])
+                {
+                    $this->session->set_flashdata('flashdata', '兩次輸入密碼不一致');
+                    redirect('user/addRootUser');
+                }
                 $result = $this->MUser->add($main_data);
                 if($result){
                     $this->session->set_flashdata('flashdata', '代理账号添加成功');
@@ -517,17 +527,25 @@ class User extends MY_Controller {
 
 
     public function passwordupdate(){
-        if(isset($_POST['password']) && isset($_POST['password2']) && $_POST['password'] != "" && $_POST['password2'] != ""
+        if(isset($_POST['password-original']) && $_POST['password-original'] != ""
+            && isset($_POST['password']) && isset($_POST['password2']) && $_POST['password'] != "" && $_POST['password2'] != ""
             && $_POST['password'] == $_POST['password2']){
             $_POST['password'] = md5($_POST['password']);
             $_POST['password2'] = md5($_POST['password2']);
-            $result = $this->MUser->boolUpdatePassword($_POST['password'], $this->session->userdata('current_user_id'));
+            $result = false;
+            if($this->MUser->boolVerify($this->session->userdata('user'), $_POST['password-original'])){
+                $result = $this->MUser->boolUpdatePassword($_POST['password'], $this->session->userdata('current_user_id'));
+            }else{
+                $this->session->set_flashdata('flashdata', '原密码错误');
+            }
             if($result === true)
-                $this->password('更改密码成功');
+                $this->session->set_flashdata('flashdata', '更改成功');
             else
-                $this->password('未知错误');
+                $this->session->set_flashdata('flashdata', '未知错误');
+            redirect('user/password');
         }else{
-            $this->password('请输入完整信息並保证输入相同密码');
+            $this->session->set_flashdata('flashdata', '请输入完整信息並保证输入相同密码');
+            redirect('user/password');
         }
     }
 
