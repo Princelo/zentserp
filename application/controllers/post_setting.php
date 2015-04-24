@@ -5,6 +5,8 @@ class Post_Setting extends MY_Controller {
 
     public function __construct(){
         parent::__construct();
+        if($this->session->userdata('role') != 'admin' && $this->session->userdata('role') != 'user')
+            redirect('login');
         if($this->session->userdata('role') != 'admin')
             exit('You are not the admin');
         $this->load->model('MPost', 'MPost');

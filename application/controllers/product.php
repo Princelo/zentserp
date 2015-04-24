@@ -7,7 +7,7 @@ class Product extends MY_Controller {
     public function __construct(){
         parent::__construct();
         if($this->session->userdata('role') != 'admin' && $this->session->userdata('role') != 'user')
-            redirect('error404');
+            redirect('login');
         $this->load->model('MProduct', 'MProduct');
         $this->load->model('MUser', 'MUser');
         $this->load->library('form_validation');
