@@ -335,7 +335,7 @@ class Order extends MY_Controller {
         if($this->input->post('post_info') != '')
         {
             $this->db->query("update orders set post_info = '{$this->input->post('post_info')}' where id = {$order_id}");
-            if($this->input->post('finsh') == '')
+            if($this->input->post('finish') == '')
                 redirect('order/details_admin/'.$order_id);
         }
         if($this->input->post('finish', true) != '')

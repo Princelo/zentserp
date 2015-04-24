@@ -222,7 +222,7 @@ class User extends MY_Controller {
                 'field'   => 'username',
                 'label'   => '代理账号',
                 //'rules'   => 'trim|required|xss_clean|is_unique[products.title]'
-                'rules'   => 'trim|required|xss_clean|min_length[5]|max_length[12]|is_unique[users.username]'
+                'rules'   => 'trim|required|xss_clean|min_length[5]|max_length[16]|is_unique[users.username]'
             ),
             array(
                 'field'   => 'level',
@@ -311,7 +311,7 @@ class User extends MY_Controller {
                 'field'   => 'username',
                 'label'   => '代理账号',
                 //'rules'   => 'trim|required|xss_clean|is_unique[products.title]'
-                'rules'   => 'trim|required|xss_clean|min_length[5]|max_length[12]|is_unique[users.username]'
+                'rules'   => 'trim|required|xss_clean|min_length[5]|max_length[16]|is_unique[users.username]'
             ),
             array(
                 'field'   => 'password',
