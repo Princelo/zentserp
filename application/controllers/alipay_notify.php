@@ -82,7 +82,7 @@ class Alipay_Notify extends CI_Controller {
             //调试用，写文本函数记录程序运行情况是否正常
             logResult("notify fail out_trade_no:".$_POST['out_trade_no'].' trade_no:'.$_POST['trade_no']. ' trade_status:'.$_POST['trade_status']);
             //if($_POST['trade_status'] == 'TRADE_SUCCESS')
-            //    $this->logPayError();
+            //    logPayError();
         }
     }
 
