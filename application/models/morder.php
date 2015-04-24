@@ -996,7 +996,7 @@ class MOrder extends CI_Model
         $data = array();
         $data['is_pay'] = 'true';
         $where = array(
-            'trade_no'  =>  $trade_no,
+            'id'  =>  $trade_no,
         );
         $update_sql = $this->objDB->update_string('orders', $data, $where);
         $query = $this->objDB->query($update_sql);

@@ -729,6 +729,14 @@ class Order extends MY_Controller {
     {
         if($this->session->userdata('role') == 'admin')
             exit('You are the admin.');
+        $user_id = $this->session->userdata('current_user_id');
+        if(!$this->MOrder->checkIsOwn($user_id, $order_id))
+        {
+            exit('This Order is not yours');
+        }
+        if($this->MOrder->is_paid($order_id)) {
+            exit('This Order is paid!');
+        }
         $this->session->set_userdata('token', md5(date('YmdHis').rand(0, 32000)) );
         $data = array();
         $data = $this->MOrder->getOrderPrice($order_id);
@@ -745,7 +753,9 @@ class Order extends MY_Controller {
             exit('You are the admin.');
         if(!$this->__validate_token())
             exit('your operation is expired!');
-        $this->MOrder->is_paid($order_id);
+        if($this->MOrder->is_paid($order_id)) {
+            exit('This Order is paid!');
+        }
         require_once("application/third_party/alipay/lib/alipay_submit.class.php");
         $alipay_config = alipay_config();
         $alipaySubmit = new AlipaySubmit($alipay_config);
@@ -758,11 +768,12 @@ class Order extends MY_Controller {
 
         $return_url = base_url()."order/return_alipay?alipay=sb";
 
-        $out_trade_no = $this->session->userdata('user') . date('YmdHis') . random_string('numeric', 4);
+        //$out_trade_no = $this->session->userdata('user') . date('YmdHis') . random_string('numeric', 4);
+        $out_trade_no = $order_id;
 
-        $is_update_out_trade_no_success = $this->MOrder->updateOrderTradeNo($out_trade_no, $order_id);
-        if(!$is_update_out_trade_no_success)
-            exit('error!\nPlease try again later');
+        //$is_update_out_trade_no_success = $this->MOrder->updateOrderTradeNo($out_trade_no, $order_id);
+        //if(!$is_update_out_trade_no_success)
+            //exit('error!\nPlease try again later');
 
         $subject = $this->session->userdata('user') . "_-_ERP_no.".$order_id;
 
