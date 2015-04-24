@@ -107,7 +107,7 @@
                                     <input type="text" name="login_id" value="" id="login_id" class="google_textfield google_email" placeholder="登入帐号 "  />
                                     <input type="password" name="password" value="" id="password" class="google_textfield google_email" placeholder="密码 "  />
                                     <div style="padding-top:5px; padding-bottom:5px;" class="div-captcha">
-                                        <input type="text" name="captcha" class="google_textfield captcha" placeholder="编证码" value="" />
+                                        <input type="text" name="captcha" class="google_textfield captcha" placeholder="验证码" value="" />
                                         <?=$captcha;?>
                                     </div>
 
