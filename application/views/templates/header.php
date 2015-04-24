@@ -257,8 +257,14 @@
         var S,M;
         var idcard_array = new Array();
         idcard_array = idcard.split("");
-        if(area[parseInt(idcard.substr(0,2))]==null) return Errors[4];
         switch(idcard.length){
+            case 8:
+                ereg=/^[a-zA-Z][0-9]*$/;
+                if(ereg.test(idcard))
+                    return Errors[0];
+                else
+                    return Errors[3];
+                break;
             case 15:
                 if ( (parseInt(idcard.substr(6,2))+1900) % 4 == 0 || ((parseInt(idcard.substr(6,2))+1900) %
                     100 == 0 && (parseInt(idcard.substr(6,2))+1900) % 4 == 0 )){
