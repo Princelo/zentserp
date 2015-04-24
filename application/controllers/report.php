@@ -7,7 +7,7 @@ class Report extends MY_Controller {
     public function __construct(){
         parent::__construct();
         if($this->session->userdata('role') != 'admin' && $this->session->userdata('role') != 'user')
-            redirect('error404');
+            redirect('login');
         $this->load->model('MProduct', 'MProduct');
         $this->load->model('MBill', 'MBill');
         $this->load->model('MUser', 'MUser');
