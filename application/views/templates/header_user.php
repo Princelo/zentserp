@@ -216,36 +216,6 @@
 
 </div><!-- mainmenu -->
 <script>
-    $(document).ready(function(){
-    //Examples of how to assign the Colorbox event to elements
-    /*$(".group1").colorbox({rel:'group1'});
-     $(".group2").colorbox({rel:'group2', transition:"fade"});
-     $(".group3").colorbox({rel:'group3', transition:"none", width:"75%", height:"75%"});
-     $(".group4").colorbox({rel:'group4', slideshow:true});
-     $(".ajax").colorbox();
-     $(".youtube").colorbox({iframe:true, innerWidth:425, innerHeight:344});
-     $(".vimeo").colorbox({iframe:true, innerWidth:500, innerHeight:409});
-     $(".iframe").colorbox({iframe:true, width:"100%", height:"100%"});
-     $(".inline").colorbox({inline:true, width:"50%"});
-     $(".callbacks").colorbox({
-     //onOpen:function(){ alert('onOpen: colorbox is about to open'); },
-     //onLoad:function(){ alert('onLoad: colorbox has started to load the targeted content'); },
-     //onComplete:function(){ alert('onComplete: colorbox has displayed the loaded content'); },
-     //onCleanup:function(){ alert('onCleanup: colorbox has begun the close process'); },
-     //onClosed:function(){ alert('onClosed: colorbox has completely closed'); }
-     });
-
-     $('.non-retina').colorbox({rel:'group5', transition:'none'})
-     $('.retina').colorbox({rel:'group5', transition:'none', retinaImage:true, retinaUrl:true});
-
-     //Example of preserving a JavaScript event for inline calls.
-     $("#click").click(function(){
-     $('#click').css({"background-color":"#f00", "color":"#fff", "cursor":"inherit"}).text("Open this window again and this message will still be here.");
-     return false;
-     });
-     });
-</script>
-<script>
     function isValidDate( input ) {
         var date = new Date( input );
         input = input.split( '-' );
@@ -272,6 +242,288 @@
     function isNumber(n) {
         return !isNaN(parseFloat(n)) && isFinite(n);
     }
+    function checkIdcard(idcard){
+        var Errors=new Array(
+            "SUCCESS",
+            "身份证号码位数不对!",
+            "身份证号码出生日期超出范围或含有非法字符!",
+            "身份证号码校验错误!",
+            "身份证地区非法!"
+        );
+        var area={11:"北京",12:"天津",13:"河北",14:"山西",15:"内蒙古",21:"辽宁",22:"吉林",23:"黑龙江",31:"上海",32:"江苏",33:"浙江",34:"安徽",35:"福建",36:"江西",37:"山东",41:"河南",42:"湖北",43:"湖南",44:"广东",45:"广西",46:"海南",50:"重庆",51:"四川",52:"贵州",53:"云南",54:"西藏",61:"陕西",62:"甘肃",63:"青海",64:"宁夏",65:"新疆",71:"台湾",81:"香港",82:"澳门",91:"国外"}
+        var retflag=false;
+        var idcard,Y,JYM;
+        var S,M;
+        var idcard_array = new Array();
+        idcard_array = idcard.split("");
+        if(area[parseInt(idcard.substr(0,2))]==null) return Errors[4];
+        switch(idcard.length){
+            case 15:
+                if ( (parseInt(idcard.substr(6,2))+1900) % 4 == 0 || ((parseInt(idcard.substr(6,2))+1900) %
+                    100 == 0 && (parseInt(idcard.substr(6,2))+1900) % 4 == 0 )){
+                    ereg=/^[1-9][0-9]{5}[0-9]{2}((01|03|05|07|08|10|12)(0[1-9]|[1-2][0-9]|3[0-1])|(04|06|09|11)(0[1-9]|[1-2][0-9]|30)|02(0[1-9]|[1-2][0-9]))[0-9]{3}$/;//测试出生日期的合法性
+                }
+                else {
+                    ereg=/^[1-9][0-9]{5}[0-9]{2}((01|03|05|07|08|10|12)(0[1-9]|[1-2][0-9]|3[0-1])|(04|06|09|11)(0[1-9]|[1-2][0-9]|30)|02(0[1-9]|1[0-9]|2[0-8]))[0-9]{3}$/;//测试出生日期的合法性
+                }
+                if(ereg.test(idcard))
+                    return Errors[0];
+                else
+                {
+                    return Errors[2];
+                }
+                break;
+            case 18:
+                if ( parseInt(idcard.substr(6,4)) % 4 == 0 || (parseInt(idcard.substr(6,4)) % 100 == 0 && parseInt(idcard.substr(6,4))%4 == 0 ))
+                {
+                    ereg=/^[1-9][0-9]{5}19[0-9]{2}((01|03|05|07|08|10|12)(0[1-9]|[1-2][0-9]|3[0-1])|(04|06|09|11)(0[1-9]|[1-2][0-9]|30)|02(0[1-9]|[1-2][0-9]))[0-9]{3}[0-9Xx]$/;//闰年出生日期的合法性正则表达式
+                }
+                else
+                {
+                    ereg=/^[1-9][0-9]{5}19[0-9]{2}((01|03|05|07|08|10|12)(0[1-9]|[1-2][0-9]|3[0-1])|(04|06|09|11)(0[1-9]|[1-2][0-9]|30)|02(0[1-9]|1[0-9]|2[0-8]))[0-9]{3}[0-9Xx]$/;//平年出生日期的合法性正则表达式
+                }
+                if(ereg.test(idcard)){//测试出生日期的合法性
+                    S = (parseInt(idcard_array[0]) + parseInt(idcard_array[10])) * 7
+                        + (parseInt(idcard_array[1]) + parseInt(idcard_array[11])) * 9
+                        + (parseInt(idcard_array[2]) + parseInt(idcard_array[12])) * 10
+                        + (parseInt(idcard_array[3]) + parseInt(idcard_array[13])) * 5
+                        + (parseInt(idcard_array[4]) + parseInt(idcard_array[14])) * 8
+                        + (parseInt(idcard_array[5]) + parseInt(idcard_array[15])) * 4
+                        + (parseInt(idcard_array[6]) + parseInt(idcard_array[16])) * 2
+                        + parseInt(idcard_array[7]) * 1
+                        + parseInt(idcard_array[8]) * 6
+                        + parseInt(idcard_array[9]) * 3 ;
+                    Y = S % 11;
+                    M = "F";
+                    JYM = "10X98765432";
+                    M = JYM.substr(Y,1);//判断校验位
+                    if(M == idcard_array[17]) return Errors[0]; //检测ID的校验位
+                    else return Errors[3];
+                }
+                else return Errors[2];
+                break;
+            default:
+                return Errors[1];
+                break;
+        }
+    }
+
     $(document).ready(function(){
+        $(".timepicker").keydown(false);
+        $.verify.addRules({
+            uniqueemail: function(r) {
+                var ajax = $.ajax({url:"http://test.huayu160.com/ajax/check_unique_email/" + r.val().trim(), async:false});
+                var data = ajax.responseText;
+                if(data == 'false'){
+                    return '此帐号已被占用';
+                }else if(data == 'true'){
+                    return true;
+                }
+            },
+            mydate: function(r){
+                if(!isValidDate(r.val()))
+                    return '无效日期';
+                else
+                    return true;
+            },
+            mytime: function(r){
+                if(r.val()!="")
+                    if(!isValidTime(r.val()))
+                        return '无效时间';
+                var f = $(".cast_time_from").val();
+                var t = $(".cast_time_to").val();
+                if(f!=""||t!=""){
+                    if(f=="")
+                        return '起始结束时间必须完整';
+                    if(t=="")
+                        return '起始结束时间必须完整';
+                }
+                var tomorrow = $(".cast_time_to_tomorrow").is(":checked");
+                f = f.split(':');
+                t = t.split(':');
+                if(f[0]){
+                    console.log(tomorrow);
+                    if( (+f[0]*60+f[1])>(+t[0]*60+t[1]) && tomorrow != true){
+                        return '起始时间必须早于终止时间';
+                    }
+                }
+                return true;
+            },
+            mytime1: function(r){
+                if(r.val()!="")
+                    if(!isValidTime(r.val()))
+                        return '无效时间';
+                var f = $(".busy_time_from_1").val();
+                var t = $(".busy_time_to_1").val();
+                if(f!=""||t!=""){
+                    if(f=="")
+                        return '起始结束时间必须完整';
+                    if(t=="")
+                        return '起始结束时间必须完整';
+                }
+                var tomorrow = $(".busy_time_to_1_tomorrow").is(":checked");
+                f = f.split(':');
+                t = t.split(':');
+                if(f[0]){
+                    console.log(tomorrow);
+                    if( (+f[0]*60+f[1])>(+t[0]*60+t[1]) && tomorrow != true){
+                        return '起始时间必须早于终止时间';
+                    }
+                }
+                return true;
+            },
+            mytime2: function(r){
+                if(r.val()!="")
+                    if(!isValidTime(r.val()))
+                        return '无效时间';
+                var f = $(".busy_time_from_2").val();
+                var t = $(".busy_time_to_2").val();
+                if(f!=""||t!=""){
+                    if(f=="")
+                        return '起始结束时间必须完整';
+                    if(t=="")
+                        return '起始结束时间必须完整';
+                }
+                var tomorrow = $(".busy_time_to_2_tomorrow").is(":checked");
+                f = f.split(':');
+                t = t.split(':');
+                if(f[0]){
+                    console.log(tomorrow);
+                    if( (+f[0]*60+f[1])>(+t[0]*60+t[1]) && tomorrow != true){
+                        return '起始时间必须早于终止时间';
+                    }
+                }
+                return true;
+            },
+            mytime3: function(r){
+                if(r.val()!="")
+                    if(!isValidTime(r.val()))
+                        return '无效时间';
+                var f = $(".busy_time_from_3").val();
+                var t = $(".busy_time_to_3").val();
+                if(f!=""||t!=""){
+                    if(f=="")
+                        return '起始结束时间必须完整';
+                    if(t=="")
+                        return '起始结束时间必须完整';
+                }
+                var tomorrow = $(".busy_time_to_3_tomorrow").is(":checked");
+                f = f.split(':');
+                t = t.split(':');
+                if(f[0]){
+                    console.log(tomorrow);
+                    if( (+f[0]*60+f[1])>(+t[0]*60+t[1]) && tomorrow != true){
+                        return '起始时间必须早于终止时间';
+                    }
+                }
+                return true;
+            },
+            mytime4: function(r){
+                if(r.val()!="")
+                    if(!isValidTime(r.val()))
+                        return '无效时间';
+                var f = $(".busy_time_from_4").val();
+                var t = $(".busy_time_to_4").val();
+                if(f!=""||t!=""){
+                    if(f=="")
+                        return '起始结束时间必须完整';
+                    if(t=="")
+                        return '起始结束时间必须完整';
+                }
+                var tomorrow = $(".busy_time_to_4_tomorrow").is(":checked");
+                f = f.split(':');
+                t = t.split(':');
+                if(f[0]){
+                    console.log(tomorrow);
+                    if( (+f[0]*60+f[1])>(+t[0]*60+t[1]) && tomorrow != true){
+                        return '起始时间必须早于终止时间';
+                    }
+                }
+                return true;
+            },
+            mytime5: function(r){
+                if(r.val()!="")
+                    if(!isValidTime(r.val()))
+                        return '无效时间';
+                var f = $(".busy_time_from_5").val();
+                var t = $(".busy_time_to_5").val();
+                if(f!=""||t!=""){
+                    if(f=="")
+                        return '起始结束时间必须完整';
+                    if(t=="")
+                        return '起始结束时间必须完整';
+                }
+
+                var tomorrow = $(".busy_time_to_5_tomorrow").is(":checked");
+                f = f.split(':');
+                t = t.split(':');
+                if(f[0]){
+                    console.log(tomorrow);
+                    if( (+f[0]*60+f[1])>(+t[0]*60+t[1]) && tomorrow != true){
+                        return '起始时间必须早于终止时间';
+                    }
+                }
+                return true;
+            },
+            mypassword: function(r){
+                if(r.val().length<8)
+                    return "密码长度不得小于8个字符";
+                if($('input[name="password"]').val()!=""&&$('input[name="password2"]').val()!="")
+                    if($('input[name="password"]').val() != $('input[name="password2"]').val())
+                        return "两次输入密码不相同";
+                return true;
+            },
+            myconfirm: function(r){
+                if($('input[name="password"]').val()!=""&&$('input[name="password2"]').val()!="")
+                    if($('input[name="password"]').val() != $('input[name="password2"]').val())
+                        return "两次输入密码不相同";
+                return true;
+            },
+            chinese_idcard: function(r){
+                var idcard_error = checkIdcard(r.val());
+                if(idcard_error != 'SUCCESS')
+                {
+                    return idcard_error;
+                }else{
+                    return true;
+                }
+            },
+        });
+        $.verify.addGroupRules({
+            timefromto: function(r) {
+                var f = r.field("from").val();
+                var t = r.field("to").val();
+                if(f!="")
+                    if(!isValidTime(f))
+                        return {from:'无效时间'};
+                if(t!="")
+                    if(!isValidTime(t))
+                        return {to:'无效时间'};
+                var tomorrow = r.field("tomorrow").is(":checked");
+                f = f.split(':');
+                t = t.split(':');
+                if(f[0]){
+                    console.log(tomorrow);
+                    if( (+f[0]*60+f[1])>(+t[0]*60+t[1]) && tomorrow != true){
+                        return {to:'起始时间必须早于终止时间'};
+                    }
+                }
+                return true;
+            }
+        });
+        $("form").verify();
+        $('form').each(function()
+            {
+                $(this).attr('novalidate', 'novalidate');
+            }
+        );
+        $('input[required]').each(function(){
+            console.log($(this));
+            $(this).removeAttr('required');
+        });
+        $( ".datepicker" ).datepicker({
+            'dateFormat': 'yy-m-d',
+            'changeYear' : true
+        });
     });
 </script>

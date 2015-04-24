@@ -2412,13 +2412,13 @@
                 r.val(r.val().replace(/\D/g,''));
                 var v = r.val();
                 if(!v.match(/^\+?[\d\s]+$/))
-                    return "Use digits and spaces only";
+                    return "只允許使用數字或空格";
                 if(v.match(/^\+/))
                     return true; //allow all international
-                if(!v.match(/^0/))
-                    return "Number must start with 0";
-                if(v.replace(/\s/g,"").length !== 10)
-                    return "Must be 10 digits long";
+                //if(!v.match(/^1/))
+                //    return "必須以1開頭";
+                if(v.replace(/\s/g,"").length < 7)
+                    return "電話號碼不得少于7位";
                 return true;
             },
             size: function(r){
@@ -2431,7 +2431,7 @@
                     var lower = parseInt(exactOrLower, 10);
                     upper = parseInt(upper, 10);
                     if(v.length < lower || upper < v.length)
-                        return "Must be between "+lower+" and "+upper+" characters";
+                        return "長度必須控制在 "+lower+" 個字符到 "+upper+" 個字符之間";
                 } else {
                     r.warn("size validator parameter error on field: " + r.field.attr('name'));
                 }
@@ -2441,13 +2441,13 @@
             min: function(r) {
                 var v = r.val(), min = parseInt(r.args[0], 10);
                 if(v.length < min)
-                    return "Must be at least " + min + " characters";
+                    return "長度必須大于 " + min + " 個字符";
                 return true;
             },
             max: function(r) {
                 var v = r.val(), max = parseInt(r.args[0], 10);
                 if(v.length > max)
-                    return "Must be at most " + max + " characters";
+                    return "長度必須小于 " + max + " 個字符";
                 return true;
             },
 
