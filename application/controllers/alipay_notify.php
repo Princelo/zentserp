@@ -16,6 +16,7 @@ class Alipay_Notify extends CI_Controller {
         require_once("application/third_party/alipay/lib/alipay_notify.class.php");
         $alipayNotify = new AlipayNotify($alipay_config);
         $verify_result = $alipayNotify->verifyNotify();
+        $result = false;
 
         if($verify_result) {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,7 +68,10 @@ class Alipay_Notify extends CI_Controller {
 
             //——请根据您的业务逻辑来编写程序（以上代码仅作参考）——
 
-            echo "success";		//请不要修改或删除
+            if($result)
+                echo "success";		//请不要修改或删除
+            else
+                echo 'fail';
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         }
@@ -77,6 +81,8 @@ class Alipay_Notify extends CI_Controller {
 
             //调试用，写文本函数记录程序运行情况是否正常
             logResult("notify fail out_trade_no:".$_POST['out_trade_no'].' trade_no:'.$_POST['trade_no']. ' trade_status:'.$_POST['trade_status']);
+            //if($_POST['trade_status'] == 'TRADE_SUCCESS')
+            //    $this->logPayError();
         }
     }
 
