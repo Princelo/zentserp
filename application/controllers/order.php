@@ -155,7 +155,7 @@ class Order extends MY_Controller {
             $this->load->view('order/listpage_admin', $data);
         }else{
             $data = array();
-            $where = ' and o.deleted != true ';
+            $where = ' and o.is_deleted != true ';
             $config['base_url'] = base_url()."order/listpage_admin/";
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
