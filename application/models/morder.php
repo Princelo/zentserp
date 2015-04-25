@@ -87,6 +87,7 @@ class MOrder extends CI_Model
                           is_pay, is_correct, pay_time, pay_amt, is_cancelled, is_post, province_id, city_id,
                           address_info,linkman,mobile,remark,finish_time,stock_time,is_pay_online,pay_method,
                           pay_amt_without_post_fee,post_info,purchase_level,uid,iq.username
+            order by id desc
         ";
         $data = array();
         $query = $this->objDB->query($query_sql);
