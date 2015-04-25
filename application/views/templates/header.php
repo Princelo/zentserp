@@ -535,11 +535,6 @@
             'dateFormat': 'yy-m-d',
             'changeYear' : true
         });
-        $('.timepicker').timepicker({
-            'showDuration': true,
-            'timeFormat': 'H:i',
-            'step' : 10
-        });
     });
 </script>
 
