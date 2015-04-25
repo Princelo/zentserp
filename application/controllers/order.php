@@ -140,6 +140,7 @@ class Order extends MY_Controller {
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $where = '';
             //$where .= ' and p.is_valid = true ';
+            $where .= ' and o.is_deleted != true ';
             $where .= $this->__get_search_str($search, $uid, $is_finish, $date_from, $date_to, $hour);
             $config['total_rows'] = $this->MOrder->intGetOrdersCount($where);
             $config['per_page'] = 30;
@@ -154,7 +155,7 @@ class Order extends MY_Controller {
             $this->load->view('order/listpage_admin', $data);
         }else{
             $data = array();
-            $where = ' and ( o.is_pay = true or o.is_correct = false ) ';
+            $where = ' and o.deleted != true ';
             $config['base_url'] = base_url()."order/listpage_admin/";
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
@@ -208,7 +209,7 @@ class Order extends MY_Controller {
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $where = '';
-            //$where .= ' and p.is_valid = true ';
+            $where .= ' and o.is_deleted != true ';
             $where .= $this->__get_search_str($search, $uid, $is_finish);
             $config['total_rows'] = $this->MOrder->intGetOrdersCount($where);
             $config['per_page'] = 30;
@@ -223,7 +224,7 @@ class Order extends MY_Controller {
             $this->load->view('order/listpage', $data);
         }else{
             $data = array();
-            $where = ' and ( o.is_pay = true or o.is_correct = false ) and o.user_id = '. $uid;
+            $where = ' and o.is_deleted != true and o.user_id = '.$uid;
             $config['base_url'] = base_url()."order/listpage/";
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
