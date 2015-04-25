@@ -995,6 +995,7 @@ class MOrder extends CI_Model
     {
         $data = array();
         $data['is_pay'] = 'true';
+        $data['pay_time'] = date('Y-m-d H:i:s');
         $where = array(
             'id'  =>  $trade_no,
         );

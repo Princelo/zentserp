@@ -14,7 +14,7 @@
 | path to your installation.
 |
 */
-$config['base_url']	= 'http://zentserp.com';
+$config['base_url']	= 'http://zents_erp.com';
 
 /*
 |--------------------------------------------------------------------------
