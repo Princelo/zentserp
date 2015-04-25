@@ -80,7 +80,6 @@ class MOrder extends CI_Model
 
             group by o.id, u.name, u.id, a.amount, b.province_id, b.city_id, b.address_info, b.contact, b.mobile, b.remark, op.id
             {$order}
-            {$limit}
             ) as iq
             where 1 = 1
             group by id,username,parent_user_id,is_root,post_fee,
@@ -88,6 +87,7 @@ class MOrder extends CI_Model
                           address_info,linkman,mobile,remark,finish_time,stock_time,is_pay_online,pay_method,
                           pay_amt_without_post_fee,post_info,purchase_level,uid,iq.username
             order by id desc
+            {$limit}
         ";
         $data = array();
         $query = $this->objDB->query($query_sql);
@@ -350,8 +350,8 @@ class MOrder extends CI_Model
     {
         $query_sql = "";
         $query_sql .= "
-            select count(1) from orders o--, products p
-            where --o.product_id = p.id
+            select count(1) from orders o
+            where
             1 = 1
             and o.is_deleted != true
               {$where}
