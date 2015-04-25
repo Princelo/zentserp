@@ -99,20 +99,20 @@
                         <td><?=$v->post_info?></td>
                         <td><?=substr($v->stock_time, 0, 19);?></td>
                         <td><a href="<?=base_url()?>order/details_admin/<?=$v->id;?>">查看详情</a></td>
-                        <td><?if($v->is_pay!='t'):?><a href="<?=base_url()?>order/move_to_trash/<?=$v->id;?>">移除</a><?endif?></td>
+                        <td><?if($v->is_pay!='t'):?><a href="javascript:void(0);" onclick="myconfirm(<?=$v->id?>);">移除</a><?endif?></td>
                     </tr>
                 <? } ?>
                 <? } ?>
             </table>
             <div class="page"><?=$page;?></div>
             <script>
-                /*function myconfirm(id){
+                function myconfirm(id){
                  if (confirm("are you sure?")){
-                 window.location.href = "<?=base_url()?>index.php/unvadmin/singerdelete/"+id;
+                 window.location.href = "<?=base_url()?>order/move_to_trash/"+id;
                  } else {
 
                  }
-                 }*/
+                 }
             </script>
 
 
