@@ -16,7 +16,7 @@ class MOrder extends CI_Model
     {
         $query_sql = "";
         $query_sql .= "
- select
+         select
            sum(iq.amount) amount,sum(quantity) quantity,count(opid) diff_quantity,id,username,parent_user_id,is_root,post_fee,
                           is_pay, is_correct, pay_time, pay_amt, is_cancelled, is_post, province_id, city_id,
                           address_info,linkman,mobile,remark,finish_time,stock_time,is_pay_online,pay_method,
@@ -74,6 +74,7 @@ class MOrder extends CI_Model
 
             where
                 1 = 1
+                and o.is_deleted != true
                 {$where}
 
 
@@ -351,6 +352,7 @@ class MOrder extends CI_Model
             select count(1) from orders o--, products p
             where --o.product_id = p.id
             1 = 1
+            and o.is_deleted != true
               {$where}
         ;";
         $query = $this->objDB->query($query_sql);
@@ -891,6 +893,21 @@ class MOrder extends CI_Model
         return ($this->objDB->affected_rows() > 0 );
     }
 
+    public function move_to_trash($order_id)
+    {
+        $data['is_deleted'] = 'true';
+        $where = array(
+            'id'    =>  $order_id,
+        );
+        $update_sql = $this->objDB->update_string('orders', $data, $where);
+        $query = $this->objDB->query($update_sql);
+
+        if($query === true)
+            return true;
+        else
+            return false;
+    }
+
     public function is_paid( $order_id)
     {
         $current_user_id = $this->session->userdata('current_user_id');
@@ -972,24 +989,6 @@ class MOrder extends CI_Model
             return false;
     }
 
-    public function updateNonMemberCartTradeNo($trade_no)
-    {
-        $current_user_id = $this->session->userdata('current_user_id');
-        $data['trade_no'] = $trade_no;
-        $where = array(
-            'user_id'   =>  $current_user_id,
-            'is_pay'    =>  'false',
-            'pay_method'    =>  'alipay',
-        );
-        $update_sql = $this->objDB->update_string('orders', $data, $where);
-        $query = $this->objDB->query($update_sql);
-
-        if($query === true)
-            return true;
-        else
-            return false;
-
-    }
 
     public function updatePaymentStatus($trade_no)
     {
@@ -1006,4 +1005,5 @@ class MOrder extends CI_Model
         else
             return false;
     }
+
 }

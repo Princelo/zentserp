@@ -68,6 +68,12 @@
                         </td>
                     </tr>
                     <tr>
+                        <th><label for="remark">备注</label></th>
+                        <td>
+                            <input name="remark" data-validate="max(100)" value="<?=set_value('remark')?>" maxlength="100" size="30" />
+                        </td>
+                    </tr>
+                    <tr>
                         <th><label for="is_post">收货方式</label></th>
                         <td>
                             <select name="is_post" id="is_post">

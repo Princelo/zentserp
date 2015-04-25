@@ -77,6 +77,7 @@
                     <th>快递单号</th>
                     <th>订单提交时间</th>
                     <th></th>
+                    <th></th>
                 </tr>
                 <? $n = 0; ?>
                 <? if(!empty($orders)) {?>
@@ -98,6 +99,7 @@
                         <td><?=$v->post_info?></td>
                         <td><?=substr($v->stock_time, 0, 19);?></td>
                         <td><a href="<?=base_url()?>order/details_admin/<?=$v->id;?>">查看详情</a></td>
+                        <td><?if($v->is_pay!='t'):?><a href="<?=base_url()?>order/move_to_trash/<?=$v->id;?>">移除</a><?endif?></td>
                     </tr>
                 <? } ?>
                 <? } ?>
