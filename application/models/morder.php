@@ -212,53 +212,46 @@ class MOrder extends CI_Model
         $product_id_implode_by_comma = substr($product_id_implode_by_comma, 0, -1);
 
         $temp_amounts_str = "";
-        $temp_amounts_str_2 = "";
+        $temp_amounts_str_2_1 = "";
+        $temp_amounts_str_2_2 = "";
+        $temp_amounts_str_2_3 = "";
+        $temp_amounts_str_2_0 = "";
         $temp_amounts_str_3 = "";
-        $temp_amounts_str_4_1 = "";
-        $temp_amounts_str_4_2 = "";
-        $temp_amounts_str_4_3 = "";
-        $temp_amounts_str_4_0 = "";
 
 
         foreach($main_data['products'] as $k => $v)
         {
             $temp_amounts_str .= "pr{$k}.price::decimal * {$v} +";
-            $temp_amounts_str_2 .= "left join price pr{$k} on 1 = 1 ";
+            $temp_amounts_str_2_1 .= " left join price pr{$k} on pr{$k}.level = 1 ";
+            $temp_amounts_str_2_2 .= " left join price pr{$k} on pr{$k}.level = 2 ";
+            $temp_amounts_str_2_3 .= " left join price pr{$k} on pr{$k}.level = 3 ";
+            $temp_amounts_str_2_0 .= " left join price pr{$k} on pr{$k}.level = 0 ";
             $temp_amounts_str_3 .= "pr{$k}.product_id = {$k} and ";
-            $temp_amounts_str_4_1 .= "pr{$k}.level = 1 and ";
-            $temp_amounts_str_4_2 .= "pr{$k}.level = 2 and ";
-            $temp_amounts_str_4_3 .= "pr{$k}.level = 3 and ";
-            $temp_amounts_str_4_0 .= "pr{$k}.level = 0 and ";
         }
         $temp_amounts_str = substr($temp_amounts_str, 0, -1);
-        //$temp_amounts_str_2 = substr($temp_amounts_str_2, 0, -1);
         $temp_amounts_str_3 = substr($temp_amounts_str_3, 0, -4);
-        $temp_amounts_str_4_1 = substr($temp_amounts_str_4_1, 0, -4);
-        $temp_amounts_str_4_2 = substr($temp_amounts_str_4_2, 0, -4);
-        $temp_amounts_str_4_3 = substr($temp_amounts_str_4_3, 0, -4);
-        $temp_amounts_str_4_0 = substr($temp_amounts_str_4_0, 0, -4);
 
         $insert_sql_amount = "";
         $insert_sql_amount .= "
             insert into amounts (amount, order_id, level)
             values
             (
-                (select {$temp_amounts_str} as amount from products p {$temp_amounts_str_2} where {$temp_amounts_str_3} and {$temp_amounts_str_4_1} and p.id in ($product_id_implode_by_comma) group by amount),
+                (select {$temp_amounts_str} as amount from products p, {$temp_amounts_str_2_1} where {$temp_amounts_str_3} and p.id in ($product_id_implode_by_comma) group by amount),
                 currval('orders_id_seq'),
                 1
             ),
             (
-                (select {$temp_amounts_str} as amount from products p {$temp_amounts_str_2} where {$temp_amounts_str_3} and {$temp_amounts_str_4_2} and p.id in ($product_id_implode_by_comma) group by amount),
+                (select {$temp_amounts_str} as amount from products p, {$temp_amounts_str_2_2} where {$temp_amounts_str_3} and p.id in ($product_id_implode_by_comma) group by amount),
                 currval('orders_id_seq'),
                 2
             ),
             (
-                (select {$temp_amounts_str} as amount from products p {$temp_amounts_str_2} where {$temp_amounts_str_3} and {$temp_amounts_str_4_3} and p.id in ($product_id_implode_by_comma) group by amount),
+                (select {$temp_amounts_str} as amount from products p, {$temp_amounts_str_2_3} where {$temp_amounts_str_3} and p.id in ($product_id_implode_by_comma) group by amount),
                 currval('orders_id_seq'),
                 3
             ),
             (
-                (select {$temp_amounts_str} as amount from products p {$temp_amounts_str_2} where {$temp_amounts_str_3} and {$temp_amounts_str_4_0} and p.id in ($product_id_implode_by_comma) group by amount),
+                (select {$temp_amounts_str} as amount from products p, {$temp_amounts_str_2_0} where {$temp_amounts_str_3} and p.id in ($product_id_implode_by_comma) group by amount),
                 currval('orders_id_seq'),
                 0
             )
