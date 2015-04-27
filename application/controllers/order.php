@@ -884,7 +884,7 @@ class Order extends MY_Controller {
             } else {
                 $additional_total_weight = $total_weight - $first_weight;
                 $additional_count = ceil( bcdiv($additional_total_weight, $additional_weight, 4) );
-                return bcadd( $first_pay, bcmul($additional_pay, $additional_count));
+                return bcadd( $first_pay, bcmul($additional_pay, $additional_count), 2);
             }
         } else {
             return 0;
