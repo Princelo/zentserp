@@ -537,6 +537,7 @@ class User extends MY_Controller {
                 $result = $this->MUser->boolUpdatePassword($_POST['password'], $this->session->userdata('current_user_id'));
             }else{
                 $this->session->set_flashdata('flashdata', '原密码错误');
+                redirect('user/password');
             }
             if($result === true)
                 $this->session->set_flashdata('flashdata', '更改成功');
