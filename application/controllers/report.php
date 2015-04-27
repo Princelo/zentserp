@@ -50,7 +50,7 @@ class Report extends MY_Controller {
             $search = $this->db->escape_like_str($search);
             $level = $this->input->get('level', true);
             $data = array();
-            $config['base_url'] = base_url()."report/listuser_admin/";
+            $config['base_url'] = base_url()."report/index_admin/";
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $where = ' and is_admin = false ';
@@ -70,7 +70,7 @@ class Report extends MY_Controller {
             $this->load->view('report/listuser_admin', $data);
         }else{
             $data = array();
-            $config['base_url'] = base_url()."report/listuser_admin/";
+            $config['base_url'] = base_url()."report/index_admin/";
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $where = ' and is_admin = false ';
