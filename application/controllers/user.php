@@ -533,7 +533,7 @@ class User extends MY_Controller {
             $_POST['password'] = md5($_POST['password']);
             $_POST['password2'] = md5($_POST['password2']);
             $result = false;
-            if($this->MUser->boolVerify($this->session->userdata('user'), $_POST['password-original'])){
+            if($this->MUser->boolVerify($this->session->userdata('user'), md5($_POST['password-original']))){
                 $result = $this->MUser->boolUpdatePassword($_POST['password'], $this->session->userdata('current_user_id'));
             }else{
                 $this->session->set_flashdata('flashdata', '原密码错误');
