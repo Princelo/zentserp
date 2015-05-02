@@ -255,24 +255,6 @@ class Report extends MY_Controller {
             //$config['total_rows'] = $this->MProduct->intGetProductsCount($where);
 
             $config['per_page'] = 30;
-            $this->pagination->initialize($config);
-            $data['page'] = $this->pagination->create_links();
-            $limit = '';
-            $limit .= " limit {$config['per_page']} offset {$offset} ";
-            $where = '';
-            $order = '';
-            if($bill_type == 'income')
-            {
-                $where = " and o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
-                         and b.type = 2 and u.id = {$user_id}";
-                $type = 2;
-            }
-            if($bill_type == 'payout')
-            {
-                $where = " and o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
-                         and b.type = 1 and u.id = {$user_id}";
-                $type = 1;
-            }
             switch($report_type)
             {
                 case "day":
@@ -291,6 +273,24 @@ class Report extends MY_Controller {
                 default:
                     $report_type = "";
                     break;
+            }
+            $this->pagination->initialize($config);
+            $data['page'] = $this->pagination->create_links();
+            $limit = '';
+            $limit .= " limit {$config['per_page']} offset {$offset} ";
+            $where = '';
+            $order = '';
+            if($bill_type == 'income')
+            {
+                $where = " and o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                         and b.type = 2 and u.id = {$user_id}";
+                $type = 2;
+            }
+            if($bill_type == 'payout')
+            {
+                $where = " and o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                         and b.type = 1 and u.id = {$user_id}";
+                $type = 1;
             }
             switch($report_type)
             {
@@ -327,7 +327,6 @@ class Report extends MY_Controller {
                     if($bill_type == 'payout')
                         $this->load->view('report/listpage_year_payout', $data);
                     break;
-
                 default:
                     break;
             }
@@ -402,6 +401,25 @@ class Report extends MY_Controller {
             //$config['total_rows'] = $this->MProduct->intGetProductsCount($where);
 
             $config['per_page'] = 30;
+            switch($report_type)
+            {
+                case "day":
+                    $config['total_rows'] = $interval->days + 1;
+                    //if($this->input->get('is_filter') == 'on')
+                    //$config['total_rows'] = $this->MBill->objGetBillsOfDay($date_from, $date_to, $limit);
+                    break;
+                case "month":
+                    $config['total_rows'] = $interval->y*12 + $interval->m + 1;
+                    //if($this->input->get('is_filter') == 'on')
+                    //$config['total_rows'] = $this->MBill->objGetBillsOfDay($date_from, $date_to, $limit);
+                    break;
+                case "year":
+                    $config['total_rows'] = $interval->y + 1;;
+                    break;
+                default:
+                    $report_type = "";
+                    break;
+            }
             $this->pagination->initialize($config);
             $data['page'] = $this->pagination->create_links();
             $limit = '';
@@ -419,25 +437,6 @@ class Report extends MY_Controller {
                 $where = " and o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
                          and b.type = 1 and u.id = {$user_id}";
                 $type = 1;
-            }
-            switch($report_type)
-            {
-                case "day":
-                    $config['total_rows'] = $interval->days + 1;
-                    //if($this->input->get('is_filter') == 'on')
-                        //$config['total_rows'] = $this->MBill->objGetBillsOfDay($date_from, $date_to, $limit);
-                    break;
-                case "month":
-                    $config['total_rows'] = $interval->y*12 + $interval->m + 1;
-                    //if($this->input->get('is_filter') == 'on')
-                        //$config['total_rows'] = $this->MBill->objGetBillsOfDay($date_from, $date_to, $limit);
-                    break;
-                case "year":
-                    $config['total_rows'] = $interval->y + 1;;
-                    break;
-                default:
-                    $report_type = "";
-                    break;
             }
             switch($report_type)
             {
@@ -551,6 +550,28 @@ class Report extends MY_Controller {
             //$config['total_rows'] = $this->MProduct->intGetProductsCount($where);
 
             $config['per_page'] = 30;
+            switch($report_type)
+            {
+                case "day":
+                    $config['total_rows'] = $interval->days + 1;
+                    //if($this->input->get('is_filter') == 'on')
+                    //$config['total_rows'] = $this->MBill->objGetBillsOfDay($date_from, $date_to, $limit);
+                    break;
+                case "month":
+                    $config['total_rows'] = $interval->y*12 + $interval->m + 1;
+                    //if($this->input->get('is_filter') == 'on')
+                    //$config['total_rows'] = $this->MBill->objGetBillsOfDay($date_from, $date_to, $limit);
+                    break;
+                case "year":
+                    $config['total_rows'] = $interval->y + 1;;
+                    break;
+                case "products":
+                    $config['total_rows'] = $this->MBill->objGetProductBillsItemCount($date_from, $date_to);
+                    break;
+                default:
+                    $report_type = "";
+                    break;
+            }
             $this->pagination->initialize($config);
             $data['page'] = $this->pagination->create_links();
             $limit = '';
@@ -568,25 +589,6 @@ class Report extends MY_Controller {
                 $where = " and o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
                          and b.type = 1 and u.id = {$user_id}";
                 $type = 1;
-            }
-            switch($report_type)
-            {
-                case "day":
-                    $config['total_rows'] = $interval->days + 1;
-                    //if($this->input->get('is_filter') == 'on')
-                    //$config['total_rows'] = $this->MBill->objGetBillsOfDay($date_from, $date_to, $limit);
-                    break;
-                case "month":
-                    $config['total_rows'] = $interval->y*12 + $interval->m + 1;
-                    //if($this->input->get('is_filter') == 'on')
-                    //$config['total_rows'] = $this->MBill->objGetBillsOfDay($date_from, $date_to, $limit);
-                    break;
-                case "year":
-                    $config['total_rows'] = $interval->y + 1;;
-                    break;
-                default:
-                    $report_type = "";
-                    break;
             }
             switch($report_type)
             {
@@ -681,18 +683,12 @@ class Report extends MY_Controller {
             //$config['total_rows'] = $this->MProduct->intGetProductsCount($where);
 
             $config['per_page'] = 30;
-            $this->pagination->initialize($config);
-            $data['page'] = $this->pagination->create_links();
-            $limit = '';
-            $limit .= " limit {$config['per_page']} offset {$offset} ";
-            $where = '';
-            $order = '';
             switch($report_type)
             {
                 case "day":
                     $config['total_rows'] = $interval->days + 1;
                     //if($this->input->get('is_filter') == 'on')
-                        //$config['total_rows'] = $this->MBill->objGetZentsBillsOfDay($date_from, $date_to, $limit)->count;
+                    //$config['total_rows'] = $this->MBill->objGetZentsBillsOfDay($date_from, $date_to, $limit)->count;
                     break;
                 case "month":
                     $config['total_rows'] = $interval->y*12 + $interval->m + 1;
@@ -700,10 +696,20 @@ class Report extends MY_Controller {
                 case "year":
                     $config['total_rows'] = $interval->y + 1;;
                     break;
+                case "products":
+                    $config['per_page'] = 9999;
+                    $config['total_rows'] = 9999;
+                    break;
                 default:
                     $report_type = "";
                     break;
             }
+            $this->pagination->initialize($config);
+            $data['page'] = $this->pagination->create_links();
+            $limit = '';
+            $limit .= " limit {$config['per_page']} offset {$offset} ";
+            $where = '';
+            $order = '';
             switch($report_type)
             {
                 case 'day':
@@ -721,6 +727,12 @@ class Report extends MY_Controller {
                     $this->load->view('templates/header', $data);
                     $this->load->view('report/listpage_year_admin', $data);
                     break;
+                case 'products':
+                    $data['bills'] = $this->MBill->objGetProductBills($date_from, $date_to);
+                    $this->load->view('templates/header', $data);
+                    $this->load->view('report/listpage_productbills', $data);
+                    break;
+
 
                 default:
                     break;

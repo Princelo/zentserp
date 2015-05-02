@@ -20,7 +20,7 @@ class MOrder extends CI_Model
            sum(iq.amount) amount,sum(quantity) quantity,count(opid) diff_quantity,id,username,parent_user_id,is_root,post_fee,
                           is_pay, is_correct, pay_time, pay_amt, is_cancelled, is_post, province_id, city_id,
                           address_info,linkman,mobile,remark,finish_time,stock_time,is_pay_online,pay_method,
-                          pay_amt_without_post_fee,post_info,purchase_level,uid,username name_ch
+                          pay_amt_without_post_fee,post_info,purchase_level,uid,username name_ch,return_profit,extra_return_profit
            from (select
                    --p.title          title,
                    --p.id             pid,
@@ -56,7 +56,9 @@ class MOrder extends CI_Model
                    o.pay_method     pay_method,
                    o.pay_amt_without_post_fee   pay_amt_without_post_fee,
                    o.is_first       is_first,
-                   o.post_info      post_info
+                   o.post_info      post_info,
+                   o.return_profit  return_profit,
+                   o.extra_return_profit extra_return_profit
             from
                 orders o
                 join order_product op
@@ -85,7 +87,7 @@ class MOrder extends CI_Model
             group by id,username,parent_user_id,is_root,post_fee,
                           is_pay, is_correct, pay_time, pay_amt, is_cancelled, is_post, province_id, city_id,
                           address_info,linkman,mobile,remark,finish_time,stock_time,is_pay_online,pay_method,
-                          pay_amt_without_post_fee,post_info,purchase_level,uid,iq.username
+                          pay_amt_without_post_fee,post_info,purchase_level,uid,iq.username, return_profit, extra_return_profit
             order by id desc
             {$limit}
         ";
@@ -367,7 +369,8 @@ class MOrder extends CI_Model
            sum(iq.amount) amount,sum(quantity) quantity,count(opid) diff_quantity,id,username,id,parent_user_id,is_root,post_fee,
                           is_pay, is_correct, pay_time, pay_amt, is_cancelled, is_post, province_id, city_id,
                           address_info,linkman,mobile,remark,finish_time,stock_time,is_pay_online,pay_method,
-                          pay_amt_without_post_fee,post_info,purchase_level,uid, username name_ch, is_first
+                          pay_amt_without_post_fee,post_info,purchase_level,uid, username name_ch, is_first, return_profit,
+                          extra_return_profit
             from (select
                    op.id            opid,
                    op.quantity      quantity,
@@ -397,7 +400,9 @@ class MOrder extends CI_Model
                    o.pay_method     pay_method,
                    o.pay_amt_without_post_fee   pay_amt_without_post_fee,
                    o.is_first       is_first,
-                   o.post_info      post_info
+                   o.post_info      post_info,
+                   o.return_profit  return_profit,
+                   o.extra_return_profit    extra_return_profit
             from
                 orders o
                 join order_product op
@@ -423,7 +428,7 @@ class MOrder extends CI_Model
             where 1 = 1
             group by id,username,parent_user_id,is_root,post_fee,is_pay,is_correct,is_pay_online,post_info
             ,is_first, pay_method,stock_time,finish_time,remark,mobile,linkman,pay_time,pay_amt,pay_amt_without_post_fee,
-            is_cancelled,is_post,province_id,city_id,address_info,purchase_level,uid
+            is_cancelled,is_post,province_id,city_id,address_info,purchase_level,uid,return_profit,extra_return_profit
         ";
         $data = array();
         $query = $this->objDB->query($query_sql);
@@ -738,6 +743,69 @@ class MOrder extends CI_Model
                           and p.id = u.pid
             )
             where id = {$parent_user_id};
+
+            update orders set return_profit = (
+                select
+                    case when ua.amount::decimal > pa.amount::decimal
+                             and ua.level <> 0
+                    then (ua.amount::decimal - pa.amount::decimal)
+                    else 0 end
+                  from
+                      orders o, amounts ua, amounts pa, users u, users p
+                      where
+                          ua.order_id = {$order_id}
+                          and ua.level = o.level
+                          and pa.order_id = {$order_id}
+                          and pa.level = o.parent_level
+                          and o.id = {$order_id}
+                          and u.id = {$user_id}
+                          and p.id = u.pid
+            )
+            where id = {$order_id};
+
+            update orders set extra_return_profit = (
+                select
+                    case when ua.level = 0 and u.level <> 0 and u.initiation = false
+                                  and not exists
+                                      ( select id from orders
+                                        where
+                                        (is_pay = false or is_correct = false) and is_valid = true and is_first = true and user_id = {$user_id})
+                                        --the last of first purchase
+                           then
+                           case when p.level = 1 and u.level = 1
+                                then 5000
+                                when p.level = 1 and u.level = 2
+                                then 1000
+                                when p.level = 1 and u.level = 3
+                                then 300
+                                when p.level = 2 and u.level = 1
+                                then 3000
+                                when p.level = 2 and u.level = 2
+                                then 500
+                                when p.level = 2 and u.level = 3
+                                then 200
+                                when p.level = 3 and u.level = 1
+                                then 1000
+                                when p.level = 3 and u.level = 2
+                                then 300
+                                when p.level = 3 and u.level = 3
+                                then 100
+                           else
+                           0 end
+                       else 0 end
+                  from
+                      orders o, amounts ua, amounts pa, users u, users p
+                      where
+                          ua.order_id = {$order_id}
+                          and ua.level = o.level
+                          and pa.order_id = {$order_id}
+                          and pa.level = o.parent_level
+                          and o.id = {$order_id}
+                          and u.id = {$user_id}
+                          and p.id = u.pid
+            )
+            where id = {$order_id};
+
             --and then
             --CREATE OR REPLACE FUNCTION log_profit_change_to_bills()
             --  RETURNS trigger AS

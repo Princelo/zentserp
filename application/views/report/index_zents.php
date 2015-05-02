@@ -38,6 +38,7 @@
                                         <option value="day">日报表</option>
                                         <option value="month">月报表</option>
                                         <option value="year">年报表</option>
+                                        <option value="products">产品明细报表</option>
                                     </select>
                                 </td>
                             </tr>

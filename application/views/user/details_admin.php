@@ -100,7 +100,7 @@
                         <tr>
                             <th><label for="mobile_no">移动电话 <span>*</span></label></th>
                             <td>
-                                <input type="text" name="mobile_no" data-validate="required,size(11,11)"
+                                <input type="text" name="mobile_no" data-validate="required,phone"
                                        maxlength="11" size="11" value="<?=$v->mobile_no?>"/>
                             </td>
                         </tr>

@@ -430,4 +430,144 @@ class MBill extends CI_Model
         return $title;
     }
 
+    public function objGetProductBills($date_from, $date_to)
+    {
+        $query_sql = "
+        select
+              '{$date_from}' as date_from,
+              '{$date_to}' as date_to,
+              list.product_id product_id,
+              p.title,
+              case when p.is_trial then 'true' else 'false' end is_trial,
+              list.quantity total_quantity,
+              coalesce(list1.quantity, 0) quantity_1,
+              coalesce(list2.quantity, 0) quantity_2,
+              coalesce(list3.quantity, 0) quantity_3,
+              coalesce(list0.quantity, 0) quantity_0,
+              coalesce(listt.quantity, 0) quantity_t,
+              case when p.is_trial then p.trial_price*list.quantity else list.amount end amount,
+              coalesce(list0.amount*list0.quantity, '$0') amount_0,
+              coalesce(list1.amount*list1.quantity, '$0') amount_1,
+              coalesce(list2.amount*list2.quantity, '$0') amount_2,
+              coalesce(list3.amount*list3.quantity, '$0') amount_3,
+              coalesce(p.trial_price*listt.quantity, '$0') amount_t
+            from
+              (
+                select
+                  sum(op.quantity) quantity,
+                  p.id product_id,
+                  sum(pa.amount*op.quantity) amount
+                from order_product op, orders o, product_amount pa, products p
+                where
+                  op.order_id = o.id
+                  and pa.order_id = o.id
+                  and pa.product_id = op.product_id
+                    and pa.level = o.level
+                  and p.id = op.product_id
+                  and o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                group by op.product_id, p.id--, pa.amount
+              ) as list
+              full JOIN (
+                          select
+                            sum(op.quantity) quantity,
+                            p.id product_id,
+                            pa.amount
+                          from order_product op, orders o, product_amount pa, products p
+                          where
+                            op.order_id = o.id
+                            and pa.order_id = o.id
+                            and pa.product_id = op.product_id
+                            and p.id = op.product_id
+                            and o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                            and o.level = 0
+                            and pa.level = o.level
+                            and p.is_trial != true
+                          group by op.product_id, p.id, pa.amount
+                        ) as list0
+                on list0.product_id = list.product_id
+              full join (
+                          select
+                            sum(op.quantity) quantity,
+                            p.id product_id,
+                            pa.amount
+                          from order_product op, orders o, product_amount pa, products p
+                          where
+                            op.order_id = o.id
+                            and pa.order_id = o.id
+                            and pa.product_id = op.product_id
+                            and p.id = op.product_id
+                            and o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                            and o.level = 1
+                            and pa.level = o.level
+                            and p.is_trial != true
+                          group by op.product_id, p.id, pa.amount
+                        ) as list1
+                on list1.product_id = list.product_id
+              full join (
+                          select
+                            sum(op.quantity) quantity,
+                            p.id product_id,
+                            pa.amount
+                          from order_product op, orders o, product_amount pa, products p
+                          where
+                            op.order_id = o.id
+                            and pa.order_id = o.id
+                            and pa.product_id = op.product_id
+                            and p.id = op.product_id
+                            and o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                            and o.level = 2
+                            and pa.level = o.level
+                            and p.is_trial != true
+                          group by op.product_id, p.id, pa.amount
+                        ) as list2
+                on list2.product_id = list.product_id
+              full join (
+                          select
+                            sum(op.quantity) quantity,
+                            p.id product_id,
+                            pa.amount
+                          from order_product op, orders o, product_amount pa, products p
+                          where
+                            op.order_id = o.id
+                            and pa.order_id = o.id
+                            and pa.product_id = op.product_id
+                            and p.id = op.product_id
+                            and o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                            and o.level = 3
+                            and pa.level = o.level
+                            and p.is_trial != true
+                          group by op.product_id, p.id, pa.amount
+                        ) as list3
+                on list3.product_id = list.product_id
+              full join (
+                          select
+                            sum(op.quantity) quantity,
+                            p.id product_id,
+                            pa.amount
+                          from order_product op, orders o, product_amount pa, products p
+                          where
+                            op.order_id = o.id
+                            and pa.order_id = o.id
+                            and pa.product_id = op.product_id
+                            and p.id = op.product_id
+                            and o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                            --and o.level = 1
+                            and pa.level = o.level
+                            and p.is_trial = true
+                          group by op.product_id, p.id, pa.amount
+                        ) as listt
+                on listt.product_id = list.product_id
+                join products p on p.id = list.product_id
+            order by list.product_id
+        ";
+        $query = $this->objDB->query($query_sql);
+        if($query->num_rows() > 0){
+            foreach ($query->result() as $key => $val) {
+                $data[] = $val;
+            }
+        }
+        $query->free_result();
+        return $data;
+    }
+
 }

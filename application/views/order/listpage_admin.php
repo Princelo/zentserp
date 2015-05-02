@@ -76,6 +76,8 @@
                     <th>订单备注</th>
                     <th>快递单号</th>
                     <th>订单提交时间</th>
+                    <th>回扣(不含推荐回扣)</th>
+                    <th>推荐回扣</th>
                     <th></th>
                     <th></th>
                 </tr>
@@ -98,6 +100,8 @@
                         <td><?=$v->remark?></td>
                         <td><?=$v->post_info?></td>
                         <td><?=substr($v->stock_time, 0, 19);?></td>
+                        <td><?=cny($v->return_profit)?></td>
+                        <td><?=cny($v->extra_return_profit)?></td>
                         <td><a href="<?=base_url()?>order/details_admin/<?=$v->id;?>">查看详情</a></td>
                         <td><?if($v->is_pay!='t'):?><a href="javascript:void(0);" onclick="myconfirm(<?=$v->id?>);">移除</a><?endif?></td>
                     </tr>

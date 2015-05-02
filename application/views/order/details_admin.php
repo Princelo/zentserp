@@ -185,6 +185,20 @@
                 </td>
             </tr>
         </table>
+        <table class="float_left margin-left">
+            <tr class="odd">
+                <th>回扣(不含推荐回扣)</th>
+                <td>
+                    <span class="info important"><?=cny($v->return_profit)?></span>
+                </td>
+            </tr>
+            <tr class="even">
+                <th>推荐回扣</th>
+                <td>
+                    <span class="info important"><?=cny($v->extra_return_profit)?></span>
+                </td>
+            </tr>
+        </table>
 
     </fieldset>
 
