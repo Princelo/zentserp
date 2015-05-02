@@ -26,7 +26,7 @@
                     if("<?=$this->session->flashdata('flashdata', 'value');?>"!="")
                         alert("<?=$this->session->flashdata('flashdata', 'value');?>");
                 </script>
-                <table width="70%">
+                <table width="100%">
                     <!--<col width="50%">
                     <col width="50%">-->
                     <tr>
