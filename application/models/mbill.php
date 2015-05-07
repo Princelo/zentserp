@@ -91,7 +91,7 @@ class MBill extends CI_Model
     public function objGetZentsBillsOfDay($date_from = '', $date_to = '', $limit = '')
     {
         $interval = date_diff(new \DateTime($date_from), new \DateTime($date_to), true);
-        $days = $interval->days + 1;
+        $days = $interval->days;
         $query_sql = "
             SELECT
                 d.date,
