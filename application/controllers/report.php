@@ -674,6 +674,9 @@ class Report extends MY_Controller {
             $date_to = date('Y-m-d', $date_to);
             //$search = $this->db->escape_like_str($search);
             $data = array();
+            $data['report_type'] = $report_type;
+            $data['date_from'] = $date_from;
+            $data['date_to'] = $date_to;
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['base_url'] = base_url()."report/listpage_admin/";
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
@@ -741,7 +744,7 @@ class Report extends MY_Controller {
             //$this->load->view('report/listpage', $data);
         }else{
             $this->session->set_flashdata('flashdata', '参数错误');
-            redirect('report/index');
+            redirect('report/index_zents');
         }
 
     }
@@ -884,6 +887,112 @@ class Report extends MY_Controller {
             //imagejpeg( $tmp_img, "{$pathToThumbs}{$fname}" );
             $nname = substr($fname, 0, strpos($fname, ".")) . "_thumb.png";
             imagepng( $tmp_img, "{$path}{$nname}" );
+        }
+    }
+
+    public function download_xls()
+    {
+        $report_type = $this->input->post('report_type');
+        $date_from = $this->input->post('date_from');
+        $date_to = $this->input->post('date_to');
+        if($report_type != '' &&
+            $date_from != '' && $date_to != ''
+        ) {
+            $bills = $this->MBill->objGetZentsBillsOfDay($date_from, $date_to);
+            $this->load->library('PHPExcel');
+            $objPHPExcel = new PHPExcel();
+
+            $title = "untitled";
+            switch($report_type) {
+                case 'day':
+                    $title = "ZENTSERP 日报表 $date_from - $date_to";
+                    break;
+                case 'month':
+                    $date_from = date('Y-m', strtotime($date_from));
+                    $date_to = date('Y-m', strtotime($date_to));
+                    $title = "ZENTSERP 月报表 $date_from - $date_to";
+                    break;
+                case 'year':
+                    $date_from = date('Y', strtotime($date_from));
+                    $date_to = date('Y', strtotime($date_to));
+                    $title = "ZENTSERP 年报表 $date_from - $date_to";
+                    break;
+                case 'products':
+                    $title = "ZENTSERP 产品报表 $date_from - $date_to";
+                    break;
+                default:
+                    break;
+            }
+            // Set document properties
+            $objPHPExcel->getProperties()->setCreator("Princelo Lamkimcheung@gmail.com")
+                ->setLastModifiedBy("Princelo Lamkimcheung@gmail.com")
+                ->setTitle($title)
+                ->setSubject($title)
+                ->setDescription($title)
+                ->setKeywords("Princelo lamkimcheung@gmail.com")
+                ->setCategory($report_type);
+
+
+            // Add some data
+            $objPHPExcel->setActiveSheetIndex(0)
+                ->setCellValue('A1', $title)
+                ->setCellValue('A2', '日期')
+                ->setCellValue('B2', '总金额(含运费)')
+                ->setCellValue('C2', '产品总金额')
+                ->setCellValue('D2', '运费总金额')
+                ->setCellValue('E2', '成本金额')
+                ->setCellValue('F2', '回扣总量(含推荐)')
+                ->setCellValue('E2', '回扣总量(不含推荐)')
+                ->setCellValue('H2', '回扣(经总差价)')
+                ->setCellValue('I2', '回扣(经市差价)')
+                ->setCellValue('J2', '回扣(市总差价)')
+                ->setCellValue('K2', '推荐回扣')
+                ->setCellValue('L2', '订单数');
+            // Miscellaneous glyphs, UTF-8
+            foreach($bills as $k => $v)
+            {
+                $i = $k + 3;
+                $objPHPExcel->setActiveSheetIndex(0)
+                    ->setCellValue("A$i", $v->date)
+                    ->setCellValue("B$i", $v->total_volume)
+                    ->setCellValue("C$i", $v->products_volume)
+                    ->setCellValue("D$i", $v->post_fee)
+                    ->setCellValue("E$i", $v->products_cost)
+                    ->setCellValue("F$i", $v->return_profit_volume)
+                    ->setCellValue("G$i", $v->normal_return_profit_volume)
+                    ->setCellValue("H$i", $v->return_profit_3_1)
+                    ->setCellValue("I$i", $v->return_profit_3_2)
+                    ->setCellValue("J$i", $v->return_profit_2_1)
+                    ->setCellValue("K$i", $v->extra_return_profit_volume)
+                    ->setCellValue("L$i", $v->order_quantity);
+            }
+
+            // Rename worksheet
+            $objPHPExcel->getActiveSheet()->setTitle('REPORT');
+
+
+            // Set active sheet index to the first sheet, so Excel opens this as the first sheet
+            $objPHPExcel->setActiveSheetIndex(0);
+
+
+            // Redirect output to a client’s web browser (Excel5)
+            header('Content-Type: application/vnd.ms-excel');
+            header('Content-Disposition: attachment;filename="'.$title.'.xls"');
+            header('Cache-Control: max-age=0');
+            // If you're serving to IE 9, then the following may be needed
+            header('Cache-Control: max-age=1');
+
+            // If you're serving to IE over SSL, then the following may be needed
+            header ('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+            header ('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT'); // always modified
+            header ('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+            header ('Pragma: public'); // HTTP/1.0
+
+            $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+            $objWriter->save('php://output');
+            exit;
+        } else {
+            exit('This page is expired !');
         }
     }
 }

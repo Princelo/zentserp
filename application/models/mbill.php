@@ -93,20 +93,40 @@ class MBill extends CI_Model
         $interval = date_diff(new \DateTime($date_from), new \DateTime($date_to), true);
         $days = $interval->days + 1;
         $query_sql = "
-            SELECT d.date, count(b.id), sum(b.volume) volume FROM (
+            SELECT
+                d.date,
+                sum(o.pay_amt) as total_volume,
+                sum(o.pay_amt_without_post_fee) as products_volume,
+                sum(o.post_fee) as post_fee,
+                coalesce(sum(o.return_profit), '$0') as normal_return_profit_volume,
+                sum(o.return_profit) + sum(o.extra_return_profit) as return_profit_volume,
+                coalesce(sum(o32.return_profit), '$0') as return_profit_3_2,
+                coalesce(sum(o31.return_profit), '$0') as return_profit_3_1,
+                coalesce(sum(o21.return_profit), '$0') as return_profit_2_1,
+                coalesce(sum(o.extra_return_profit), '$0') as extra_return_profit_volume,
+                sum(o.pay_amt_without_post_fee) - sum(o.post_fee) as products_cost,
+                count(o.id) order_quantity
+                FROM (
                 select to_char(date_trunc('day', (date('{$date_from}') + offs)), 'YYYY-MM-DD')
                 AS date
                 FROM generate_series(0, {$days}, 1)
                 AS offs
                 ) d
-            LEFT OUTER JOIN bills b
-            ON (d.date=to_char(date_trunc('day', b.create_time), 'YYYY-MM-DD'))
-                and b.type = 1
-            left join orders o
-            on o.id = b.order_id
-            GROUP BY d.date
+            full join orders o
+            on (d.date=to_char(date_trunc('day', o.finish_time), 'YYYY-MM-DD'))
+                full join orders o32
+                    on o32.id = o.id
+                    and o32.level = 3 and o32.parent_level = 2
+                full join orders o31
+                    on o31.id = o.id
+                    and o31.level = 3 and o31.parent_level = 1
+                full join orders o21
+                    on o21.id = o.id
+                    and o21.level = 2 and o21.parent_level = 1
+            where o.is_pay = true and o.is_correct = true
+            group by d.date
             order by d.date
-            {$limit};
+            {$limit}
         ";
         //http://stackoverflow.com/questions/15691127/postgresql-query-to-count-group-by-day-and-display-days-with-no-data
         $data = array();
@@ -203,20 +223,40 @@ class MBill extends CI_Model
         $months = $interval->y*12 + $interval->m + 1;
 
         $query_sql = "
-            SELECT to_char(date_trunc('month', d.date), 'YYYY-MM') date, count(b.id), sum(b.volume) volume FROM (
-                select DATE '{$date_from}' + (interval '1' month * generate_series(0,month_count::int)) date
-                    from (
-                       select extract(year from diff) * 12 + extract(month from diff) as month_count
-                       from (
-                         select age(TIMESTAMP '{$date_to} 00:00:00', TIMESTAMP '{$date_from} 00:00:00') as diff
-                       ) td
-                    ) t
-                ) d
-            left join bills b
-            ON (to_char(date_trunc('month', d.date), 'YYYY-MM')=to_char(date_trunc('month', b.create_time), 'YYYY-MM'))
-                and b.type = 1
+            SELECT  to_char(date_trunc('month', d.date), 'YYYY-MM') date,
+                    count(o.id),
+                    sum(o.pay_amt) as total_volume,
+                    sum(o.pay_amt_without_post_fee) as products_volume,
+                    sum(o.post_fee) as post_fee,
+                    coalesce(sum(o.return_profit), '$0') as normal_return_profit_volume,
+                    sum(o.return_profit) + sum(o.extra_return_profit) as return_profit_volume,
+                    coalesce(sum(o32.return_profit), '$0') as return_profit_3_2,
+                    coalesce(sum(o31.return_profit), '$0') as return_profit_3_1,
+                    coalesce(sum(o21.return_profit), '$0') as return_profit_2_1,
+                    coalesce(sum(o.extra_return_profit), '$0') as extra_return_profit_volume,
+                    count(o.id) order_quantity,
+                    sum(o.pay_amt_without_post_fee) - sum(o.post_fee) as products_cost
+                    FROM (
+                        select DATE '{$date_from}' + (interval '1' month * generate_series(0,month_count::int)) date
+                            from (
+                               select extract(year from diff) * 12 + extract(month from diff) as month_count
+                                   from (
+                                     select age(TIMESTAMP '{$date_to} 23:59:59', TIMESTAMP '{$date_from} 00:00:00') as diff
+                               ) td
+                            ) t
+                        ) d
             left join orders o
-            on o.id = b.order_id
+            ON (to_char(date_trunc('month', d.date), 'YYYY-MM')=to_char(date_trunc('month', o.finish_time), 'YYYY-MM'))
+                full join orders o32
+                    on o32.id = o.id
+                    and o32.level = 3 and o32.parent_level = 2
+                full join orders o31
+                    on o31.id = o.id
+                    and o31.level = 3 and o31.parent_level = 1
+                full join orders o21
+                    on o21.id = o.id
+                    and o21.level = 2 and o21.parent_level = 1
+            where o.is_pay = true and o.is_correct = true
             GROUP BY d.date
             order by d.date
             {$limit};
@@ -314,20 +354,40 @@ class MBill extends CI_Model
         $interval = date_diff(new \DateTime($date_from), new \DateTime($date_to), true);
         $years = $interval->y + 1;
         $query_sql = "
-            SELECT to_char(date_trunc('year', d.date), 'YYYY') date, count(b.id), sum(b.volume) volume FROM (
-                select DATE '{$date_from}' + (interval '1' year * generate_series(0,year_count::int)) date
-                    from (
-                       select extract(year from diff) as year_count
-                       from (
-                         select age(TIMESTAMP '{$date_to} 00:00:00', TIMESTAMP '{$date_from} 00:00:00') as diff
-                       ) td
-                    ) t
-                ) d
-            left join bills b
-            ON (to_char(date_trunc('year', d.date), 'YYYY')=to_char(date_trunc('year', b.create_time), 'YYYY'))
-                and b.type = 1
+            SELECT  to_char(date_trunc('year', d.date), 'YYYY') date,
+                    count(o.id),
+                    sum(o.pay_amt) as total_volume,
+                    sum(o.pay_amt_without_post_fee) as products_volume,
+                    sum(o.post_fee) as post_fee,
+                    coalesce(sum(o.return_profit), '$0') as normal_return_profit_volume,
+                    sum(o.return_profit) + sum(o.extra_return_profit) as return_profit_volume,
+                    coalesce(sum(o32.return_profit), '$0') as return_profit_3_2,
+                    coalesce(sum(o31.return_profit), '$0') as return_profit_3_1,
+                    coalesce(sum(o21.return_profit), '$0') as return_profit_2_1,
+                    coalesce(sum(o.extra_return_profit), '$0') as extra_return_profit_volume,
+                    count(o.id) order_quantity,
+                    sum(o.pay_amt_without_post_fee) - sum(o.post_fee) as products_cost
+                    FROM (
+                        select DATE '{$date_from}' + (interval '1' year * generate_series(0,year_count::int)) date
+                            from (
+                               select extract(year from diff) as year_count
+                                   from (
+                                     select age(TIMESTAMP '{$date_to} 23:59:59', TIMESTAMP '{$date_from} 00:00:00') as diff
+                           ) td
+                        ) t
+                    ) d
             left join orders o
-            on o.id = b.order_id
+            ON (to_char(date_trunc('year', d.date), 'YYYY')=to_char(date_trunc('year', o.finish_time), 'YYYY'))
+                full join orders o32
+                    on o32.id = o.id
+                    and o32.level = 3 and o32.parent_level = 2
+                full join orders o31
+                    on o31.id = o.id
+                    and o31.level = 3 and o31.parent_level = 1
+                full join orders o21
+                    on o21.id = o.id
+                    and o21.level = 2 and o21.parent_level = 1
+            where o.is_pay = true and o.is_correct = true
             GROUP BY d.date
             order by d.date
         ";
