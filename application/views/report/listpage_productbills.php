@@ -50,7 +50,7 @@
                         <? $n ++; ?>
                         <tr class="<?=$n%2==0?"even":"odd";?>">
                             <td><?=$v->product_id?></td>
-                            <td><a href="<?=base_url()?>product/detail<?=$v->product_id?>?is_trial=<?=$v->is_trial?>"><?=$v->title?></a></td>
+                            <td><a href="<?=base_url()?>product/detail/<?=$v->product_id?>?is_trial=<?=$v->is_trial?>"><?=$v->title?></a></td>
                             <td><?=$v->total_quantity?></td>
                             <td><?=$v->quantity_0?></td>
                             <td><?=$v->quantity_3?></td>
