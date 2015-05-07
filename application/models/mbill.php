@@ -112,7 +112,7 @@ class MBill extends CI_Model
                 FROM generate_series(0, {$days}, 1)
                 AS offs
                 ) d
-            full join orders o
+            left join orders o
             on (d.date=to_char(date_trunc('day', o.finish_time), 'YYYY-MM-DD'))
                 full join orders o32
                     on o32.id = o.id
