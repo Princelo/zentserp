@@ -898,7 +898,6 @@ class Report extends MY_Controller {
         if($report_type != '' &&
             $date_from != '' && $date_to != ''
         ) {
-            $bills = $this->MBill->objGetZentsBillsOfDay($date_from, $date_to);
             $this->load->library('PHPExcel');
             $objPHPExcel = new PHPExcel();
 
@@ -906,18 +905,22 @@ class Report extends MY_Controller {
             switch($report_type) {
                 case 'day':
                     $title = "ZENTSERP 日报表 $date_from - $date_to";
+                    $bills = $this->MBill->objGetZentsBillsOfDay($date_from, $date_to);
                     break;
                 case 'month':
+                    $bills = $this->MBill->objGetZentsBillsOfMonth($date_from, $date_to);
                     $date_from = date('Y-m', strtotime($date_from));
                     $date_to = date('Y-m', strtotime($date_to));
                     $title = "ZENTSERP 月报表 $date_from - $date_to";
                     break;
                 case 'year':
+                    $bills = $this->MBill->objGetZentsBillsOfYear($date_from, $date_to);
                     $date_from = date('Y', strtotime($date_from));
                     $date_to = date('Y', strtotime($date_to));
                     $title = "ZENTSERP 年报表 $date_from - $date_to";
                     break;
                 case 'products':
+                    $bills = $this->MBill->objGetProductBills($date_from, $date_to);
                     $title = "ZENTSERP 产品报表 $date_from - $date_to";
                     break;
                 default:
@@ -933,38 +936,76 @@ class Report extends MY_Controller {
                 ->setCategory($report_type);
 
 
-            // Add some data
-            $objPHPExcel->setActiveSheetIndex(0)
-                ->setCellValue('A1', $title)
-                ->setCellValue('A2', '日期')
-                ->setCellValue('B2', '总金额(含运费)')
-                ->setCellValue('C2', '产品总金额')
-                ->setCellValue('D2', '运费总金额')
-                ->setCellValue('E2', '成本金额')
-                ->setCellValue('F2', '回扣总量(含推荐)')
-                ->setCellValue('E2', '回扣总量(不含推荐)')
-                ->setCellValue('H2', '回扣(经总差价)')
-                ->setCellValue('I2', '回扣(经市差价)')
-                ->setCellValue('J2', '回扣(市总差价)')
-                ->setCellValue('K2', '推荐回扣')
-                ->setCellValue('L2', '订单数');
-            // Miscellaneous glyphs, UTF-8
-            foreach($bills as $k => $v)
-            {
-                $i = $k + 3;
+            if($report_type == 'products') {
                 $objPHPExcel->setActiveSheetIndex(0)
-                    ->setCellValue("A$i", $v->date)
-                    ->setCellValue("B$i", $v->total_volume)
-                    ->setCellValue("C$i", $v->products_volume)
-                    ->setCellValue("D$i", $v->post_fee)
-                    ->setCellValue("E$i", $v->products_cost)
-                    ->setCellValue("F$i", $v->return_profit_volume)
-                    ->setCellValue("G$i", $v->normal_return_profit_volume)
-                    ->setCellValue("H$i", $v->return_profit_3_1)
-                    ->setCellValue("I$i", $v->return_profit_3_2)
-                    ->setCellValue("J$i", $v->return_profit_2_1)
-                    ->setCellValue("K$i", $v->extra_return_profit_volume)
-                    ->setCellValue("L$i", $v->order_quantity);
+                    ->setCellValue('A1', $title)
+                    ->setCellValue('A2', '产品ID')
+                    ->setCellValue('B2', '产品名称')
+                    ->setCellValue('C2', '总出货量')
+                    ->setCellValue('D2', '零售出货量')
+                    ->setCellValue('E2', '经销出货量')
+                    ->setCellValue('F2', '市代出货量')
+                    ->setCellValue('E2', '总代出货量')
+                    ->setCellValue('H2', '试用品出货量')
+                    ->setCellValue('I2', '涉总金额')
+                    ->setCellValue('J2', '涉零售金额')
+                    ->setCellValue('K2', '涉经销金额')
+                    ->setCellValue('L2', '涉市代金额')
+                    ->setCellValue('M2', '涉总代金额')
+                    ->setCellValue('N2', '涉试用品金额');
+                foreach($bills as $k => $v)
+                {
+                    $i = $k + 3;
+                    $objPHPExcel->setActiveSheetIndex(0)
+                        ->setCellValue("A$i", $v->product_id)
+                        ->setCellValue("B$i", $v->title)
+                        ->setCellValue("C$i", $v->total_quantity)
+                        ->setCellValue("D$i", $v->quantity_0)
+                        ->setCellValue("E$i", $v->quantity_3)
+                        ->setCellValue("F$i", $v->quantity_2)
+                        ->setCellValue("G$i", $v->quantity_1)
+                        ->setCellValue("H$i", $v->quantity_t)
+                        ->setCellValue("I$i", $v->amount)
+                        ->setCellValue("J$i", $v->amount_0)
+                        ->setCellValue("K$i", $v->amount_3)
+                        ->setCellValue("L$i", $v->amount_2)
+                        ->setCellValue("M$i", $v->amount_1)
+                        ->setCellValue("N$i", $v->amount_t);
+                }
+            } else {
+                // Add some data
+                $objPHPExcel->setActiveSheetIndex(0)
+                    ->setCellValue('A1', $title)
+                    ->setCellValue('A2', '日期')
+                    ->setCellValue('B2', '总金额(含运费)')
+                    ->setCellValue('C2', '产品总金额')
+                    ->setCellValue('D2', '运费总金额')
+                    ->setCellValue('E2', '成本金额')
+                    ->setCellValue('F2', '回扣总量(含推荐)')
+                    ->setCellValue('E2', '回扣总量(不含推荐)')
+                    ->setCellValue('H2', '回扣(经总差价)')
+                    ->setCellValue('I2', '回扣(经市差价)')
+                    ->setCellValue('J2', '回扣(市总差价)')
+                    ->setCellValue('K2', '推荐回扣')
+                    ->setCellValue('L2', '订单数');
+                // Miscellaneous glyphs, UTF-8
+                foreach($bills as $k => $v)
+                {
+                    $i = $k + 3;
+                    $objPHPExcel->setActiveSheetIndex(0)
+                        ->setCellValue("A$i", $v->date)
+                        ->setCellValue("B$i", $v->total_volume)
+                        ->setCellValue("C$i", $v->products_volume)
+                        ->setCellValue("D$i", $v->post_fee)
+                        ->setCellValue("E$i", $v->products_cost)
+                        ->setCellValue("F$i", $v->return_profit_volume)
+                        ->setCellValue("G$i", $v->normal_return_profit_volume)
+                        ->setCellValue("H$i", $v->return_profit_3_1)
+                        ->setCellValue("I$i", $v->return_profit_3_2)
+                        ->setCellValue("J$i", $v->return_profit_2_1)
+                        ->setCellValue("K$i", $v->extra_return_profit_volume)
+                        ->setCellValue("L$i", $v->order_quantity);
+                }
             }
 
             // Rename worksheet

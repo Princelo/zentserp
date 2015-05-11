@@ -82,8 +82,13 @@
 
 
 
-            <div class="">
-                <h2></h2>
+            <div class="toolbar type-button">
+                <form action="<?=base_url()?>report/download_xls" method="post">
+                    <input name="report_type" value="<?=$report_type?>" type="hidden" />
+                    <input name="date_from" value="<?=$date_from?>" type="hidden" />
+                    <input name="date_to" value="<?=$date_to?>" type="hidden" />
+                    <input value="下载本报表" type="submit" />
+                </form>
 
 
             </div>
