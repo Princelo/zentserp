@@ -883,14 +883,14 @@ class MBill extends CI_Model
                 u.username,
                 u.name,
                 coalesce(
-                    sum(o_self.pay_amt_without_post_fee - o_self.return_profit),
+                    sum(s_amount.amount - o_self.return_profit),
                         '$0')
                     as self_turnover,
-                coalesce(sum(o_sub.pay_amt_without_post_fee - o_sub.return_profit - o_sub.extra_return_profit), '$0') as sub_turnover,
+                coalesce(o_sub.volume - o_sub.return_profit, '$0') as sub_turnover,
                 coalesce(sum(o_self.return_profit), '$0') normal_return_profit_self2parent,
                 coalesce(sum(o_self_0.extra_return_profit), '$0') extra_return_profit_self2parent,
-                coalesce(sum(o_sub.return_profit), '$0') normal_return_profit_sub2self,
-                coalesce(sum(o_sub.extra_return_profit), '$0') extra_return_profit_sub2self,
+                coalesce(o_sub.return_profit, '$0') normal_return_profit_sub2self,
+                coalesce(o_sub_0.extra_return_profit, '$0') extra_return_profit_sub2self,
                 pu.id pid,
                 pu.name pname,
                 pu.username pusername,
@@ -904,15 +904,43 @@ class MBill extends CI_Model
                 and o_self.level <> 0
                 and o_self.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
                 and o_self.is_pay = true and o_self.is_correct = true
+                join amounts s_amount
+                on s_amount.level = o_self.level and o_self.id = s_amount.order_id
                 left join orders o_self_0
                 on u.id = o_self_0.user_id
                 and o_self_0.level = 0
                 and o_self_0.is_pay = true and o_self_0.is_correct = true
                 and o_self_0.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
                 full join (
-                    select sum(o.return_profit) as return_profit,
+                select sum(i.return_profit) return_profit, sum(i.volume) volume, i.pid from(
+                SELECT Sum(o.return_profit) AS return_profit,
+                         Sum(sa.amount)       volume,
+                         u.pid,
+                         Date(o.finish_time)  finish_time
+                  FROM   users u
+                         LEFT JOIN orders o
+                                ON o.finish_time BETWEEN '{$date_from} 00:00:00'
+                                                         AND
+                                                         '{$date_to} 23:59:59'
+                                   AND o.is_pay = true
+                                   AND o.is_correct = true
+                                   AND o.user_id = u.id
+                         JOIN amounts sa
+                           ON sa.level = o.level
+                              AND sa.order_id = o.id
+                              AND o.level <> 0
+                  WHERE  u.pid <> 1
+                  GROUP  BY u.pid,
+                            Date(o.finish_time)
+                  ORDER  BY u.pid) as i
+                  group by pid
+
+                ) as o_sub
+                on o_sub.pid = u.id
+                full join (
+                select sum(i.extra_return_profit) extra_return_profit, i.pid from
+                    (select
                            sum(o.extra_return_profit) as extra_return_profit,
-                           sum(o.pay_amt_without_post_fee) pay_amt_without_post_fee,
                            u.pid,
                            date(o.finish_time) finish_time
                        from
@@ -921,15 +949,19 @@ class MBill extends CI_Model
                            on o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
                            and o.is_pay = true and o.is_correct = true
                            and o.user_id = u.id
+                           where u.pid <> 1
+                           and o.level = 0
                        group by u.pid, date(o.finish_time)
-                ) as o_sub
-                on o_sub.pid = u.id
-                --and date(o_self.finish_time) = date(o_sub.finish_time)
+                       order by u.pid ) as i
+                       group by pid
+                ) as o_sub_0
+                on o_sub_0.pid = u.id
                 join users pu
                 on u.pid = pu.id
             where 1 = 1
             and u.id <> 1
-            group by u.id, u.username, u.name, u.pid, pu.id, pu.name, pu.username
+            group by u.id, u.username, u.name, u.pid, pu.id, pu.name, pu.username,o_sub.volume,
+                o_sub.return_profit, o_sub_0.extra_return_profit
             order by u.id
             {$limit}
             ;
