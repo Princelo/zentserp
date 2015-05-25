@@ -440,8 +440,8 @@ class MBill extends CI_Model
             left join users pu
                 on u.pid = pu.id
             where 1 = 1
-            GROUP BY d.date, u.id, pu.id
-            order by d.date
+            GROUP BY date(d.date)::char(7), u.id, pu.id
+            order by date(d.date)::char(7)
             {$limit};
         ";
         //http://stackoverflow.com/questions/17492167/group-query-results-by-month-and-year-in-postgresql
@@ -664,8 +664,8 @@ class MBill extends CI_Model
             left join users pu
                 on u.pid = pu.id
             where 1 = 1
-            GROUP BY d.date, u.id, pu.id
-            order by d.date
+            GROUP BY date(d.date)::char(4), u.id, pu.id
+            order by date(d.date)::char(4)
         ";
         //http://stackoverflow.com/questions/17492167/group-query-results-by-month-and-year-in-postgresql
         $data = array();
