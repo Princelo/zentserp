@@ -53,7 +53,7 @@ class Report extends MY_Controller {
             $config['base_url'] = base_url()."report/index_admin/";
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
-            $where = ' and is_admin = false ';
+            $where = ' and u.is_admin = false ';
             //$where .= ' and p.is_valid = true ';
             $where .= $this->__get_search_str($search, $level);
             $config['total_rows'] = $this->MUser->intGetUsersCount($where);
