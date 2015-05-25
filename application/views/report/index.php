@@ -43,15 +43,6 @@
                                 </td>
                             </tr>
                             <tr>
-                                <th>收支种类</th>
-                                <td>
-                                    <select name="bill_type">
-                                        <option value="income">收益</option>
-                                        <option value="payout">支出</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
                                 <th>过滤无收支日期</th>
                                 <td>
                                     <input type="checkbox" name="is_filter" />
@@ -79,7 +70,6 @@
                      if (confirm("are you sure?")){
                      window.location.href = "<?=base_url()?>index.php/unvadmin/singerdelete/"+id;
                      } else {
-
                      }
                      }*/
                     $( ".datepicker" ).datepicker({
@@ -114,11 +104,8 @@
                             trigger    : 'end_time-trigger',
                             onSelect   : function() { this.hide() }
                         });
-
                     });
-
                 </script>
-
             : IE Column Clearing -->
     </div>
     <!-- end: #col4 -->	</div>

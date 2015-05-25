@@ -222,11 +222,14 @@ class MUser extends CI_Model
         $query_sql = "";
         $query_sql .= "
             select
-                u.*
+                u.*,
+                pu.name pname,
+                pu.username pusername
             from
-                users u
+                users u, users pu
             where
                 1 = 1
+                and u.pid = pu.id
                 {$where}
             {$order}
             {$limit}

@@ -70,6 +70,7 @@
                         <th>他的业绩</th>
                         <th>他的收益</th>
                         <th>是否生效</th>
+                        <th>上级</th>
                         <th></th>
                         <th></th>
                     </tr>
@@ -89,6 +90,11 @@
                             <td><?=cny($v->turnover)?></td>
                             <td><?=cny($v->profit)?></td>
                             <td><?=$v->is_valid=='t'?'是':'否'?></td>
+                            <? if($v->pid == '1' || $v->pid == '') { ?>
+                                <td>无上级</td>
+                                <? } else { ?>
+                            <td><a href="<?=base_url()?>user/details_admin/<?=$v->pid?>"><?=$v->pname?>(<?=$v->pusername?>/<?$v->pid?>)</a></td>
+                                <? } ?>
                             <td><a href="<?=base_url()?>user/sublistpage/<?=$v->id?>">他的下级</a></td>
                             <td><a href="<?=base_url()?>user/details_admin/<?=$v->id?>">编辑</a></td>
                         </tr>

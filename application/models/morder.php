@@ -20,7 +20,8 @@ class MOrder extends CI_Model
            sum(iq.amount) amount,sum(quantity) quantity,count(opid) diff_quantity,id,username,parent_user_id,is_root,post_fee,
                           is_pay, is_correct, pay_time, pay_amt, is_cancelled, is_post, province_id, city_id,
                           address_info,linkman,mobile,remark,finish_time,stock_time,is_pay_online,pay_method,
-                          pay_amt_without_post_fee,post_info,purchase_level,uid,username name_ch,return_profit,extra_return_profit
+                          pay_amt_without_post_fee,post_info,purchase_level,uid,iq.username name_ch,iq.account username,
+                          return_profit,extra_return_profit
            from (select
                    --p.title          title,
                    --p.id             pid,
@@ -30,6 +31,7 @@ class MOrder extends CI_Model
                    --string_agg(op.product_id::character(255), ',')     products,
                    o.id             id,
                    u.name           username,
+                   u.username       account,
                    u.id             uid,
                    u.pid            parent_user_id,
                    u.is_root        is_root,
@@ -87,7 +89,8 @@ class MOrder extends CI_Model
             group by id,username,parent_user_id,is_root,post_fee,
                           is_pay, is_correct, pay_time, pay_amt, is_cancelled, is_post, province_id, city_id,
                           address_info,linkman,mobile,remark,finish_time,stock_time,is_pay_online,pay_method,
-                          pay_amt_without_post_fee,post_info,purchase_level,uid,iq.username, return_profit, extra_return_profit
+                          pay_amt_without_post_fee,post_info,purchase_level,uid,iq.username, return_profit,
+                          extra_return_profit,iq.account
             order by id desc
             {$limit}
         ";
@@ -369,13 +372,14 @@ class MOrder extends CI_Model
            sum(iq.amount) amount,sum(quantity) quantity,count(opid) diff_quantity,id,username,id,parent_user_id,is_root,post_fee,
                           is_pay, is_correct, pay_time, pay_amt, is_cancelled, is_post, province_id, city_id,
                           address_info,linkman,mobile,remark,finish_time,stock_time,is_pay_online,pay_method,
-                          pay_amt_without_post_fee,post_info,purchase_level,uid, username name_ch, is_first, return_profit,
-                          extra_return_profit
+                          pay_amt_without_post_fee,post_info,purchase_level,uid, iq.username name_ch, is_first, return_profit,
+                          extra_return_profit, iq.account username
             from (select
                    op.id            opid,
                    op.quantity      quantity,
                    o.id             id,
                    u.name           username,
+                   u.username       account,
                    u.id             uid,
                    o.level          purchase_level,
                    u.pid            parent_user_id,
@@ -428,7 +432,8 @@ class MOrder extends CI_Model
             where 1 = 1
             group by id,username,parent_user_id,is_root,post_fee,is_pay,is_correct,is_pay_online,post_info
             ,is_first, pay_method,stock_time,finish_time,remark,mobile,linkman,pay_time,pay_amt,pay_amt_without_post_fee,
-            is_cancelled,is_post,province_id,city_id,address_info,purchase_level,uid,return_profit,extra_return_profit
+            is_cancelled,is_post,province_id,city_id,address_info,purchase_level,uid,return_profit,extra_return_profit,
+            iq.account
         ";
         $data = array();
         $query = $this->objDB->query($query_sql);

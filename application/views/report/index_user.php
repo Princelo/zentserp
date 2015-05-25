@@ -47,21 +47,6 @@
                                 </td>
                             </tr>
                             <tr>
-                                <th>收支种类</th>
-                                <td>
-                                    <select name="bill_type">
-                                        <option value="income">收益</option>
-                                        <option value="payout">支出</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>过滤无收支日期</th>
-                                <td>
-                                    <input type="checkbox" name="is_filter" />
-                                </td>
-                            </tr>
-                            <tr>
                                 <th>起始日期</th>
                                 <td><input name="date_from" class="datepicker" /></td>
                             </tr>

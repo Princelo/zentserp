@@ -21,45 +21,44 @@
 
 
             <div class="info view_form">
-                <h2>报表查询系统</h2>
+                <h2>年报表<?if(isset($bills[0])):?>(<?=  date('Y', strtotime($bills[0]->date_from))?> - <?=date('Y', strtotime($bills[0]->date_to))?>)<?endif?></h2>
                 <script>
                     if("<?=$this->session->flashdata('flashdata', 'value');?>"!="")
                         alert("<?=$this->session->flashdata('flashdata', 'value');?>");
                 </script>
-            <form action="<?=base_url()?>report/listpage_admin" method="get">
-            <fieldset>
-                <legend>添加产品 </legend>
-                <table width="70%">
+                <table width="100%">
                     <!--<col width="50%">
                     <col width="50%">-->
                     <tr>
-                        <th>查询类型</th>
-                        <td>
-                            <select name="report_type">
-                                <option value="day">日报表</option>
-                                <option value="month">月报表</option>
-                                <option value="year">年报表</option>
-                                <option value="products">产品明细报表</option>
-                            </select>
-                        </td>
+                        <th>日期</th>
+                        <th>自身业绩增量</th>
+                        <th>下级业绩增量</th>
+                        <th>实际业绩增量</th>
+                        <th>收益增量(不含推荐)</th>
+                        <th>推荐收益增量</th>
+                        <th>总收益增量</th>
+                        <th>上级代理</th>
                     </tr>
-                    <tr>
-                        <th>起始日期</th>
-                        <td><input name="date_from" class="datepicker" /></td>
-                    </tr>
-                    <tr>
-                        <th>结束日期</th>
-                        <td><input name="date_to" class="datepicker" /></td>
-                    </tr>
+                    <? $n = 0; ?>
+                    <? foreach($bills as $k => $v){ ?>
+                        <? $n ++; ?>
+                        <tr class="<?=$n%2==0?"even":"odd";?>">
+                            <td><?=$v->date?></td>
+                            <td><?=cny($v->self_turnover)?></td>
+                            <td><?=cny($v->sub_turnover)?></td>
+                            <td>￥<?=bcadd(money($v->self_turnover),money($v->sub_turnover),2)?></td>
+                            <td><?=cny($v->normal_return_profit_sub2self)?></td>
+                            <td><?=cny($v->extra_return_profit_sub2self)?></td>
+                            <td>￥<?=bcadd(money($v->normal_return_profit_sub2self), money($v->extra_return_profit_sub2self), 2 )?></td>
+                            <? if($v->pid == '1' || $v->pid == '') {?>
+                                <td></td>
+                            <?} else {?>
+                                <td><a href="javascript:void(0);"><?=$v->pname?>(<?=$v->pusername?>/<?=$v->pid?>)</a></td>
+                            <? } ?>
+                        </tr>
+                    <? } ?>
                 </table>
-            </fieldset>
-                <div class="toolbar type-button">
-                    <div class="c50l">
-                        <input type="submit" name="" value="提交 "  />			</div>
-                    <div class="c50r right">
-                    </div>
-                </div>
-            </form>
+                <div class="page"><?=$page;?></div>
                 <script>
                     /*function myconfirm(id){
                      if (confirm("are you sure?")){
@@ -68,10 +67,6 @@
 
                      }
                      }*/
-                    $( ".datepicker" ).datepicker({
-                        'dateFormat': 'yy-m-d',
-                        'changeYear' : true
-                    });
                 </script>
 
 
@@ -79,11 +74,6 @@
 
 
 
-            <div class="">
-                <h2></h2>
-
-
-            </div>
 
 
 

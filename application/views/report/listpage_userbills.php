@@ -21,26 +21,46 @@
 
 
             <div class="info view_form">
-                <h2>年收益报表</h2>
+                <h2>代理交易统计报表(<?=$bills[0]->date_from?> - <?=$bills[0]->date_to?>)</h2>
                 <script>
                     if("<?=$this->session->flashdata('flashdata', 'value');?>"!="")
                         alert("<?=$this->session->flashdata('flashdata', 'value');?>");
                 </script>
-                <table width="70%">
+                <table width="100%">
                     <!--<col width="50%">
                     <col width="50%">-->
                     <tr>
-                        <th>日期</th>
-                        <th>收益总量</th>
-                        <th>订单数</th>
+                        <th>代理</th>
+                        <th>自身业绩增量</th>
+                        <th>下级业绩增量</th>
+                        <th>实际业绩增量</th>
+                        <th>收益增量(不含推荐)</th>
+                        <th>推荐收益增量</th>
+                        <th>总收益增量</th>
+                        <th>至上级收益</th>
+                        <th>至上级推荐收益</th>
+                        <th>至上级总收益</th>
+                        <th>上级代理</th>
                     </tr>
                     <? $n = 0; ?>
                     <? foreach($bills as $k => $v){ ?>
                         <? $n ++; ?>
                         <tr class="<?=$n%2==0?"even":"odd";?>">
-                            <td><?=$v->date?></td>
-                            <td><?=cny($v->volume);?></td>
-                            <td><?=$v->count?></td>
+                            <td><a href="<?=base_url()?>user/details_admin/<?=$v->id?>"><?=$v->name?>(<?=$v->username?>/<?=$v->id?>)</a></td>
+                            <td><?=cny($v->self_turnover)?></td>
+                            <td><?=cny($v->sub_turnover)?></td>
+                            <td>￥<?=bcadd(money($v->self_turnover),money($v->sub_turnover),2)?></td>
+                            <td><?=cny($v->normal_return_profit_sub2self)?></td>
+                            <td><?=cny($v->extra_return_profit_sub2self)?></td>
+                            <td>￥<?=bcadd(money($v->normal_return_profit_sub2self), money($v->extra_return_profit_sub2self), 2 )?></td>
+                            <td><?=cny($v->normal_return_profit_self2parent);?></td>
+                            <td><?=cny($v->extra_return_profit_self2parent);?></td>
+                            <td>￥<?=bcadd(money($v->normal_return_profit_self2parent), money($v->extra_return_profit_self2parent), 2 )?></td>
+                            <? if($v->pid == '1') {?>
+                            <td>无上级</td>
+                            <?} else {?>
+                            <td><a href="<?=base_url()?>user/details_admin/<?=$v->pid?>"><?=$v->pname?>(<?=$v->pusername?>/<?=$v->pid?>)</a></td>
+                            <? } ?>
                         </tr>
                     <? } ?>
                 </table>
@@ -60,8 +80,13 @@
 
 
 
-            <div class="">
-                <h2></h2>
+            <div class="toolbar type-button">
+                <form action="<?=base_url()?>report/download_xls" method="post">
+                    <input name="report_type" value="<?=$report_type?>" type="hidden" />
+                    <input name="date_from" value="<?=$date_from?>" type="hidden" />
+                    <input name="date_to" value="<?=$date_to?>" type="hidden" />
+                    <input value="下载本报表" type="submit" />
+                </form>
 
 
             </div>

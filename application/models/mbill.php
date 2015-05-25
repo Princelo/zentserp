@@ -14,28 +14,75 @@ class MBill extends CI_Model
 
     public function objGetBillsOfDayWithFilter($date_from = '', $date_to = '', $current_user_id = '', $limit = '', $type = '')
     {
+        $interval = date_diff(new \DateTime($date_from), new \DateTime($date_to), true);
+        $days = $interval->days + 1;
         $query_sql = "";
         $query_sql .= "
             select
-                date(o.finish_time) as date,
-                sum(b.volume)    volume,
-                count(b.id)         count
-            from
-                bills b, users u, products p, orders o
-            where
-                b.user_id = u.id
-                and
-                b.order_id = o.id
-                and
-                o.product_id = p.id
-                and o.is_pay = true
-                and o.is_correct = true
-                and o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
-                and u.id = {$current_user_id}
-                and b.type = {$type}
-            group by date(o.finish_time)
-            order by date(o.finish_time)
-            {$limit}
+                u.id,
+                u.username,
+                u.name,
+                coalesce(
+                    sum(o_self.pay_amt_without_post_fee - o_self.return_profit),
+                        '$0')
+                    as self_turnover,
+                coalesce(sum(o_sub.pay_amt_without_post_fee - o_sub.return_profit - o_sub.extra_return_profit), '$0') as sub_turnover,
+                coalesce(sum(o_self.return_profit), '$0') normal_return_profit_self2parent,
+                coalesce(sum(o_self_0.extra_return_profit), '$0') extra_return_profit_self2parent,
+                coalesce(sum(o_sub.return_profit), '$0') normal_return_profit_sub2self,
+                coalesce(sum(o_sub.extra_return_profit), '$0') extra_return_profit_sub2self,
+                pu.id pid,
+                pu.name pname,
+                pu.username pusername,
+                '{$date_from}' date_from,
+                '{$date_to}' date_to,
+                coalesce(date(o_self.finish_time)::char(10), date(o_self_0.finish_time)::char(10),
+                    date(o_sub.finish_time)::char(10), d.date) as date
+            FROM (
+                select to_char(date_trunc('day', (date('{$date_from}') + offs)), 'YYYY-MM-DD')
+                AS date
+                FROM generate_series(0, {$days}, 1)
+                AS offs
+                ) d
+            join
+                orders o_self
+                on date(o_self.finish_time)::char(10) = d.date
+                and o_self.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and o_self.is_pay = true and o_self.is_correct = true
+                and o_self.user_id = {$current_user_id}
+                and o_self.level <> 0
+            left join users u
+                on u.id = o_self.user_id
+            left join
+                orders o_self_0
+                ON date(o_self_0.finish_time)::char(10) = d.date
+                and o_self_0.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and o_self_0.is_pay = true and o_self_0.is_correct = true
+                and o_self_0.user_id = {$current_user_id}
+                and o_self_0.level = 0
+            full join (
+                select sum(o.return_profit) as return_profit,
+                       sum(o.extra_return_profit) as extra_return_profit,
+                       sum(o.pay_amt_without_post_fee) pay_amt_without_post_fee,
+                       u.pid,
+                       --date_trunc('day', o.finish_time) finish_time
+                       o.finish_time
+                   from
+                       orders o, users u
+                       where o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                       and o.is_pay = true and o.is_correct = true
+                       and o.user_id = u.id
+                       and u.pid = {$current_user_id}
+                   group by u.pid, o.finish_time
+                ) as o_sub
+                on date(o_sub.finish_time)::char(10) = d.date
+            left join users pu
+                on u.pid = pu.id
+            where 1 = 1
+            GROUP BY u.id, pu.id, d.date,date(o_sub.finish_time)::char(10),
+                date(o_self.finish_time)::char(10),date(o_self_0.finish_time)::char(10)
+            order by d.date
+            {$limit};
         ";
         //http://www.plumislandmedia.net/mysql/sql-reporting-time-intervals/
         $data = array();
@@ -50,29 +97,99 @@ class MBill extends CI_Model
         return $data;
     }
 
-    public function objGetBillsOfDay($date_from = '', $date_to = '', $current_user_id = '', $limit = '', $type = '')
+    public function objGetBillsOfDayWithFilterCount($date_from = '', $date_to = '', $current_user_id = '')
+    {
+        $query_sql = "";
+        $query_sql .= "
+            select
+                count(distinct(date(o_self.finish_time)))
+            from
+                orders o_self
+            where
+                o_self.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and o_self.is_pay = true and o_self.is_correct = true
+            group by date(o_self.finish_time)
+        ";
+        $query = $this->objDB->query($query_sql);
+
+
+        if($query->num_rows() > 0) {
+            $count = $query->row()->count;
+        } else {
+            return 0;
+        }
+
+        $query->free_result();
+
+        return $count;
+    }
+
+    public function objGetBillsOfDay($date_from = '', $date_to = '', $current_user_id = '', $limit = '')
     {
         $interval = date_diff(new \DateTime($date_from), new \DateTime($date_to), true);
         $days = $interval->days + 1;
         $query_sql = "
-            SELECT d.date, count(b.id), sum(b.volume) volume FROM (
+            SELECT
+                d.date,
+                coalesce(sum(o_self.pay_amt_without_post_fee - o_self.return_profit), '$0') as self_turnover,
+                u.id,
+                u.username,
+                u.name,
+                coalesce(sum(o_sub.pay_amt_without_post_fee - o_sub.return_profit - o_sub.extra_return_profit), '$0') as sub_turnover,
+                coalesce(sum(o_self.return_profit), '$0') normal_return_profit_self2parent,
+                coalesce(sum(o_self_0.extra_return_profit), '$0') extra_return_profit_self2parent,
+                coalesce(sum(o_sub.return_profit), '$0') normal_return_profit_sub2self,
+                coalesce(sum(o_sub.extra_return_profit), '$0') extra_return_profit_sub2self,
+                pu.id pid,
+                pu.name pname,
+                pu.username pusername,
+                '{$date_from}' date_from,
+                '{$date_to}' date_to,
+                count(distinct(o_self.id)) as count
+            FROM (
                 select to_char(date_trunc('day', (date('{$date_from}') + offs)), 'YYYY-MM-DD')
                 AS date
                 FROM generate_series(0, {$days}, 1)
                 AS offs
                 ) d
-            LEFT OUTER JOIN bills b
-            ON (d.date=to_char(date_trunc('day', b.create_time), 'YYYY-MM-DD'))
-            and b.type = {$type}
-            and b.user_id = {$current_user_id}
-            --left join orders o
-            --    on o.id = b.order_id
-            --left join users u
-            --    on u.id = b.user_id
-            --    and u.id = {$current_user_id}
-            --where
-            --    b.type = {$type}
-            GROUP BY d.date
+            LEFT OUTER JOIN
+                orders o_self
+                ON (d.date=to_char(date_trunc('day', o_self.finish_time), 'YYYY-MM-DD'))
+                and o_self.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and o_self.is_pay = true and o_self.is_correct = true
+                and o_self.user_id = {$current_user_id}
+                and o_self.level <> 0
+                and date(o_self.finish_time)::char(10) = d.date
+            left join users u
+                on u.id = o_self.user_id
+            left join
+                orders o_self_0
+                ON (d.date=to_char(date_trunc('day', o_self_0.finish_time), 'YYYY-MM-DD'))
+                and o_self_0.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and o_self_0.is_pay = true and o_self_0.is_correct = true
+                and o_self_0.user_id = {$current_user_id}
+                and o_self_0.level = 0
+                and date(o_self_0.finish_time)::char(10) = d.date
+            full join (
+                select sum(o.return_profit) as return_profit,
+                       sum(o.extra_return_profit) as extra_return_profit,
+                       sum(o.pay_amt_without_post_fee) pay_amt_without_post_fee,
+                       u.pid,
+                       --date_trunc('day', o.finish_time) finish_time
+                       o.finish_time
+                   from
+                       orders o, users u
+                       where o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                       and o.is_pay = true and o.is_correct = true
+                       and o.user_id = u.id
+                       and u.pid = {$current_user_id}
+                   group by u.pid, o.finish_time
+                ) as o_sub
+                on date(o_sub.finish_time)::char(10) = d.date
+            left join users pu
+                on u.pid = pu.id
+            where 1 = 1
+            GROUP BY d.date, u.id, pu.id
             order by d.date
             {$limit};
         ";
@@ -142,27 +259,78 @@ class MBill extends CI_Model
 
     public function objGetBillsOfMonthWithFilter($date_from = '', $date_to = '', $current_user_id = '', $limit = '', $type = '')
     {
+        $interval = date_diff(new \DateTime($date_from), new \DateTime($date_to), true);
+        $months = $interval->y*12 + $interval->m + 1;
         $query_sql = "
-           select
-               extract(year from o.finish_time) || ' ' ||
-               to_char(o.finish_time,'Mon') as date,
-               sum(b.volume) as volume,
-               count(b.id) as count
-           from
-               bills b, users u, products p, orders o
-           where
-               b.user_id = u.id
-               and
-               b.order_id = o.id
-               and
-               o.product_id = p.id
-               and o.is_pay = true
-               and o.is_correct = true
-               and o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
-               and u.id = {$current_user_id}
-               and b.type = {$type}
-               GROUP BY 1
-               {$limit}
+            select
+                u.id,
+                u.username,
+                u.name,
+                coalesce(
+                    sum(o_self.pay_amt_without_post_fee - o_self.return_profit),
+                        '$0')
+                    as self_turnover,
+                coalesce(sum(o_sub.pay_amt_without_post_fee - o_sub.return_profit - o_sub.extra_return_profit), '$0') as sub_turnover,
+                coalesce(sum(o_self.return_profit), '$0') normal_return_profit_self2parent,
+                coalesce(sum(o_self_0.extra_return_profit), '$0') extra_return_profit_self2parent,
+                coalesce(sum(o_sub.return_profit), '$0') normal_return_profit_sub2self,
+                coalesce(sum(o_sub.extra_return_profit), '$0') extra_return_profit_sub2self,
+                pu.id pid,
+                pu.name pname,
+                pu.username pusername,
+                '{$date_from}' date_from,
+                '{$date_to}' date_to,
+                coalesce(date(o_self.finish_time)::char(7), date(o_self_0.finish_time)::char(7),
+                    date(o_sub.finish_time)::char(7), date(d.date)::char(7)) as date
+            FROM (
+                select DATE '{$date_from}' + (interval '1' month * generate_series(0,month_count::int)) date
+                    from (
+                       select extract(year from diff) * 12 + extract(month from diff) as month_count
+                       from (
+                         select age(TIMESTAMP '{$date_to} 00:00:00', TIMESTAMP '{$date_from} 00:00:00') as diff
+                       ) td
+                    ) t
+                ) d
+            join
+                orders o_self
+                on date(o_self.finish_time)::char(7) = d.date::char(7)
+                and o_self.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and o_self.is_pay = true and o_self.is_correct = true
+                and o_self.user_id = {$current_user_id}
+                and o_self.level <> 0
+            left join users u
+                on u.id = o_self.user_id
+            left join
+                orders o_self_0
+                ON date(o_self_0.finish_time)::char(7) = d.date::char(7)
+                and o_self_0.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and o_self_0.is_pay = true and o_self_0.is_correct = true
+                and o_self_0.user_id = {$current_user_id}
+                and o_self_0.level = 0
+            full join (
+                select sum(o.return_profit) as return_profit,
+                       sum(o.extra_return_profit) as extra_return_profit,
+                       sum(o.pay_amt_without_post_fee) pay_amt_without_post_fee,
+                       u.pid,
+                       --date_trunc('day', o.finish_time) finish_time
+                       o.finish_time
+                   from
+                       orders o, users u
+                       where o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                       and o.is_pay = true and o.is_correct = true
+                       and o.user_id = u.id
+                       and u.pid = {$current_user_id}
+                   group by u.pid, o.finish_time
+                ) as o_sub
+                on date(o_sub.finish_time)::char(7) = d.date::char(7)
+            left join users pu
+                on u.pid = pu.id
+            where 1 = 1
+            GROUP BY u.id, pu.id, d.date::char(7),date(o_sub.finish_time)::char(7),
+                date(o_self.finish_time)::char(7),date(o_self_0.finish_time)::char(7),
+                d.date
+            order by d.date::char(7)
+            {$limit};
         ";
         //http://stackoverflow.com/questions/17492167/group-query-results-by-month-and-year-in-postgresql
         $data = array();
@@ -178,12 +346,57 @@ class MBill extends CI_Model
     }
 
 
+    public function objGetBillsOfMonthWithFilterCount($date_from = '', $date_to = '', $current_user_id = '')
+    {
+        $query_sql = "
+            select
+                count(1)
+            from
+                orders o_self
+            where 1 = 1
+                and o_self.user_id = {$current_user_id}
+                and o_self.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and o_self.is_pay = true and o_self.is_correct = true
+            group by date_trunc('month', o_self.finish_time)
+        ";
+        //http://stackoverflow.com/questions/17492167/group-query-results-by-month-and-year-in-postgresql
+        $query = $this->objDB->query($query_sql);
+
+
+        if($query->num_rows() > 0) {
+            $count = $query->row()->count;
+        } else {
+            return 0;
+        }
+
+        $query->free_result();
+
+        return $count;
+    }
+
+
     public function objGetBillsOfMonth($date_from = '', $date_to = '', $current_user_id = '', $limit = '', $type = '')
     {
         $interval = date_diff(new \DateTime($date_from), new \DateTime($date_to), true);
         $months = $interval->y*12 + $interval->m + 1;
         $query_sql = "
-            SELECT to_char(date_trunc('month', d.date), 'YYYY-MM') date, count(b.id), sum(b.volume) volume FROM (
+            SELECT
+                date(d.date)::char(7) as date,
+                coalesce(sum(o_self.pay_amt_without_post_fee - o_self.return_profit), '$0') as self_turnover,
+                u.id,
+                u.username,
+                u.name,
+                coalesce(sum(o_sub.pay_amt_without_post_fee - o_sub.return_profit - o_sub.extra_return_profit), '$0') as sub_turnover,
+                coalesce(sum(o_self.return_profit), '$0') normal_return_profit_self2parent,
+                coalesce(sum(o_self_0.extra_return_profit), '$0') extra_return_profit_self2parent,
+                coalesce(sum(o_sub.return_profit), '$0') normal_return_profit_sub2self,
+                coalesce(sum(o_sub.extra_return_profit), '$0') extra_return_profit_sub2self,
+                pu.id pid,
+                pu.name pname,
+                pu.username pusername,
+                '{$date_from}' date_from,
+                '{$date_to}' date_to
+            FROM (
                 select DATE '{$date_from}' + (interval '1' month * generate_series(0,month_count::int)) date
                     from (
                        select extract(year from diff) * 12 + extract(month from diff) as month_count
@@ -192,15 +405,42 @@ class MBill extends CI_Model
                        ) td
                     ) t
                 ) d
-            left join bills b
-            ON (to_char(date_trunc('month', d.date), 'YYYY-MM')=to_char(date_trunc('month', b.create_time), 'YYYY-MM'))
-                and b.type = {$type}
-                and b.user_id = {$current_user_id}
-            --left join orders o
-            --on o.id = b.order_id
-            --left join users u
-            --on u.id = o.user_id
-            GROUP BY d.date
+            LEFT OUTER JOIN
+                orders o_self
+                on o_self.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and o_self.is_pay = true and o_self.is_correct = true
+                and o_self.user_id = {$current_user_id}
+                and o_self.level <> 0
+                and date(o_self.finish_time)::char(7) = date(d.date)::char(7)
+            left join users u
+                on u.id = o_self.user_id
+            left join
+                orders o_self_0
+                on o_self_0.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and o_self_0.is_pay = true and o_self_0.is_correct = true
+                and o_self_0.user_id = {$current_user_id}
+                and o_self_0.level = 0
+                and date(o_self_0.finish_time)::char(7) = date(d.date)::char(7)
+            full join (
+                select sum(o.return_profit) as return_profit,
+                       sum(o.extra_return_profit) as extra_return_profit,
+                       sum(o.pay_amt_without_post_fee) pay_amt_without_post_fee,
+                       u.pid,
+                       --date_trunc('day', o.finish_time) finish_time
+                       o.finish_time
+                   from
+                       orders o, users u
+                       where o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                       and o.is_pay = true and o.is_correct = true
+                       and o.user_id = u.id
+                       and u.pid = {$current_user_id}
+                   group by u.pid, o.finish_time
+                ) as o_sub
+                on date(o_sub.finish_time)::char(7) = date(d.date)::char(7)
+            left join users pu
+                on u.pid = pu.id
+            where 1 = 1
+            GROUP BY d.date, u.id, pu.id
             order by d.date
             {$limit};
         ";
@@ -273,28 +513,77 @@ class MBill extends CI_Model
         return $data;
     }
 
-    public function objGetBillsOfYearWithFilter($date_from = '', $date_to = '', $current_user_id = '', $type = '')
+    public function objGetBillsOfYearWithFilter($date_from = '', $date_to = '', $current_user_id = '')
     {
         $query_sql = "
-           select
-               --to_char(o.finish_time,'Mon') || ' ' ||
-               extract(year from o.finish_time) as date,
-               sum(b.volume) as volume,
-               count(b.id) as count
-           from
-               bills b, users u, products p, orders o
-           where
-               b.user_id = u.id
-               and
-               b.order_id = o.id
-               and
-               o.product_id = p.id
-               and o.is_pay = true
-               and o.is_correct = true
-               and o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
-               and u.id = {$current_user_id}
-               and b.type = {$type}
-               GROUP BY 1
+            select
+                u.id,
+                u.username,
+                u.name,
+                coalesce(
+                    sum(o_self.pay_amt_without_post_fee - o_self.return_profit),
+                        '$0')
+                    as self_turnover,
+                coalesce(sum(o_sub.pay_amt_without_post_fee - o_sub.return_profit - o_sub.extra_return_profit), '$0') as sub_turnover,
+                coalesce(sum(o_self.return_profit), '$0') normal_return_profit_self2parent,
+                coalesce(sum(o_self_0.extra_return_profit), '$0') extra_return_profit_self2parent,
+                coalesce(sum(o_sub.return_profit), '$0') normal_return_profit_sub2self,
+                coalesce(sum(o_sub.extra_return_profit), '$0') extra_return_profit_sub2self,
+                pu.id pid,
+                pu.name pname,
+                pu.username pusername,
+                '{$date_from}' date_from,
+                '{$date_to}' date_to,
+                coalesce(date(o_self.finish_time)::char(4), date(o_self_0.finish_time)::char(4),
+                    date(o_sub.finish_time)::char(4), date(d.date)::char(4)) as date
+            FROM (
+                select DATE '{$date_from}' + (interval '1' month * generate_series(0,year_count::int)) date
+                    from (
+                       select extract(year from diff) as year_count
+                       from (
+                         select age(TIMESTAMP '{$date_to} 00:00:00', TIMESTAMP '{$date_from} 00:00:00') as diff
+                       ) td
+                    ) t
+                ) d
+            join
+                orders o_self
+                on date(o_self.finish_time)::char(4) = d.date::char(4)
+                and o_self.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and o_self.is_pay = true and o_self.is_correct = true
+                and o_self.user_id = {$current_user_id}
+                and o_self.level <> 0
+            left join users u
+                on u.id = o_self.user_id
+            left join
+                orders o_self_0
+                ON date(o_self_0.finish_time)::char(4) = d.date::char(4)
+                and o_self_0.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and o_self_0.is_pay = true and o_self_0.is_correct = true
+                and o_self_0.user_id = {$current_user_id}
+                and o_self_0.level = 0
+            full join (
+                select sum(o.return_profit) as return_profit,
+                       sum(o.extra_return_profit) as extra_return_profit,
+                       sum(o.pay_amt_without_post_fee) pay_amt_without_post_fee,
+                       u.pid,
+                       --date_trunc('day', o.finish_time) finish_time
+                       o.finish_time
+                   from
+                       orders o, users u
+                       where o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                       and o.is_pay = true and o.is_correct = true
+                       and o.user_id = u.id
+                       and u.pid = {$current_user_id}
+                   group by u.pid, o.finish_time
+                ) as o_sub
+                on date(o_sub.finish_time)::char(4) = d.date::char(4)
+            left join users pu
+                on u.pid = pu.id
+            where 1 = 1
+            GROUP BY u.id, pu.id, d.date::char(4),date(o_sub.finish_time)::char(4),
+                date(o_self.finish_time)::char(4),date(o_self_0.finish_time)::char(4),
+                d.date
+            order by d.date::char(4)
         ";
         //http://stackoverflow.com/questions/17492167/group-query-results-by-month-and-year-in-postgresql
         $data = array();
@@ -309,12 +598,29 @@ class MBill extends CI_Model
         return $data;
     }
 
-    public function objGetBillsOfYear($date_from = '', $date_to = '', $current_user_id = '', $type = '')
+    public function objGetBillsOfYear($date_from = '', $date_to = '', $current_user_id = '')
     {
         $interval = date_diff(new \DateTime($date_from), new \DateTime($date_to), true);
         $years = $interval->y + 1;
         $query_sql = "
-            SELECT to_char(date_trunc('year', d.date), 'YYYY') date, count(b.id), sum(b.volume) volume FROM (
+            SELECT
+                date(d.date)::char(4) as date,
+                coalesce(sum(o_self.pay_amt_without_post_fee - o_self.return_profit), '$0') as self_turnover,
+                u.id,
+                u.username,
+                u.name,
+                coalesce(sum(o_sub.pay_amt_without_post_fee - o_sub.return_profit - o_sub.extra_return_profit), '$0') as sub_turnover,
+                coalesce(sum(o_self.return_profit), '$0') normal_return_profit_self2parent,
+                coalesce(sum(o_self_0.extra_return_profit), '$0') extra_return_profit_self2parent,
+                coalesce(sum(o_sub.return_profit), '$0') normal_return_profit_sub2self,
+                coalesce(sum(o_sub.extra_return_profit), '$0') extra_return_profit_sub2self,
+                pu.id pid,
+                pu.name pname,
+                pu.username pusername,
+                '{$date_from}' date_from,
+                '{$date_to}' date_to,
+                count(distinct(o_self.id)) as count
+            FROM (
                 select DATE '{$date_from}' + (interval '1' month * generate_series(0,year_count::int)) date
                     from (
                        select extract(year from diff) as year_count
@@ -323,18 +629,43 @@ class MBill extends CI_Model
                        ) td
                     ) t
                 ) d
-            LEFT OUTER JOIN bills b
-            ON (to_char(date_trunc('year', d.date), 'YYYY')=to_char(date_trunc('year', b.create_time), 'YYYY'))
-            and b.type={$type}
-            and b.user_id = {$current_user_id}
-            --left join orders o
-            --on o.id = b.order_id
-            --left join users u
-            --on u.id = b.user_id
-            --where u.id = {$current_user_id}
-                --and b.type = {$type}
-            GROUP BY d.date
-            order by d.date;
+            LEFT OUTER JOIN
+                orders o_self
+                on o_self.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and o_self.is_pay = true and o_self.is_correct = true
+                and o_self.user_id = {$current_user_id}
+                and o_self.level <> 0
+                and date(o_self.finish_time)::char(4) = date(d.date)::char(4)
+            left join users u
+                on u.id = o_self.user_id
+            left join
+                orders o_self_0
+                on o_self_0.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and o_self_0.is_pay = true and o_self_0.is_correct = true
+                and o_self_0.user_id = {$current_user_id}
+                and o_self_0.level = 0
+                and date(o_self_0.finish_time)::char(4) = date(d.date)::char(4)
+            full join (
+                select sum(o.return_profit) as return_profit,
+                       sum(o.extra_return_profit) as extra_return_profit,
+                       sum(o.pay_amt_without_post_fee) pay_amt_without_post_fee,
+                       u.pid,
+                       --date_trunc('day', o.finish_time) finish_time
+                       o.finish_time
+                   from
+                       orders o, users u
+                       where o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                       and o.is_pay = true and o.is_correct = true
+                       and o.user_id = u.id
+                       and u.pid = {$current_user_id}
+                   group by u.pid, o.finish_time
+                ) as o_sub
+                on date(o_sub.finish_time)::char(4) = date(d.date)::char(4)
+            left join users pu
+                on u.pid = pu.id
+            where 1 = 1
+            GROUP BY d.date, u.id, pu.id
+            order by d.date
         ";
         //http://stackoverflow.com/questions/17492167/group-query-results-by-month-and-year-in-postgresql
         $data = array();
@@ -542,6 +873,102 @@ class MBill extends CI_Model
         }
         $query->free_result();
         return $data;
+    }
+
+    function objGetUserBills($date_from, $date_to, $limit = '')
+    {
+        $query_sql = "
+            select
+                u.id,
+                u.username,
+                u.name,
+                coalesce(
+                    sum(o_self.pay_amt_without_post_fee - o_self.return_profit),
+                        '$0')
+                    as self_turnover,
+                coalesce(sum(o_sub.pay_amt_without_post_fee - o_sub.return_profit - o_sub.extra_return_profit), '$0') as sub_turnover,
+                coalesce(sum(o_self.return_profit), '$0') normal_return_profit_self2parent,
+                coalesce(sum(o_self_0.extra_return_profit), '$0') extra_return_profit_self2parent,
+                coalesce(sum(o_sub.return_profit), '$0') normal_return_profit_sub2self,
+                coalesce(sum(o_sub.extra_return_profit), '$0') extra_return_profit_sub2self,
+                pu.id pid,
+                pu.name pname,
+                pu.username pusername,
+                '{$date_from}' date_from,
+                '{$date_to}' date_to
+            from
+                users u
+                left join
+                orders o_self
+                on u.id = o_self.user_id
+                and o_self.level <> 0
+                and o_self.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and o_self.is_pay = true and o_self.is_correct = true
+                left join orders o_self_0
+                on u.id = o_self_0.user_id
+                and o_self_0.level = 0
+                and o_self_0.is_pay = true and o_self_0.is_correct = true
+                and o_self_0.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                full join (
+                    select sum(o.return_profit) as return_profit,
+                           sum(o.extra_return_profit) as extra_return_profit,
+                           sum(o.pay_amt_without_post_fee) pay_amt_without_post_fee,
+                           u.pid,
+                           date(o.finish_time) finish_time
+                       from
+                           users u
+                           left join orders o
+                           on o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                           and o.is_pay = true and o.is_correct = true
+                           and o.user_id = u.id
+                       group by u.pid, date(o.finish_time)
+                ) as o_sub
+                on o_sub.pid = u.id
+                --and date(o_self.finish_time) = date(o_sub.finish_time)
+                join users pu
+                on u.pid = pu.id
+            where 1 = 1
+            and u.id <> 1
+            group by u.id, u.username, u.name, u.pid, pu.id, pu.name, pu.username
+            order by u.id
+            {$limit}
+            ;
+        ";
+        $query = $this->objDB->query($query_sql);
+        if($query->num_rows() > 0){
+            foreach ($query->result() as $key => $val) {
+                $data[] = $val;
+            }
+        }
+        $query->free_result();
+        return $data;
+    }
+
+    function intGetUserBillsCount($date_from, $date_to)
+    {
+        $query_sql = "
+            select
+                count(distinct(o.user_id))
+            from
+                orders o
+            where 1 = 1
+            and o.user_id <> 1
+            and o.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+            and o.is_pay = true and o.is_correct = true
+        ";
+        $query = $this->objDB->query($query_sql);
+
+
+        if($query->num_rows() > 0) {
+            $count = $query->row()->count;
+        } else {
+            return 0;
+        }
+
+        $query->free_result();
+
+        return $count;
+
     }
 
 }
