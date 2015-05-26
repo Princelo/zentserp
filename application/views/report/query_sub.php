@@ -46,12 +46,6 @@
                                 </td>
                             </tr>
                             <tr>
-                                <th>过滤无收支日期</th>
-                                <td>
-                                    <input type="checkbox" name="is_filter" />
-                                </td>
-                            </tr>
-                            <tr>
                                 <th>起始日期</th>
                                 <td><input name="date_from" class="datepicker" /></td>
                             </tr>
