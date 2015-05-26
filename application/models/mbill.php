@@ -374,7 +374,7 @@ class MBill extends CI_Model
                 SELECT Sum(o.return_profit) AS return_profit,
                          Sum(sa.amount)       volume,
                          u.pid,
-                         Date(o.finish_time)  finish_time
+                         Date_trunc('month', o.finish_time)  finish_time
                   FROM   users u
                          LEFT JOIN orders o
                                 ON o.finish_time BETWEEN '{$date_from} 00:00:00'
@@ -389,7 +389,7 @@ class MBill extends CI_Model
                               AND o.level <> 0
                   WHERE  u.pid = {$current_user_id}
                   GROUP  BY u.pid,
-                            Date(o.finish_time)
+                            Date_trunc('month', o.finish_time)
                   ORDER  BY u.pid) as i
                   group by pid,finish_time
 
@@ -400,7 +400,7 @@ class MBill extends CI_Model
                     (select
                            sum(o.extra_return_profit) as extra_return_profit,
                            u.pid,
-                           date(o.finish_time) finish_time
+                           date_trunc('month', o.finish_time) finish_time
                        from
                            users u
                            left join orders o
@@ -409,7 +409,7 @@ class MBill extends CI_Model
                            and o.user_id = u.id
                            where u.pid = {$current_user_id}
                            and o.level = 0
-                       group by u.pid, date(o.finish_time)
+                       group by u.pid, date_trunc('month', o.finish_time)
                        order by u.pid ) as i
                        group by pid,finish_time
                 ) as o_sub_0
@@ -523,7 +523,7 @@ class MBill extends CI_Model
                 SELECT Sum(o.return_profit) AS return_profit,
                          Sum(sa.amount)       volume,
                          u.pid,
-                         Date(o.finish_time)  finish_time
+                         Date_trunc('month', o.finish_time)  finish_time
                   FROM   users u
                          LEFT JOIN orders o
                                 ON o.finish_time BETWEEN '{$date_from} 00:00:00'
@@ -538,7 +538,7 @@ class MBill extends CI_Model
                               AND o.level <> 0
                   WHERE  u.pid = {$current_user_id}
                   GROUP  BY u.pid,
-                            Date(o.finish_time)
+                            Date_trunc('month', o.finish_time)
                   ORDER  BY u.pid) as i
                   group by pid,finish_time
 
@@ -549,7 +549,7 @@ class MBill extends CI_Model
                     (select
                            sum(o.extra_return_profit) as extra_return_profit,
                            u.pid,
-                           date(o.finish_time) finish_time
+                           date_trunc('month', o.finish_time) finish_time
                        from
                            users u
                            left join orders o
@@ -558,7 +558,7 @@ class MBill extends CI_Model
                            and o.user_id = u.id
                            where u.pid = {$current_user_id}
                            and o.level = 0
-                       group by u.pid, date(o.finish_time)
+                       group by u.pid, date_trunc('month', o.finish_time)
                        order by u.pid ) as i
                        group by pid,finish_time
                 ) as o_sub_0
