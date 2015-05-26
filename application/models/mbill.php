@@ -15,7 +15,7 @@ class MBill extends CI_Model
     public function objGetBillsOfDayWithFilter($date_from = '', $date_to = '', $current_user_id = '', $limit = '', $type = '')
     {
         $interval = date_diff(new \DateTime($date_from), new \DateTime($date_to), true);
-        $days = $interval->days + 1;
+        $days = $interval->days;
         $query_sql = "";
         $query_sql .= "
             select
@@ -51,13 +51,14 @@ class MBill extends CI_Model
                 and o_self.is_pay = true and o_self.is_correct = true
                 and date(o_self.finish_time)::char(10) = d.date
                 and o_self.user_id = {$current_user_id}
-            join amounts s_amount
+            left join amounts s_amount
                 on s_amount.level = o_self.level and o_self.id = s_amount.order_id
             left join orders o_self_0
                 on o_self_0.user_id = {$current_user_id}
                 and o_self_0.level = 0
                 and o_self_0.is_pay = true and o_self_0.is_correct = true
                 and o_self_0.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and date(o_self_0.finish_time)::char(10) = d.date
             full join (
                 select sum(i.return_profit) return_profit, sum(i.volume) volume, i.pid, finish_time from(
                 SELECT Sum(o.return_profit) AS return_profit,
@@ -158,7 +159,7 @@ class MBill extends CI_Model
     public function objGetBillsOfDay($date_from = '', $date_to = '', $current_user_id = '', $limit = '')
     {
         $interval = date_diff(new \DateTime($date_from), new \DateTime($date_to), true);
-        $days = $interval->days + 1;
+        $days = $interval->days;
         $query_sql = "
             select
                 u.id,
@@ -193,13 +194,14 @@ class MBill extends CI_Model
                 and o_self.is_pay = true and o_self.is_correct = true
                 and date(o_self.finish_time)::char(10) = d.date
                 and o_self.user_id = {$current_user_id}
-            join amounts s_amount
+            left join amounts s_amount
                 on s_amount.level = o_self.level and o_self.id = s_amount.order_id
             left join orders o_self_0
                 on o_self_0.user_id = {$current_user_id}
                 and o_self_0.level = 0
                 and o_self_0.is_pay = true and o_self_0.is_correct = true
                 and o_self_0.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and date(o_self_0.finish_time)::char(10) = d.date
             full join (
                 select sum(i.return_profit) return_profit, sum(i.volume) volume, i.pid, finish_time from(
                 SELECT Sum(o.return_profit) AS return_profit,
@@ -362,13 +364,14 @@ class MBill extends CI_Model
                 and o_self.is_pay = true and o_self.is_correct = true
                 and date(o_self.finish_time)::char(7) = d.date::char(7)
                 and o_self.user_id = {$current_user_id}
-            join amounts s_amount
+            left join amounts s_amount
                 on s_amount.level = o_self.level and o_self.id = s_amount.order_id
             left join orders o_self_0
                 on o_self_0.user_id = {$current_user_id}
                 and o_self_0.level = 0
                 and o_self_0.is_pay = true and o_self_0.is_correct = true
                 and o_self_0.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and date(o_self_0.finish_time)::char(7) = d.date::char(7)
             full join (
                 select sum(i.return_profit) return_profit, sum(i.volume) volume, i.pid, finish_time from(
                 SELECT Sum(o.return_profit) AS return_profit,
@@ -511,13 +514,14 @@ class MBill extends CI_Model
                 and o_self.is_pay = true and o_self.is_correct = true
                 and date(o_self.finish_time)::char(7) = d.date::char(7)
                 and o_self.user_id = {$current_user_id}
-            join amounts s_amount
+            left join amounts s_amount
                 on s_amount.level = o_self.level and o_self.id = s_amount.order_id
             left join orders o_self_0
                 on o_self_0.user_id = {$current_user_id}
                 and o_self_0.level = 0
                 and o_self_0.is_pay = true and o_self_0.is_correct = true
                 and o_self_0.finish_time between '{$date_from} 00:00:00' and '{$date_to} 23:59:59'
+                and date(o_self_0.finish_time)::char(7) = d.date::char(7)
             full join (
                 select sum(i.return_profit) return_profit, sum(i.volume) volume, i.pid, finish_time from(
                 SELECT Sum(o.return_profit) AS return_profit,
