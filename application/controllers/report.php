@@ -759,7 +759,7 @@ class Report extends MY_Controller {
                     ->setCellValue('K2', '涉经销金额')
                     ->setCellValue('L2', '涉市代金额')
                     ->setCellValue('M2', '涉总代金额')
-                    ->setCellValue('N2', '涉试用品金额');
+                    ->setCellValue('N2', '涉试用品或活动产品金额');
                 foreach ($bills as $k => $v) {
                     $i = $k + 3;
                     $objPHPExcel->setActiveSheetIndex(0)
