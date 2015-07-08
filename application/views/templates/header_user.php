@@ -163,7 +163,11 @@
                     <li><a href="<?=base_url()?>product/listpage" class="" style="background: none;"><span>产品列表 </span></a>
                     </li>
                     <? if($this->session->userdata('level') != 0) {?>
-                    <li><a href="<?=base_url()?>product/listpage?is_trial=true" class="" style="background: none;"><span>试用品列表 </span></a>
+                    <li>
+                        <a href="<?=base_url()?>product/listpage?is_trial=true" class="" style="background: none;"><span>试用品列表 </span></a>
+                    </li>
+                    <li>
+                        <a href="<?=base_url()?>product/listpage?is_trial=true&trial_type=<?=get_trial_type('event products');?>" class="" style="background: none;"><span>活动产品列表 </span></a>
                     </li>
                     <? } ?>
                     <!--<li><a href="<?=base_url()?>product/listpage_admin_invalid" class="" style="background: none;"><span>产品列表(下架) </span></a>

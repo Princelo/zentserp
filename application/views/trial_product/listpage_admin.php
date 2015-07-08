@@ -1,3 +1,17 @@
+<?php $trial_type = 0;if(isset($_GET['trial_type']) && intval($_GET['trial_type']) > 0 ) { $trial_type = intval($_GET['trial_type']); }?>
+<?php
+switch(intval($trial_type))
+{
+    case 0:
+        $type_name = '试用品';
+        break;
+    case 1:
+        $type_name = '活动产品';
+        break;
+    default:
+        break;
+}
+?>
 <div id="container">
 
 
@@ -15,8 +29,12 @@
                     <a href='<?=base_url()?>product/listpage_admin?is_trial=true' ><div>试用品(上架) </div></a>
                 </li>
                 <li><a href='<?=base_url();?>product/listpage_admin_invalid?is_trial=true' ><div>试用品(下架) </div></a></li>
+                <li><a href='<?=base_url()?>product/listpage_admin?is_trial=true&trial_type=<?=get_trial_type('event products')?>' ><div>活动产品(上架) </div></a>
+                </li>
+                <li><a href='<?=base_url();?>product/listpage_admin_invalid?is_trial=true&trial_type=<?=get_trial_type('event products')?>' ><div>活动产品(下架) </div></a></li>
                 <li><a href='<?=base_url();?>product/add' ><div>新增产品 </div></a></li>
                 <li><a href='<?=base_url();?>product/trial_add' ><div>新增试用品 </div></a></li>
+                <li><a href='<?=base_url();?>product/trial_add?trial_type=<?=get_trial_type('event products')?>' ><div>新增活动产品 </div></a></li>
             </ul>
         </div>
     </div>
@@ -59,6 +77,8 @@
                             <th style="display: none;">
                                 价格区间(高) <input type="text" name="price_high" value="<?=set_value('price_high')?>" />
                             </th>
+                            <input type="hidden" name="trial_type" value="<?=$trial_type?>" />
+                            <input type="hidden" name="is_trial" value="true" />
                             <th>
                                 <input type="submit" />
                             </th>

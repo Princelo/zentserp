@@ -176,8 +176,15 @@
                     <li>
                         <a href="<?=base_url()?>product/listpage_admin_invalid?is_trial=true" class="" style="background: none;"><span>试用品列表(下架) </span></a>
                     </li>
+                    <li>
+                        <a href="<?=base_url()?>product/listpage_admin?is_trial=true&trial_type=<?=get_trial_type('event products')?>'" class="" style="background: none;"><span>活动产品列表(上架) </span></a>
+                    </li>
+                    <li>
+                        <a href="<?=base_url()?>product/listpage_admin_invalid?is_trial=true&trial_type=<?=get_trial_type('event products')?>'" class="" style="background: none;"><span>活动产品列表(下架) </span></a>
+                    </li>
                     <li><a href="<?=base_url()?>product/add" class="" style="background: none;"><span>新增产品 </span></a></li>
                     <li><a href="<?=base_url()?>product/trial_add" class="" style="background: none;"><span>新增试用品 </span></a></li>
+                    <li><a href="<?=base_url()?>product/trial_add?trial_type=<?=get_trial_type('event products');?>" class="" style="background: none;"><span>新增活动产品 </span></a></li>
                 </ul>
             </li>
             <li class="li-menu">

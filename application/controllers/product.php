@@ -21,8 +21,14 @@ class Product extends MY_Controller {
         if($this->session->userdata('role') != 'admin')
             exit('You are not the admin.');
         $is_trial = false;
-        if(@$_GET['is_trial'] == 'true')
+        $trial_type = 0;
+        if(@$_GET['is_trial'] == 'true') {
             $is_trial = true;
+            if(isset($_GET['trial_type']) && intval($_GET['trial_type'] > 0))
+                $trial_type = intval($_GET['trial_type']);
+            if(isset($_POST['trial_type']) && intval($_POST['trial_type'] > 0))
+                $trial_type = intval($_POST['trial_type']);
+        }
         $get_config = array(
             array(
                 'field' =>  'search',
@@ -58,11 +64,13 @@ class Product extends MY_Controller {
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $where = '';
             $where .= ' and p.is_valid = true ';
-            if($is_trial)
+            if($is_trial) {
                 $where .= ' and p.is_trial = true ';
-            else
+                $where .= " and trial_type = {$trial_type} ";
+            } else {
                 $where .= ' and p.is_trial = false';
-            $where .= $this->__get_search_str($search, $price_low, $price_high, $category, $is_trial);
+            }
+            $where .= $this->__get_search_str($search, $price_low, $price_high, $category, $is_trial, $trial_type);
             $config['total_rows'] = $this->MProduct->intGetProductsCount($where);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
@@ -84,10 +92,12 @@ class Product extends MY_Controller {
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $where = '';
             $where .= ' and p.is_valid = true ';
-            if($is_trial)
+            if($is_trial) {
                 $where .= ' and p.is_trial = true ';
-            else
-                $where .= ' and p.is_trial = false ';
+                $where .= " and trial_type = {$trial_type} ";
+            } else {
+                $where .= ' and p.is_trial = false';
+            }
             $config['total_rows'] = $this->MProduct->intGetProductsCount($where);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
@@ -110,8 +120,14 @@ class Product extends MY_Controller {
         if($this->session->userdata('role') != 'admin')
             exit('You are not the admin.');
         $is_trial = false;
-        if(@$_GET['is_trial'] == 'true')
+        $trial_type = 0;
+        if(@$_GET['is_trial'] == 'true') {
             $is_trial = true;
+            if(isset($_GET['trial_type']) && intval($_GET['trial_type'] > 0))
+                $trial_type = intval($_GET['trial_type']);
+            if(isset($_POST['trial_type']) && intval($_POST['trial_type'] > 0))
+                $trial_type = intval($_POST['trial_type']);
+        }
         $get_config = array(
             array(
                 'field' =>  'search',
@@ -147,11 +163,13 @@ class Product extends MY_Controller {
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $where = '';
             $where .= ' and p.is_valid = false ';
-            if($is_trial)
-                $where .= " and p.is_trial = true";
-            else
-                $where .= " and p.is_trial = false";
-            $where .= $this->__get_search_str($search, $price_low, $price_high, $category, $is_trial);
+            if($is_trial) {
+                $where .= ' and p.is_trial = true ';
+                $where .= " and trial_type = {$trial_type} ";
+            } else {
+                $where .= ' and p.is_trial = false';
+            }
+            $where .= $this->__get_search_str($search, $price_low, $price_high, $category, $is_trial, $trial_type);
             $config['total_rows'] = $this->MProduct->intGetProductsCount($where);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
@@ -168,21 +186,23 @@ class Product extends MY_Controller {
                 $this->load->view('product/listpage_admin', $data);
         }else{
             $data = array();
+            $where = ' and p.is_valid = false ';
+            if($is_trial) {
+                $where .= ' and p.is_trial = true ';
+                $where .= " and trial_type = {$trial_type} ";
+            } else {
+                $where .= ' and p.is_trial = false';
+            }
+            $order = '';
             $config['base_url'] = base_url()."product/listpage_admin_invalid/";
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
-            $config['total_rows'] = $this->MProduct->intGetProductsCount(' and p.is_valid = false ');
+            $config['total_rows'] = $this->MProduct->intGetProductsCount($where);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
             $data['page'] = $this->pagination->create_links();
             $limit = '';
             $limit .= " limit {$config['per_page']} offset {$offset} ";
-            $where = ' and p.is_valid = false ';
-            if($is_trial)
-                $where .= ' and p.is_trial = true ';
-            else
-                $where .= ' and p.is_trial = false ';
-            $order = '';
             $data['products'] = $this->MProduct->objGetProductList($where, $order, $limit);
             $data['level'] = $this->MUser->intGetCurrentUserLevel($this->session->userdata('current_user_id'));
             $this->load->view('templates/header', $data);
@@ -198,8 +218,14 @@ class Product extends MY_Controller {
         if($this->session->userdata('role') != 'user')
             exit('You are the admin.');
         $is_trial = false;
-        if(@$_GET['is_trial'] == 'true')
+        $trial_type = 0;
+        if(@$_GET['is_trial'] == 'true') {
             $is_trial = true;
+            if(isset($_GET['trial_type']) && intval($_GET['trial_type'] > 0))
+                $trial_type = intval($_GET['trial_type']);
+            if(isset($_POST['trial_type']) && intval($_POST['trial_type'] > 0))
+                $trial_type = intval($_POST['trial_type']);
+        }
         /*$data = array();
         $data['products'] = $this->MProduct->objGetProductList();
         $this->load->view('templates/header', $data);
@@ -239,11 +265,13 @@ class Product extends MY_Controller {
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
             $where = '';
             $where .= ' and p.is_valid = true ';
-            if($is_trial)
+            if($is_trial) {
                 $where .= ' and p.is_trial = true ';
-            else
-                $where .= ' and p.is_trial = false ';
-            $where .= $this->__get_search_str($search, $price_low, $price_high, $category, $is_trial);
+                $where .= " and trial_type = {$trial_type} ";
+            } else {
+                $where .= ' and p.is_trial = false';
+            }
+            $where .= $this->__get_search_str($search, $price_low, $price_high, $category, $is_trial, $trial_type);
             $config['total_rows'] = $this->MProduct->intGetProductsCount($where);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
@@ -261,21 +289,23 @@ class Product extends MY_Controller {
                 $this->load->view('product/listpage', $data);
         }else{
             $data = array();
+            $where = ' and p.is_valid = true ';
+            if($is_trial) {
+                $where .= ' and p.is_trial = true ';
+                $where .= " and trial_type = {$trial_type} ";
+            } else {
+                $where .= ' and p.is_trial = false';
+            }
+            $order = '';
             $config['base_url'] = base_url()."product/listpage/";
             if (count($_GET) > 0) $config['suffix'] = '?' . http_build_query($_GET, '', "&");
             $config['first_url'] = $config['base_url'].'?'.http_build_query($_GET);
-            $config['total_rows'] = $this->MProduct->intGetProductsCount(' and p.is_valid = true ');
+            $config['total_rows'] = $this->MProduct->intGetProductsCount($where);
             $config['per_page'] = 30;
             $this->pagination->initialize($config);
             $data['page'] = $this->pagination->create_links();
             $limit = '';
             $limit .= " limit {$config['per_page']} offset {$offset} ";
-            $where = ' and p.is_valid = true ';
-            if($is_trial)
-                $where .= ' and p.is_trial = true ';
-            else
-                $where .= ' and p.is_trial = false ';
-            $order = '';
             $data['products'] = $this->MProduct->objGetProductList($where, $order, $limit);
             $data['level'] = $this->MUser->intGetCurrentUserLevel($this->session->userdata('current_user_id'));
             $this->load->view('templates/header_user', $data);
@@ -291,8 +321,14 @@ class Product extends MY_Controller {
         if($this->session->userdata('role') != 'admin')
             exit('You are not the admin.');
         $is_trial = false;
-        if(@$_GET['is_trial'] == 'true')
+        $trial_type = 0;
+        if(@$_GET['is_trial'] == 'true') {
             $is_trial = true;
+            if(isset($_GET['trial_type']) && intval($_GET['trial_type'] > 0))
+                $trial_type = intval($_GET['trial_type']);
+            if(isset($_POST['trial_type']) && intval($_POST['trial_type'] > 0))
+                $trial_type = intval($_POST['trial_type']);
+        }
         $data = array();
         $data['v'] = $this->MProduct->objGetProductInfo($product_id);
         $config = array(
@@ -405,8 +441,14 @@ class Product extends MY_Controller {
         if($this->session->userdata('role') != 'admin')
             exit('You are not the admin.');
         $is_trial = false;
-        if(@$_GET['is_trial'] == 'true')
+        $trial_type = 0;
+        if(@$_GET['is_trial'] == 'true') {
             $is_trial = true;
+            if(isset($_GET['trial_type']) && intval($_GET['trial_type'] > 0))
+                $trial_type = intval($_GET['trial_type']);
+            if(isset($_POST['trial_type']) && intval($_POST['trial_type'] > 0))
+                $trial_type = intval($_POST['trial_type']);
+        }
         $data = array();
         $data['error'] = $error;
         $config = array(
@@ -522,6 +564,11 @@ class Product extends MY_Controller {
             exit('You are not the admin.');
         $data = array();
         $data['error'] = $error;
+        $trial_type = 0;
+        if(isset($_GET['trial_type']) && intval($_GET['trial_type']) > 0)
+            $trial_type = intval($_GET['trial_type']);
+        if(isset($_POST['trial_type']) && intval($_POST['trial_type']) > 0)
+            $trial_type = intval($_POST['trial_type']);
         $config = array(
             array(
                 'field'   => 'title',
@@ -579,15 +626,16 @@ class Product extends MY_Controller {
                     'weight' => $this->input->post('weight'),
                     'is_valid' => $this->input->post('is_valid'),
                     'price' => $this->input->post('price'),
+                    'trial_type' => $trial_type,
                 );
                 $result = $this->MProduct->trial_add($main_data);
                 if($result){
                     $this->session->set_flashdata('flashdata', '产品添加成功');
-                    redirect('product/trial_add');
+                    redirect('product/trial_add?trial_type='.$trial_type);
                 }
                 else{
                     $this->session->set_flashdata('flashdata', '产品添加失败');
-                    redirect('product/trial_add');
+                    redirect('product/trial_add?trial_type='.$trial_type);
                 }
             }
         }else{
@@ -596,62 +644,51 @@ class Product extends MY_Controller {
         }
     }
 
-    private function __get_search_str($search = '', $price_low = '', $price_high = '', $category = null, $is_trial = false)
+    private function __get_search_str($search = '', $price_low = '', $price_high = '', $category = null, $is_trial = false, $trial_type = 0)
     {
-        if($is_trial)
+        if($is_trial) {
             $where = ' and p.is_trial = true';
-        else
+            $where .= " and p.trial_type = {$trial_type} ";
+        } else {
             $where = ' and p.is_trial = false';
-        if($search != '' && $price_low != '' && $price_high != '' && $is_trial == false)
-        {
+        }
+        if($search != '' && $price_low != '' && $price_high != '' && $is_trial == false) {
             $where .= " and (p.title like '%{$search}%' or p.feature like '%{$search}%' or
                             pr{$this->level}.price::decimal between {$price_low} and {$price_high} )
                             ) ";
-        }elseif($search != '' && $price_low == '' && $price_high == '')
-        {
+        } elseif($search != '' && $price_low == '' && $price_high == '') {
             $where .= " and (p.title like '%{$search}%' or p.feature like '%{$search}%') ";
-        }elseif($search != '' && $price_low != '' && $price_high == '' && $is_trial == false)
-        {
+        } elseif($search != '' && $price_low != '' && $price_high == '' && $is_trial == false) {
             $where .= " and (p.title like '%{$search}%' or p.feature like '%{$search}%' or
                             (cast(pr{$this->level}.price as decimal) > {$price_low} )
                             ) ";
-        }elseif($search != '' && $price_low == '' && $price_high != '' && $is_trial == false)
-        {
+        } elseif($search != '' && $price_low == '' && $price_high != '' && $is_trial == false) {
             $where .= " and (p.title like '%{$search}%' or p.feature like '%{$search}%' or
                             (cast(pr{$this->level}.price as decimal) < {$price_high} )
                             ) ";
-        }elseif($search == '' && $price_low != '' && $price_high != '' && $is_trial == false)
-        {
+        } elseif($search == '' && $price_low != '' && $price_high != '' && $is_trial == false) {
             $where .= " and (cast(pr{$this->level}.price as decimal) between {$price_low} and {$price_high}) ";
-        }elseif($search == '' && $price_low != '' && $price_high == '' && $is_trial == false)
-        {
+        } elseif($search == '' && $price_low != '' && $price_high == '' && $is_trial == false) {
             $where .= " and (cast(pr{$this->level}.price as decimal) > {$price_low} )";
-        }elseif($search == '' && $price_low == '' && $price_high != '' && $is_trial == false)
-        {
+        } elseif($search == '' && $price_low == '' && $price_high != '' && $is_trial == false) {
             $where .= " and (cast(pr{$this->level}.price as decimal) < {$price_high} )";
-        }elseif($search != '' && $price_low != '' && $price_high != '' && $is_trial == true)
-        {
+        } elseif($search != '' && $price_low != '' && $price_high != '' && $is_trial == true) {
             $where .= " and (p.title like '%{$search}%' or p.feature like '%{$search}%' or
                             trial_price::decimal between {$price_low} and {$price_high} )
                             ) ";
-        }elseif($search != '' && $price_low != '' && $price_high == '' && $is_trial == true)
-        {
+        } elseif($search != '' && $price_low != '' && $price_high == '' && $is_trial == true) {
             $where .= " and (p.title like '%{$search}%' or p.feature like '%{$search}%' or
                             trial_price::decimal > {$price_low} )
                             ) ";
-        }elseif($search == '' && $price_low != '' && $price_high != '' && $is_trial == true)
-        {
+        } elseif($search == '' && $price_low != '' && $price_high != '' && $is_trial == true) {
             $where .= " and trial_price::decimal between {$price_low} and {$price_high}) ";
-        }elseif($search == '' && $price_low != '' && $price_high == '' && $is_trial == true)
-        {
+        } elseif($search == '' && $price_low != '' && $price_high == '' && $is_trial == true) {
             $where .= " and trial_price::decimal > {$price_low} )";
-        }elseif($search == '' && $price_low == '' && $price_high != '' && $is_trial == true)
-        {
+        } elseif($search == '' && $price_low == '' && $price_high != '' && $is_trial == true) {
             $where .= " and (cast(trial_price as decimal) < {$price_high} )";
         }
 
-        if($category != null)
-        {
+        if($category != null) {
             $where .= " and p.category = {$category} ";
         }
 

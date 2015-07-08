@@ -459,6 +459,20 @@ function alipay_config()
     return $alipay_config;
 }
 
+function get_trial_type($type)
+{
+    switch(strval($type))
+    {
+        case "event products":
+            $return = 1;
+            break;
+        default:
+            $return = 0;
+            break;
+    }
+    return $return;
+}
+
 /*
 if ( ! function_exists('read_file')) {
 

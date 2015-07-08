@@ -166,13 +166,13 @@ class MProduct extends CI_Model
         $insert_sql_product = "";
         $insert_sql_product .= "
             insert into products
-            (title, properties, feature, usage_method, ingredient, img, is_valid, weight, category, is_trial, trial_price)
-            values (?,?,?,?,?,?,?,?,?, true, ?);
+            (title, properties, feature, usage_method, ingredient, img, is_valid, weight, category, is_trial, trial_price, trial_type)
+            values (?,?,?,?,?,?,?,?,?,true,?,?);
         ";
         $binds_product = array(
             $main_data['title'], $main_data['properties'], $main_data['feature'], $main_data['usage_method'],
             $main_data['ingredient'], $main_data['img'], $main_data['is_valid'], $main_data['weight'], $main_data['category'],
-            $main_data['price'],
+            $main_data['price'], $main_data['trial_type'],
         );
 
         $this->objDB->trans_start();

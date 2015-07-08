@@ -13,6 +13,9 @@
                 <li>
                     <a href='<?=base_url()?>product/listpage?is_trial=true' ><div>试用品列表 </div></a>
                 </li>
+                <li>
+                    <a href='<?=base_url()?>product/listpage?is_trial=true&trial_type=<?=get_trial_type('event products');?>' ><div>活动产品列表 </div></a>
+                </li>
             </ul>
         </div>
     </div>
