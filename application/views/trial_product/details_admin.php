@@ -1,17 +1,3 @@
-<?php if(isset($_GET['trial_type']) && intval($_GET['trial_type']) > 0 ) { $trial_type = intval($_GET['trial_type']); }?>
-<?php
-switch(intval($trial_type))
-{
-    case 0:
-        $type_name = '试用品';
-        break;
-    case 1:
-        $type_name = '活动产品';
-        break;
-    default:
-        break;
-}
-?>
 <div id="container">
 
 
