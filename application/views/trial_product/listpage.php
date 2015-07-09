@@ -39,7 +39,7 @@ switch(intval($trial_type))
 
 
         <div class="info view_form">
-            <h2>产品列表</span></h2>
+            <h2><?=$type_name?>列表</span></h2>
             <script>
                 if("<?=$this->session->flashdata('flashdata', 'value');?>"!="")
                     alert("<?=$this->session->flashdata('flashdata', 'value');?>");
