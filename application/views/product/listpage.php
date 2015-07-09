@@ -192,7 +192,7 @@ switch(intval($trial_type))
 <!-- end: #col4 -->	</div>
 
 <div id="footer">
-    Copyright &copy; <?=date('Y');?> by UNVWEB<br/>
+    Copyright &copy; <?=date('Y');?> by ZENTS<br/>
     All Rights Reserved.<br/>
 </div><!-- footer -->
 </body>

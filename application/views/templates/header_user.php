@@ -117,7 +117,7 @@
 
 
 <div id="header">
-    <div id="logo">远维网络管理系统 </div>
+    <div id="logo">臻芝ERP管理系统 </div>
 
 
     <div id='head_info'>
